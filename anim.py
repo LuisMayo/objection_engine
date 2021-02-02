@@ -17,7 +17,8 @@ import spacy
 from textblob import TextBlob
 import re
 
-nlp = spacy.load("en_core_web_sm")
+nlp = spacy.load("xx_ent_wiki_sm")
+nlp.add_pipe(nlp.create_pipe('sentencizer'))
 
 
 class Location(IntEnum):
