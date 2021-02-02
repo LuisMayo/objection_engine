@@ -698,12 +698,12 @@ def comments_to_scene(comments: List, characters: Dict, **kwargs):
         i = 0
         while i < len(sentences):
             sentence = sentences[i]
-            if len(sentence) > 90:
+            if len(sentence) > 85:
                 text_chunks = [chunk for chunk in wrap(sentence, 85)]
                 joined_sentences = [*joined_sentences, *text_chunks]
                 i += 1
             else:
-                if i + 1 < len(sentences) and len(f"{sentence} {sentences[i+1]}") <= 90: # Maybe we can join two different sentences
+                if i + 1 < len(sentences) and len(f"{sentence} {sentences[i+1]}") <= 85: # Maybe we can join two different sentences
                     joined_sentences.append(sentence + " " + sentences[i+1])
                     i += 2
                 else:
