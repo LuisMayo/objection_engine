@@ -713,9 +713,9 @@ def comments_to_scene(comments: List, characters: Dict, **kwargs):
         character_block = []
         character = inv_characters[comment.author.name]
         main_emotion = random.choice(character_emotions[character]["neutral"])
-        if polarity < 0 or comment.score < 0:
+        if polarity < 0.05 or comment.score < 0:
             main_emotion = random.choice(character_emotions[character]["sad"])
-        elif polarity > 0:
+        elif polarity > 0.05:
             main_emotion = random.choice(character_emotions[character]["happy"])
         for idx, chunk in enumerate(joined_sentences):
             character_block.append(
