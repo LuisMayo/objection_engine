@@ -707,14 +707,12 @@ def comments_to_scene(comments: List, characters: Dict, **kwargs):
     for comment in comments:
         try:
             result = translate_client.translate(comment.body, target_language="en")
-            print(result["translatedText"])
             blob = TextBlob(result["translatedText"])
             polarity = blob.sentiment.polarity
         except Exception as e:
             print(e)
             blob = TextBlob(comment.body)
             polarity = blob.sentiment.polarity
-        print(polarity)
         tokens = nlp(comment.body)
         sentences = [sent.string.strip() for sent in tokens.sents]
         joined_sentences = []
