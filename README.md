@@ -6,6 +6,8 @@ List of users:
 - [Telegram Bot](https://github.com/LuisMayo/ace-attorney-telegram-bot)
 - [Discord Bot](https://github.com/LuisMayo/ace-attorney-discord-bot)
 
+This is a fork of a wonderful [Reddit bot](https://github.com/micah5/ace-attorney-reddit-bot)
+
 Updated bot list
 ### Assets
 
