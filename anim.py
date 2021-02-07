@@ -16,9 +16,14 @@ from textwrap import wrap
 import spacy
 from textblob import TextBlob, exceptions
 import re
+from google.cloud import translate_v2 as translate
 
 nlp = spacy.load("xx_ent_wiki_sm")
 nlp.add_pipe(nlp.create_pipe('sentencizer'))
+try:
+    translate_client = translate.Client()
+except Exception as e:
+    print(e)
 
 
 class Location(IntEnum):
@@ -700,15 +705,16 @@ def comments_to_scene(comments: List, characters: Dict, **kwargs):
     scene = []
     inv_characters = {v: k for k, v in characters.items()}
     for comment in comments:
-        blob = TextBlob(comment.body)
-        if (len(comment.body) >= 3 and blob.detect_language() != 'en'):
-            try:
-                polarity = blob.translate(to='en').sentiment.polarity
-            except exceptions.NotTranslated as e:
-                print(e)
-                polarity = blob.sentiment.polarity
-        else:
+        try:
+            result = translate_client.translate(comment.body, target_language="en")
+            print(result["translatedText"])
+            blob = TextBlob(result["translatedText"])
             polarity = blob.sentiment.polarity
+        except Exception as e:
+            print(e)
+            blob = TextBlob(comment.body)
+            polarity = blob.sentiment.polarity
+        print(polarity)
         tokens = nlp(comment.body)
         sentences = [sent.string.strip() for sent in tokens.sents]
         joined_sentences = []
