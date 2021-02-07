@@ -317,9 +317,15 @@ def do_video(config: List[Dict]):
                     default_path = (
                         f"{_dir}/{current_character_name.lower()}-{default}.gif"
                     )
-                    assert os.path.isfile(
+                if not os.path.isfile(
                         default_path
-                    ), f"{default_path} does not exist"
+                        ):
+                        default_path = (
+                            f"{_dir}/{current_character_name.lower()}-normal(a).gif"
+                        )
+                assert os.path.isfile(
+                    default_path
+                ), f"{default_path} does not exist"
                 default_character = AnimImg(default_path, half_speed=True)
                 if "(a)" in default_path:
                     talking_character = AnimImg(
@@ -336,9 +342,15 @@ def do_video(config: List[Dict]):
                     default_path = (
                         f"{_dir}/{current_character_name.lower()}-{default}.gif"
                     )
-                    assert os.path.isfile(
+                if not os.path.isfile(
                         default_path
-                    ), f"{default_path} does not exist"
+                        ):
+                        default_path = (
+                            f"{_dir}/{current_character_name.lower()}-normal(a).gif"
+                        )
+                assert os.path.isfile(
+                    default_path
+                ), f"{default_path} does not exist"
                 default_character = AnimImg(default_path, half_speed=True)
                 if "(a)" in default_path:
                     talking_character = AnimImg(
