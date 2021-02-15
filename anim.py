@@ -278,7 +278,7 @@ lag_frames = 25
 fps = 18
 
 
-def do_video(config: List[Dict]):
+def do_video(config: List[Dict], output_filename):
     scenes = []
     sound_effects = []
     for scene in config:
@@ -502,11 +502,11 @@ def do_video(config: List[Dict]):
                 sound_effects.append({"_type": "silence", "length": _length})
                 current_frame += _length
     video = AnimVideo(scenes, fps=fps)
-    video.render("test.mp4")
+    video.render(output_filename)
     return sound_effects
 
 
-def do_audio(sound_effects: List[Dict]):
+def do_audio(sound_effects: List[Dict], output_filename):
     audio_se = AudioSegment.empty()
     bip = AudioSegment.from_wav(
         "assets/sfx general/sfx-blipmale.wav"
@@ -558,14 +558,16 @@ def do_audio(sound_effects: List[Dict]):
     #     music_se = AudioSegment.from_mp3(sound_effects[0]["src"])[:len(audio_se)]
     #     music_se -= 5
     final_se = music_se.overlay(audio_se)
-    final_se.export("final_se.mp3", format="mp3")
+    final_se.export(output_filename, format="mp3")
 
 
 def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4"):
-    sound_effects = do_video(config)
-    do_audio(sound_effects)
-    video = ffmpeg.input("test.mp4")
-    audio = ffmpeg.input("final_se.mp3")
+    video_filename = output_filename + '.video.mp4'
+    audio_filename = output_filename + '.audio.mp3'
+    sound_effects = do_video(config, video_filename)
+    do_audio(sound_effects, audio_filename)
+    video = ffmpeg.input(video_filename)
+    audio = ffmpeg.input(audio_filename)
     if os.path.exists(output_filename):
         os.remove(output_filename)
     out = ffmpeg.output(
@@ -577,6 +579,10 @@ def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4"):
         strict="experimental",
     )
     out.run()
+    if os.path.exists(video_filename):
+        os.remove(video_filename)
+    if os.path.exists(audio_filename):
+        os.remove(audio_filename)
 
 
 character_location_map = {
