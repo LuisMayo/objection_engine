@@ -30,6 +30,7 @@ comments = [
     MockRedditComment('k', 'k', score=-1),
     MockRedditComment('l', 'l', score=-1),
     MockRedditComment('m', 'm', score=-1),
+    MockRedditComment('n', 'n', score=-1),
     MockRedditComment('n', 'n', score=-1)
-]
+]  *  6
 anim.comments_to_scene(comments, characters, output_filename="hello.mp4")
