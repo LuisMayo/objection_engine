@@ -20,10 +20,13 @@ from google.cloud import translate_v2 as translate
 
 nlp = spacy.load("xx_ent_wiki_sm")
 nlp.add_pipe(nlp.create_pipe('sentencizer'))
+
+official_api = True
 try:
     translate_client = translate.Client()
 except Exception as e:
-    print(e)
+    print('Warning! Translator couldn\'t be initialized, fallbacking to unofficial translation engine: ' + str(e))
+    official_api = False
 
 
 class Location(IntEnum):
@@ -712,13 +715,15 @@ def comments_to_scene(comments: List, characters: Dict, **kwargs):
     inv_characters = {v: k for k, v in characters.items()}
     for comment in comments:
         try:
-            result = translate_client.translate(comment.body, target_language="en")
-            blob = TextBlob(result["translatedText"])
-            polarity = blob.sentiment.polarity
+            if (official_api):
+                result = translate_client.translate(comment.body, target_language="en")
+                blob = TextBlob(result["translatedText"])
+            else: 
+                blob = TextBlob(comment.body).translate()
         except Exception as e:
             print(e)
             blob = TextBlob(comment.body)
-            polarity = blob.sentiment.polarity
+        polarity = blob.sentiment.polarity
         tokens = nlp(comment.body)
         sentences = [sent.string.strip() for sent in tokens.sents]
         joined_sentences = []

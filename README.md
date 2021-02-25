@@ -15,6 +15,9 @@ This is a fork of a wonderful [Reddit bot](https://github.com/micah5/ace-attorne
  - Python 3
  - Ace Attorney data. Download it [here](https://drive.google.com/drive/folders/1jNpnB3pjHFvOyrfZ-WxlOXNaZ-XH4INx?usp=sharing) and put them in `./assets/`
  - FFMPEG instalation. In most Linux distros it should be available in the default package manager, although it may have some caveats (check note below). In Windows systems it'd include downloading a [pre-compiled zip folder](https://ffmpeg.org/download.html#build-windows), extracting it and adding the /bin folder into the [system path](https://helpdeskgeek.com/windows-10/add-windows-path-environment-variable/)
+
+#### Optional
+ - [Google Translation API Credentials](https://cloud.google.com/translate/docs/setup): These are needed for language support other than English. Other languages may work even without this credentials as the system will fallback to TextBlob's translation system.
  
 ### Installing
 
