@@ -20,6 +20,8 @@ comments = [
     MockRedditComment('a', 'Hello as I am the most common I will be Phoenix'),
     MockRedditComment('b', 'wassup I\'m edgyboy'),
     MockRedditComment('c', 'I\'m someone random and I\'m angry', score=-1),
+    MockRedditComment('c', 'Bonjour, je m\'appelle Louis', score=-1),
+    MockRedditComment('c', ':(', score=-1),
     MockRedditComment('d', 'd', score=-1),
     MockRedditComment('e', 'e', score=-1),
     MockRedditComment('f', 'f', score=-1),

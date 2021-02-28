@@ -17,6 +17,7 @@ import spacy
 from textblob import TextBlob, exceptions
 import re
 from google.cloud import translate_v2 as translate
+from langdetect import detect
 
 nlp = spacy.load("xx_ent_wiki_sm")
 nlp.add_pipe(nlp.create_pipe('sentencizer'))
@@ -715,11 +716,15 @@ def comments_to_scene(comments: List, characters: Dict, **kwargs):
     inv_characters = {v: k for k, v in characters.items()}
     for comment in comments:
         try:
-            if (official_api):
-                result = translate_client.translate(comment.body, target_language="en")
-                blob = TextBlob(result["translatedText"])
-            else: 
-                blob = TextBlob(comment.body).translate()
+            # We don't need to translate if we are already in english
+            if (detect(comment.body) == 'en'):
+                blob = TextBlob(comment.body)
+            else:
+                if (official_api):
+                    result = translate_client.translate(comment.body, target_language="en")
+                    blob = TextBlob(result["translatedText"])
+                else: 
+                    blob = TextBlob(comment.body).translate()
         except Exception as e:
             print(e)
             blob = TextBlob(comment.body)
