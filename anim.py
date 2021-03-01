@@ -712,12 +712,17 @@ def get_characters(most_common: List):
 
 
 def comments_to_scene(comments: List, characters: Dict, **kwargs):
+    global language_counter
+    if ('language_counter' not in globals()):
+        language_counter = Counter()
     scene = []
     inv_characters = {v: k for k, v in characters.items()}
     for comment in comments:
         try:
             # We don't need to translate if we are already in english
-            if (detect(comment.body) == 'en'):
+            detected_lang = detect(comment.body)
+            language_counter.update({detected_lang: 1})
+            if (detected_lang == 'en'):
                 blob = TextBlob(comment.body)
             else:
                 if (official_api):
@@ -769,6 +774,7 @@ def comments_to_scene(comments: List, characters: Dict, **kwargs):
                 }
             )
         scene.append(character_block)
+    print(language_counter)
     formatted_scenes = []
     last_audio = "03 - Turnabout Courtroom - Trial"
     change_audio = True
