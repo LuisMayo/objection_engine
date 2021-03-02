@@ -711,7 +711,6 @@ def comments_to_scene(comments: List, characters: Dict, **kwargs):
     inv_characters = {v: k for k, v in characters.items()}
     for comment in comments:
         polarity = analizer.get_sentiment(comment.body)
-        print(polarity)
         tokens = nlp(comment.body)
         sentences = [sent.string.strip() for sent in tokens.sents]
         joined_sentences = []
@@ -746,6 +745,7 @@ def comments_to_scene(comments: List, characters: Dict, **kwargs):
                         polarity == '-'
                         or comment.score < 0
                         or re.search("objection", comment.body, re.IGNORECASE)
+                        or (polarity == '+' and random.random() > 0.81)
                     )
                     and idx == 0,
                     "emotion": main_emotion,

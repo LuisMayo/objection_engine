@@ -27,12 +27,12 @@ comments = [
     MockRedditComment('f', 'Te odio, no me encuentro bien'),
     MockRedditComment('g', 'Estoy triste'),
     MockRedditComment('h', 'sono triste'),
-    MockRedditComment('i', 'i'),
-    MockRedditComment('j', 'j'),
-    MockRedditComment('k', 'k'),
-    MockRedditComment('l', 'l'),
-    MockRedditComment('m', 'm'),
-    MockRedditComment('n', 'n'),
-    MockRedditComment('n', 'n')
+    MockRedditComment('i', 'im so happy'),
+    MockRedditComment('j', 'im so happy'),
+    MockRedditComment('k', 'im so happy'),
+    MockRedditComment('l', 'im so happy'),
+    MockRedditComment('m', 'im so happy'),
+    MockRedditComment('n', 'im so happy'),
+    MockRedditComment('n', 'im so happy')
 ]  *  1
 anim.comments_to_scene(comments, characters, output_filename="hello.mp4")
