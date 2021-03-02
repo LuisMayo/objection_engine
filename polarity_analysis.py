@@ -28,7 +28,7 @@ class Analizer:
                     language = 'google'
 
             self.language_counter.update({language: 1})
-            print(self.language_counter)
+            # print(self.language_counter)
             
             if (language == 'en'):
                 return self.proccess_eng(text)
@@ -67,7 +67,6 @@ class Analizer:
 
     def process_poly(self, text):
         poly_text = Text(text)
-        print(poly_text.polarity)
         if (poly_text.polarity > 0.35):
             return '+'
         # If polarity is -1 there isn't enough information to determine if it's negative therefore we introduce randomness
