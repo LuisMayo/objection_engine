@@ -49,7 +49,7 @@ class Analizer:
 
     def process_google(self, text):
         print('Google!')
-        if (official_api):
+        if (self.official_api):
             result = translate_client.translate(comment.body, target_language="en")
             return self.proccess_eng(result["translatedText"])
         else: 
