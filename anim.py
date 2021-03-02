@@ -14,20 +14,15 @@ from collections import Counter
 import random
 from textwrap import wrap
 import spacy
-from textblob import TextBlob, exceptions
+from polarity_analysis import Analizer
+analizer = Analizer()
+
 import re
-from google.cloud import translate_v2 as translate
-from langdetect import detect
 
 nlp = spacy.load("xx_ent_wiki_sm")
 nlp.add_pipe(nlp.create_pipe('sentencizer'))
 
-official_api = True
-try:
-    translate_client = translate.Client()
-except Exception as e:
-    print('Warning! Translator couldn\'t be initialized, fallbacking to unofficial translation engine: ' + str(e))
-    official_api = False
+
 
 
 class Location(IntEnum):
@@ -718,22 +713,7 @@ def comments_to_scene(comments: List, characters: Dict, **kwargs):
     scene = []
     inv_characters = {v: k for k, v in characters.items()}
     for comment in comments:
-        try:
-            # We don't need to translate if we are already in english
-            detected_lang = detect(comment.body)
-            language_counter.update({detected_lang: 1})
-            if (detected_lang == 'en'):
-                blob = TextBlob(comment.body)
-            else:
-                if (official_api):
-                    result = translate_client.translate(comment.body, target_language="en")
-                    blob = TextBlob(result["translatedText"])
-                else: 
-                    blob = TextBlob(comment.body).translate()
-        except Exception as e:
-            print(e)
-            blob = TextBlob(comment.body)
-        polarity = blob.sentiment.polarity
+        polarity = analizer.get_sentiment(comment.body)
         tokens = nlp(comment.body)
         sentences = [sent.string.strip() for sent in tokens.sents]
         joined_sentences = []
@@ -754,9 +734,9 @@ def comments_to_scene(comments: List, characters: Dict, **kwargs):
         character_block = []
         character = inv_characters[comment.author.name]
         main_emotion = random.choice(character_emotions[character]["neutral"])
-        if polarity < 0.05 or comment.score < 0:
+        if polarity == '-' or comment.score < 0:
             main_emotion = random.choice(character_emotions[character]["sad"])
-        elif polarity > 0.05:
+        elif polarity == '+':
             main_emotion = random.choice(character_emotions[character]["happy"])
         for idx, chunk in enumerate(joined_sentences):
             character_block.append(
@@ -765,7 +745,7 @@ def comments_to_scene(comments: List, characters: Dict, **kwargs):
                     "name": comment.author.name,
                     "text": chunk,
                     "objection": (
-                        polarity < 0
+                        polarity == '-'
                         or comment.score < 0
                         or re.search("objection", comment.body, re.IGNORECASE)
                     )
