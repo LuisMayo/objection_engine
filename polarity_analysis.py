@@ -4,6 +4,7 @@ from polyglot.detect.base import UnknownLanguage
 from polyglot.text import Text
 from textblob import TextBlob
 from collections import Counter
+import random
 
 class Analizer:
     def __init__(self):
@@ -66,9 +67,11 @@ class Analizer:
 
     def process_poly(self, text):
         poly_text = Text(text)
+        print(poly_text.polarity)
         if (poly_text.polarity > 0.2):
             return '+'
-        if (poly_text.polarity < -0.2):
+        # If polarity is -1 there isn't enough information to determine if it's negative therefore we introduce randomness
+        if (poly_text.polarity < -0.2 and (poly_text.polarity > -1 or random.random() > 0.39)):
             return '-'
         return 'N'
 
