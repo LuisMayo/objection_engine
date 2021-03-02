@@ -16,6 +16,7 @@ from textwrap import wrap
 import spacy
 from polarity_analysis import Analizer
 analizer = Analizer()
+from memory_profiler import profile
 
 import re
 
@@ -215,8 +216,9 @@ class AnimScene:
 class AnimVideo:
     def __init__(self, scenes: List[AnimScene], fps: int = 10):
         self.scenes = scenes
+        print(len(scenes))
         self.fps = fps
-
+    # @profile
     def render(self, output_path: str = None):
         if output_path is None:
             if not os.path.exists("tmp"):
@@ -276,10 +278,11 @@ character_map = {
 lag_frames = 25
 fps = 18
 
-
+# @profile
 def do_video(config: List[Dict], output_filename):
     scenes = []
     sound_effects = []
+    part = 0
     for scene in config:
         bg = AnimImg(location_map[scene["location"]])
         arrow = AnimImg("assets/arrow.png", x=235, y=170, w=15, h=15, key_x=5)
@@ -500,10 +503,16 @@ def do_video(config: List[Dict], output_filename):
                 character.repeat = True
                 sound_effects.append({"_type": "silence", "length": _length})
                 current_frame += _length
-    video = AnimVideo(scenes, fps=fps)
-    video.render(output_filename)
-    return sound_effects
+            if (len(scenes) > 5):
+                video = AnimVideo(scenes, fps=fps)
+                video.render(output_filename + '/' +str(part) + '.mp4')
+                part+=1
+                scenes = []
 
+    # TODO IT MAY BE ZERO
+    video = AnimVideo(scenes, fps=fps)
+    video.render(output_filename + '/' +str(part) + '.mp4')
+    return sound_effects
 
 def do_audio(sound_effects: List[Dict], output_filename):
     audio_se = AudioSegment.empty()
@@ -559,18 +568,22 @@ def do_audio(sound_effects: List[Dict], output_filename):
     final_se = music_se.overlay(audio_se)
     final_se.export(output_filename, format="mp3")
 
-
 def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4"):
-    video_filename = output_filename + '.video.mp4'
+    video_filename = output_filename[:-4]
     audio_filename = output_filename + '.audio.mp3'
+    os.mkdir(video_filename)
     sound_effects = do_video(config, video_filename)
     do_audio(sound_effects, audio_filename)
-    video = ffmpeg.input(video_filename)
+    videos = []
+    for file in os.listdir(video_filename):
+        videos.append(file)
+    video = ffmpeg.input(video_filename + '/*.mp4')
     audio = ffmpeg.input(audio_filename)
+    print(videos)
     if os.path.exists(output_filename):
         os.remove(output_filename)
     out = ffmpeg.output(
-        video,
+        *videos,
         audio,
         output_filename,
         vcodec="copy",
