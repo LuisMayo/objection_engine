@@ -68,10 +68,10 @@ class Analizer:
     def process_poly(self, text):
         poly_text = Text(text)
         print(poly_text.polarity)
-        if (poly_text.polarity > 0.2):
+        if (poly_text.polarity > 0.35):
             return '+'
         # If polarity is -1 there isn't enough information to determine if it's negative therefore we introduce randomness
-        if (poly_text.polarity < -0.2 and (poly_text.polarity > -1 or random.random() > 0.39)):
+        if (poly_text.polarity < -0.35 and (poly_text.polarity > -1 or random.random() > 0.39)):
             return '-'
         return 'N'
 
