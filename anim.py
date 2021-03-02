@@ -707,9 +707,6 @@ def get_characters(most_common: List):
 
 
 def comments_to_scene(comments: List, characters: Dict, **kwargs):
-    global language_counter
-    if ('language_counter' not in globals()):
-        language_counter = Counter()
     scene = []
     inv_characters = {v: k for k, v in characters.items()}
     for comment in comments:
@@ -754,7 +751,6 @@ def comments_to_scene(comments: List, characters: Dict, **kwargs):
                 }
             )
         scene.append(character_block)
-    print(language_counter)
     formatted_scenes = []
     last_audio = "03 - Turnabout Courtroom - Trial"
     change_audio = True
