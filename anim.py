@@ -5,6 +5,7 @@ import cv2
 from typing import List, Dict
 import random
 import os
+import shutil
 import random as r
 from pydub import AudioSegment
 import moviepy.editor as mpe
@@ -576,8 +577,8 @@ def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4"):
     do_audio(sound_effects, audio_filename)
     videos = []
     for file in os.listdir(video_filename):
-        videos.append(file)
-    video = ffmpeg.input(video_filename + '/*.mp4')
+        videos.append(ffmpeg.input(video_filename + '/' + file))
+    videos.sort(key=lambda item : int(item.node.short_repr[:-4]))
     audio = ffmpeg.input(audio_filename)
     print(videos)
     if os.path.exists(output_filename):
@@ -591,8 +592,8 @@ def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4"):
         strict="experimental",
     )
     out.run()
-    if os.path.exists(video_filename):
-        os.remove(video_filename)
+    # if os.path.exists(video_filename):
+    #     shutil.rmtree(video_filename)
     if os.path.exists(audio_filename):
         os.remove(audio_filename)
 
