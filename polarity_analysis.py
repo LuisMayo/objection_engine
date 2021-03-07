@@ -50,10 +50,10 @@ class Analizer:
 
     def process_google(self, text):
         if (self.official_api):
-            result = self.translate_client.translate(comment.body, target_language="en")
+            result = self.translate_client.translate(text, target_language="en")
             return self.proccess_eng(result["translatedText"])
         else: 
-            return self.proccess_eng(str(TextBlob(comment.body).translate()))
+            return self.proccess_eng(str(TextBlob(text).translate()))
         
 
     
