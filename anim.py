@@ -511,8 +511,9 @@ def do_video(config: List[Dict], output_filename):
                 scenes = []
 
     # TODO IT MAY BE ZERO
-    video = AnimVideo(scenes, fps=fps)
-    video.render(output_filename + '/' +str(part) + '.mp4')
+    if (len(scenes) > 0):
+        video = AnimVideo(scenes, fps=fps)
+        video.render(output_filename + '/' +str(part) + '.mp4')
     return sound_effects
 
 def do_audio(sound_effects: List[Dict], output_filename):
