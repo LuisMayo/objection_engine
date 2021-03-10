@@ -571,30 +571,38 @@ def do_audio(sound_effects: List[Dict], output_filename):
     final_se.export(output_filename, format="mp3")
 
 def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4"):
-    video_filename = output_filename[:-4]
+    root_filename = output_filename[:-4]
     audio_filename = output_filename + '.audio.mp3'
-    os.mkdir(video_filename)
-    sound_effects = do_video(config, video_filename)
+    text_filename = root_filename + '.txt'
+    if os.path.exists(root_filename):
+        shutil.rmtree(root_filename)
+    os.mkdir(root_filename)
+    sound_effects = do_video(config, root_filename)
     do_audio(sound_effects, audio_filename)
     videos = []
-    for file in os.listdir(video_filename):
-        videos.append(ffmpeg.input(video_filename + '/' + file))
-    videos.sort(key=lambda item : int(item.node.short_repr[:-4]))
+    with open(text_filename, 'w') as txt:
+        for file in os.listdir(root_filename):
+            videos.append(file)
+        videos.sort(key=lambda item : int(item[:-4]))
+        for video in videos:
+            txt.write('file ' + root_filename + '/' +video + '\n')
+    textInput = ffmpeg.input(text_filename, format='concat')
     audio = ffmpeg.input(audio_filename)
-    print(videos)
     if os.path.exists(output_filename):
         os.remove(output_filename)
     out = ffmpeg.output(
-        *videos,
+        textInput,
         audio,
         output_filename,
         vcodec="copy",
         acodec="aac",
-        strict="experimental",
+        strict="experimental"
     )
     out.run()
-    # if os.path.exists(video_filename):
-    #     shutil.rmtree(video_filename)
+    if os.path.exists(root_filename):
+        shutil.rmtree(root_filename)
+    if os.path.exists(text_filename):
+        os.remove(text_filename)
     if os.path.exists(audio_filename):
         os.remove(audio_filename)
 
