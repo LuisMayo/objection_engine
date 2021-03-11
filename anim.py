@@ -5,6 +5,7 @@ import cv2
 from typing import List, Dict
 import random
 import os
+import shutil
 import random as r
 from pydub import AudioSegment
 import moviepy.editor as mpe
@@ -16,6 +17,7 @@ from textwrap import wrap
 import spacy
 from polarity_analysis import Analizer
 analizer = Analizer()
+from memory_profiler import profile
 
 import re
 
@@ -215,8 +217,9 @@ class AnimScene:
 class AnimVideo:
     def __init__(self, scenes: List[AnimScene], fps: int = 10):
         self.scenes = scenes
+        print(len(scenes))
         self.fps = fps
-
+    # @profile
     def render(self, output_path: str = None):
         if output_path is None:
             if not os.path.exists("tmp"):
@@ -276,10 +279,11 @@ character_map = {
 lag_frames = 25
 fps = 18
 
-
+# @profile
 def do_video(config: List[Dict], output_filename):
     scenes = []
     sound_effects = []
+    part = 0
     for scene in config:
         bg = AnimImg(location_map[scene["location"]])
         arrow = AnimImg("assets/arrow.png", x=235, y=170, w=15, h=15, key_x=5)
@@ -500,10 +504,17 @@ def do_video(config: List[Dict], output_filename):
                 character.repeat = True
                 sound_effects.append({"_type": "silence", "length": _length})
                 current_frame += _length
-    video = AnimVideo(scenes, fps=fps)
-    video.render(output_filename)
-    return sound_effects
+            if (len(scenes) > 50):
+                video = AnimVideo(scenes, fps=fps)
+                video.render(output_filename + '/' +str(part) + '.mp4')
+                part+=1
+                scenes = []
 
+    # TODO IT MAY BE ZERO
+    if (len(scenes) > 0):
+        video = AnimVideo(scenes, fps=fps)
+        video.render(output_filename + '/' +str(part) + '.mp4')
+    return sound_effects
 
 def do_audio(sound_effects: List[Dict], output_filename):
     audio_se = AudioSegment.empty()
@@ -559,27 +570,39 @@ def do_audio(sound_effects: List[Dict], output_filename):
     final_se = music_se.overlay(audio_se)
     final_se.export(output_filename, format="mp3")
 
-
 def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4"):
-    video_filename = output_filename + '.video.mp4'
+    root_filename = output_filename[:-4]
     audio_filename = output_filename + '.audio.mp3'
-    sound_effects = do_video(config, video_filename)
+    text_filename = root_filename + '.txt'
+    if os.path.exists(root_filename):
+        shutil.rmtree(root_filename)
+    os.mkdir(root_filename)
+    sound_effects = do_video(config, root_filename)
     do_audio(sound_effects, audio_filename)
-    video = ffmpeg.input(video_filename)
+    videos = []
+    with open(text_filename, 'w') as txt:
+        for file in os.listdir(root_filename):
+            videos.append(file)
+        videos.sort(key=lambda item : int(item[:-4]))
+        for video in videos:
+            txt.write('file ' + root_filename + '/' +video + '\n')
+    textInput = ffmpeg.input(text_filename, format='concat')
     audio = ffmpeg.input(audio_filename)
     if os.path.exists(output_filename):
         os.remove(output_filename)
     out = ffmpeg.output(
-        video,
+        textInput,
         audio,
         output_filename,
         vcodec="copy",
         acodec="aac",
-        strict="experimental",
+        strict="experimental"
     )
     out.run()
-    if os.path.exists(video_filename):
-        os.remove(video_filename)
+    if os.path.exists(root_filename):
+        shutil.rmtree(root_filename)
+    if os.path.exists(text_filename):
+        os.remove(text_filename)
     if os.path.exists(audio_filename):
         os.remove(audio_filename)
 
