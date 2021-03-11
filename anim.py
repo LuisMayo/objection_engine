@@ -504,7 +504,7 @@ def do_video(config: List[Dict], output_filename):
                 character.repeat = True
                 sound_effects.append({"_type": "silence", "length": _length})
                 current_frame += _length
-            if (len(scenes) > 5):
+            if (len(scenes) > 50):
                 video = AnimVideo(scenes, fps=fps)
                 video.render(output_filename + '/' +str(part) + '.mp4')
                 part+=1
