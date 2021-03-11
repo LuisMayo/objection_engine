@@ -17,7 +17,6 @@ from textwrap import wrap
 import spacy
 from polarity_analysis import Analizer
 analizer = Analizer()
-from memory_profiler import profile
 from ilock import ILock
 
 import re
