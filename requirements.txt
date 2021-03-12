@@ -2,7 +2,6 @@ cython
 spaw
 Pillow
 matplotlib
-opencv-python
 pydub
 moviepy
 ffmpeg-python
