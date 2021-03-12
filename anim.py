@@ -796,13 +796,16 @@ def comments_to_scene(comments: List, characters: Dict, name_music = "PWR", **kw
             if name_music == 'PWR':
                 if last_audio != "08 - Pressing Pursuit _ Cornered":
                     last_audio = "08 - Pressing Pursuit _ Cornered"
+                    change_audio = True
             elif name_music == 'JFA':
                 if last_audio != "Phoenix Wright Ace Attorney_ Justice for All OST - Pressing Pursuit _ Cross-Examine":
                     last_audio = "Phoenix Wright Ace Attorney_ Justice for All OST - Pressing Pursuit _ Cross-Examine"
+                    change_audio = True
             else:
                 if last_audio != "Phoenix Wright_ Trials and Tribulations OST - Pressing Pursuit _ Caught":
                     last_audio = "Phoenix Wright_ Trials and Tribulations OST - Pressing Pursuit _ Caught"
-            change_audio = True
+                    change_audio = True
+            
         for obj in character_block:
             scene_objs.append(
                 {
