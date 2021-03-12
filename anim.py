@@ -17,8 +17,6 @@ from textwrap import wrap
 import spacy
 from polarity_analysis import Analizer
 analizer = Analizer()
-from ilock import ILock
-
 import re
 
 nlp = spacy.load("xx_ent_wiki_sm")
@@ -577,8 +575,7 @@ def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4"):
     if os.path.exists(root_filename):
         shutil.rmtree(root_filename)
     os.mkdir(root_filename)
-    with ILock('aa-render'):
-        sound_effects = do_video(config, root_filename)
+    sound_effects = do_video(config, root_filename)
     do_audio(sound_effects, audio_filename)
     videos = []
     with open(text_filename, 'w') as txt:
