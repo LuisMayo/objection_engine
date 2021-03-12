@@ -730,7 +730,7 @@ def get_characters(most_common: List):
     return characters
 
 
-def comments_to_scene(comments: List, characters: Dict, **kwargs, name_music):
+def comments_to_scene(comments: List, characters: Dict, name_music = "PWR", **kwargs):
     scene = []
     inv_characters = {v: k for k, v in characters.items()}
     for comment in comments:
