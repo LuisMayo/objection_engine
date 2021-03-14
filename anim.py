@@ -727,7 +727,7 @@ def get_characters(most_common: List):
     return characters
 
 
-def comments_to_scene(comments: List, characters: Dict, **kwargs):
+def comments_to_scene(comments: List, characters: Dict, name_music = "PWR", **kwargs):
     scene = []
     inv_characters = {v: k for k, v in characters.items()}
     for comment in comments:
@@ -774,7 +774,12 @@ def comments_to_scene(comments: List, characters: Dict, **kwargs):
             )
         scene.append(character_block)
     formatted_scenes = []
-    last_audio = "03 - Turnabout Courtroom - Trial"
+    if name_music == 'PWR':
+        last_audio = "03 - Turnabout Courtroom - Trial"
+    elif name_music == 'JFA':
+        last_audio = "Phoenix Wright Ace Attorney_ Justice for All OST - Trial"
+    else:
+        last_audio = "Phoenix Wright_ Trials and Tribulations OST - Trial"
     change_audio = True
     for character_block in scene:
         scene_objs = []
@@ -785,9 +790,19 @@ def comments_to_scene(comments: List, characters: Dict, **kwargs):
                     "action": Action.OBJECTION,
                 }
             )
-            if last_audio != "08 - Pressing Pursuit _ Cornered":
-                last_audio = "08 - Pressing Pursuit _ Cornered"
-                change_audio = True
+            if name_music == 'PWR':
+                if last_audio != "08 - Pressing Pursuit _ Cornered":
+                    last_audio = "08 - Pressing Pursuit _ Cornered"
+                    change_audio = True
+            elif name_music == 'JFA':
+                if last_audio != "Phoenix Wright Ace Attorney_ Justice for All OST - Pressing Pursuit _ Cross-Examine":
+                    last_audio = "Phoenix Wright Ace Attorney_ Justice for All OST - Pressing Pursuit _ Cross-Examine"
+                    change_audio = True
+            else:
+                if last_audio != "Phoenix Wright_ Trials and Tribulations OST - Pressing Pursuit _ Caught":
+                    last_audio = "Phoenix Wright_ Trials and Tribulations OST - Pressing Pursuit _ Caught"
+                    change_audio = True
+            
         for obj in character_block:
             scene_objs.append(
                 {
