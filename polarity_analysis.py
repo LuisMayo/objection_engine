@@ -1,7 +1,12 @@
+polyglot_available = True
 from google.cloud import translate_v2 as translate
-from polyglot.detect import Detector
-from polyglot.detect.base import UnknownLanguage
-from polyglot.text import Text
+try:
+    from polyglot.detect import Detector
+    from polyglot.detect.base import UnknownLanguage
+    from polyglot.text import Text
+except Exception as e:
+    print("Warning! Polyglot couldn't start: " + str(e))
+    polyglot_available = False
 from textblob import TextBlob
 from collections import Counter
 import random
@@ -19,13 +24,13 @@ class Analizer:
     def get_sentiment(self, text):
         try:
             try:
-                detector = Detector(text)
-                language = detector.language.code
-            except UnknownLanguage:
-                if (len(text) <=2):
-                    language = 'en'
+                if (polyglot_available):
+                    detector = Detector(text)
+                    language = detector.language.code
                 else:
-                    language = 'google'
+                    language = self.detect_language_heuristic(text)
+            except UnknownLanguage:
+                language = self.detect_language_heuristic(text)
 
             self.language_counter.update({language: 1})
             # print(self.language_counter)
@@ -74,3 +79,9 @@ class Analizer:
             return '-'
         return 'N'
 
+    def detect_language_heuristic(self, text):
+        if (len(text) <=2):
+            language = 'en'
+        else:
+            language = 'google'
+        return language
