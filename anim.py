@@ -756,6 +756,7 @@ def comments_to_scene(comments: List, characters: Dict, name_music = "PWR", **kw
             main_emotion = random.choice(character_emotions[character]["sad"])
         elif polarity == '+':
             main_emotion = random.choice(character_emotions[character]["happy"])
+        # For each sentence we temporaly store it in character_block
         for idx, chunk in enumerate(joined_sentences):
             character_block.append(
                 {
@@ -804,6 +805,7 @@ def comments_to_scene(comments: List, characters: Dict, name_music = "PWR", **kw
                     change_audio = True
             
         for obj in character_block:
+            # We insert the data in the character block in the definitive scene object
             scene_objs.append(
                 {
                     "character": obj["character"],
