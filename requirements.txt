@@ -15,4 +15,3 @@ google-cloud-translate==2.0.1
 pyICU
 pycld2
 morfessor
-polyglot 

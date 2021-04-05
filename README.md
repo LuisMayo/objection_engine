@@ -26,13 +26,18 @@ Clone the repository
 ```
 git clone https://github.com/LuisMayo/ace-attorney-bot
 ```
-Install dependencies (in case any problems are ecnountered please check faq.md)
+Install dependencies (in case any problems are encountered please check faq.md)
 ``` bash
 python -m pip install -r requirements.txt
 ```
 
-Install packages required for language support outside English:
-`python -m polygot download TASK:sentiment2`
+Install OpenCV if you are on Windows (if you're on Linux and you don't have a working installation check faq.md)
+`pip install opencv-python`
+
+In case you want language support outside English install polyglot:
+(if on windows check faq.md)
+`pip install polyglot`
+`python -m polyglot download TASK:sentiment2`
 
 Check the exmaple
 `python example.py`
