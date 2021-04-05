@@ -508,7 +508,6 @@ def do_video(config: List[Dict], output_filename):
                 part+=1
                 scenes = []
 
-    # TODO IT MAY BE ZERO
     if (len(scenes) > 0):
         video = AnimVideo(scenes, fps=fps)
         video.render(output_filename + '/' +str(part) + '.mp4')
