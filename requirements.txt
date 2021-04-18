@@ -11,7 +11,3 @@ praw
 tinydb
 https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-2.3.0/xx_ent_wiki_sm-2.3.0.tar.gz 
 google-cloud-translate==2.0.1
-# Polyglot dependencies
-pyICU
-pycld2
-morfessor
