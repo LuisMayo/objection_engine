@@ -316,7 +316,10 @@ def do_video(config: List[Dict], output_filename):
         for obj in scene["scene"]:
             # First we check for evidences
             if "evidence" in obj:
-                evidence = AnimImg(obj["evidence"], x=145, y=19, w=85, maxh=75)
+                if scene["location"] == Location.COURTROOM_RIGHT:
+                    evidence = AnimImg(obj["evidence"], x=26, y=19, w=85, maxh=75)
+                else:
+                    evidence = AnimImg(obj["evidence"], x=145, y=19, w=85, maxh=75)
             else:
                 evidence = None
             if "character" in obj:
