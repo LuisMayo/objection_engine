@@ -84,9 +84,13 @@ class AnimImg:
         shake_effect: bool = False,
         half_speed: bool = False,
         repeat: bool = True,
+        maxw: int = None,
+        maxh: int = None
     ):
         self.x = x
         self.y = y
+        self.maxw = maxw
+        self.maxh = maxh
         self.path = path
         img = Image.open(path, "r")
         if img.format == "GIF" and img.is_animated:
@@ -124,10 +128,16 @@ class AnimImg:
             if w is not None:
                 w_perc = w / float(frame.size[0])
                 _h = int((float(frame.size[1]) * float(w_perc)))
+                # We resize only up to a given height
+                if self.maxh is not None and _h > self.maxh:
+                    _h = self.maxh
                 return frame.resize((w, _h), Image.ANTIALIAS)
             if h is not None:
                 h_perc = h / float(frame.size[1])
                 _w = int((float(frame.size[0]) * float(h_perc)))
+                # We resize only up to a given width
+                if self.maxw is not None and _w > self.maxw:
+                    _w = self.maxw
                 return frame.resize((_w, h), Image.ANTIALIAS)
         return frame
 
@@ -283,11 +293,13 @@ def do_video(config: List[Dict], output_filename):
     sound_effects = []
     part = 0
     for scene in config:
+        # We pick up the images to be rendered
         bg = AnimImg(location_map[scene["location"]])
         arrow = AnimImg("assets/arrow.png", x=235, y=170, w=15, h=15, key_x=5)
         textbox = AnimImg("assets/textbox4.png", w=bg.w)
         objection = AnimImg("assets/objection.gif")
         bench = None
+        # Location needs a more in-depth chose
         if scene["location"] == Location.COURTROOM_LEFT:
             bench = AnimImg("assets/logo-left.png")
         elif scene["location"] == Location.COURTROOM_RIGHT:
@@ -302,6 +314,14 @@ def do_video(config: List[Dict], output_filename):
         text = None
         #         print('scene', scene)
         for obj in scene["scene"]:
+            # First we check for evidences
+            if "evidence" in obj and obj['evidence'] is not None:
+                if scene["location"] == Location.COURTROOM_RIGHT:
+                    evidence = AnimImg(obj["evidence"], x=26, y=19, w=85, maxh=75)
+                else:
+                    evidence = AnimImg(obj["evidence"], x=145, y=19, w=85, maxh=75)
+            else:
+                evidence = None
             if "character" in obj:
                 _dir = character_map[obj["character"]]
                 current_character_name = str(obj["character"])
@@ -399,7 +419,7 @@ def do_video(config: List[Dict], output_filename):
                 scene_objs = list(
                     filter(
                         lambda x: x is not None,
-                        [bg, character, bench, textbox, _character_name, text],
+                        [bg, character, bench, textbox, _character_name, text, evidence],
                     )
                 )
                 scenes.append(
@@ -417,7 +437,7 @@ def do_video(config: List[Dict], output_filename):
                 scene_objs = list(
                     filter(
                         lambda x: x is not None,
-                        [bg, character, bench, textbox, _character_name, text, arrow],
+                        [bg, character, bench, textbox, _character_name, text, arrow, evidence],
                     )
                 )
                 scenes.append(
@@ -445,6 +465,7 @@ def do_video(config: List[Dict], output_filename):
                                 character_name,
                                 text,
                                 arrow,
+                                evidence,
                             ],
                         )
                     )
@@ -491,7 +512,7 @@ def do_video(config: List[Dict], output_filename):
                 # list(filter(lambda x: x is not None, scene_objs))
                 character = default_character
                 scene_objs = list(
-                    filter(lambda x: x is not None, [bg, character, bench])
+                    filter(lambda x: x is not None, [bg, character, bench, evidence])
                 )
                 _length = lag_frames
                 if "length" in obj:
@@ -770,6 +791,7 @@ def comments_to_scene(comments: List, characters: Dict, name_music = "PWR", **kw
                     )
                     and idx == 0,
                     "emotion": main_emotion,
+                    "evidence": comment.evidence if hasattr(comment, "evidence") else None
                 }
             )
         scene.append(character_block)
@@ -812,8 +834,10 @@ def comments_to_scene(comments: List, characters: Dict, name_music = "PWR", **kw
                     "emotion": obj["emotion"],
                     "text": obj["text"],
                     "name": obj["name"],
+                    "evidence": obj["evidence"]
                 }
             )
+        # One scene may have several sub-scenes. I.e: A scene may have an objection followed by text
         formatted_scene = {
             "location": character_location_map[character_block[0]["character"]],
             "scene": scene_objs,
