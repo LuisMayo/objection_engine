@@ -12,7 +12,6 @@ class MockRedditComment:
         self.author = MockRedditAuthor(username)
         self.body = text
         self.score = score
-        self.evidence = "evidence_test.png"
 
 
 most_common = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'] # usernames in order of freq
