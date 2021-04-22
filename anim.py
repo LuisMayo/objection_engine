@@ -315,7 +315,7 @@ def do_video(config: List[Dict], output_filename):
         #         print('scene', scene)
         for obj in scene["scene"]:
             # First we check for evidences
-            if "evidence" in obj and obj.evidence is not None:
+            if "evidence" in obj and obj['evidence'] is not None:
                 if scene["location"] == Location.COURTROOM_RIGHT:
                     evidence = AnimImg(obj["evidence"], x=26, y=19, w=85, maxh=75)
                 else:
