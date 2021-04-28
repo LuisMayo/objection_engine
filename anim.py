@@ -225,7 +225,6 @@ class AnimScene:
 class AnimVideo:
     def __init__(self, scenes: List[AnimScene], fps: int = 10):
         self.scenes = scenes
-        print(len(scenes))
         self.fps = fps
     # @profile
     def render(self, output_path: str = None):
