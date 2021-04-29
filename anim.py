@@ -17,233 +17,16 @@ from textwrap import wrap
 import spacy
 from polarity_analysis import Analizer
 analizer = Analizer()
+from beans.img import AnimImg
+from beans.text import AnimText
+from beans.scene import AnimScene
+from beans.video import AnimVideo
+from constants import Character, lag_frames, fps
+import constants
 import re
 
 nlp = spacy.load("xx_ent_wiki_sm")
 nlp.add_pipe(nlp.create_pipe('sentencizer'))
-
-
-
-
-class Location(IntEnum):
-    COURTROOM_LEFT = 1
-    WITNESS_STAND = 2
-    COURTROOM_RIGHT = 3
-    CO_COUNCIL = 4
-    JUDGE_STAND = 5
-    COURT_HOUSE = 6
-
-
-class Character(IntEnum):
-    PHOENIX = 1
-    EDGEWORTH = 2
-    GODOT = 3
-    FRANZISKA = 4
-    JUDGE = 5
-    LARRY = 6
-    MAYA = 7
-    KARMA = 8
-    PAYNE = 9
-    MAGGEY = 10
-    PEARL = 11
-    LOTTA = 12
-    GUMSHOE = 13
-    GROSSBERG = 14
-
-    def __str__(self):
-        return str(self.name).capitalize()
-
-
-class Action(IntEnum):
-    TEXT = 1
-    SHAKE_EFFECT = 2
-    OBJECTION = 3
-    TEXT_SHAKE_EFFECT = 4
-
-
-def add_margin(pil_img, top, right, bottom, left):
-    width, height = pil_img.size
-    new_width = width + right + left
-    new_height = height + top + bottom
-    result = Image.new(pil_img.mode, (new_width, new_height), (0, 0, 0, 0))
-    result.paste(pil_img, (left, top))
-    return result
-
-
-class AnimImg:
-    def __init__(
-        self,
-        path: str,
-        *,
-        x: int = 0,
-        y: int = 0,
-        w: int = None,
-        h: int = None,
-        key_x: int = None,
-        key_x_reverse: bool = True,
-        shake_effect: bool = False,
-        half_speed: bool = False,
-        repeat: bool = True,
-        maxw: int = None,
-        maxh: int = None
-    ):
-        self.x = x
-        self.y = y
-        self.maxw = maxw
-        self.maxh = maxh
-        self.path = path
-        img = Image.open(path, "r")
-        if img.format == "GIF" and img.is_animated:
-            self.frames = []
-            for idx in range(img.n_frames):
-                img.seek(idx)
-                self.frames.append(self.resize(img, w=w, h=h).convert("RGBA"))
-        elif key_x is not None:
-            self.frames = []
-            for x_pad in range(key_x):
-                self.frames.append(
-                    add_margin(
-                        self.resize(img, w=w, h=h).convert("RGBA"), 0, 0, 0, x_pad
-                    )
-                )
-            if key_x_reverse:
-                for x_pad in reversed(range(key_x)):
-                    self.frames.append(
-                        add_margin(
-                            self.resize(img, w=w, h=h).convert("RGBA"), 0, 0, 0, x_pad
-                        )
-                    )
-        else:
-            self.frames = [self.resize(img, w=w, h=h).convert("RGBA")]
-        self.w = self.frames[0].size[0]
-        self.h = self.frames[0].size[1]
-        self.shake_effect = shake_effect
-        self.half_speed = half_speed
-        self.repeat = repeat
-
-    def resize(self, frame, *, w: int = None, h: int = None):
-        if w is not None and h is not None:
-            return frame.resize((w, h))
-        else:
-            if w is not None:
-                w_perc = w / float(frame.size[0])
-                _h = int((float(frame.size[1]) * float(w_perc)))
-                # We resize only up to a given height
-                if self.maxh is not None and _h > self.maxh:
-                    _h = self.maxh
-                return frame.resize((w, _h), Image.ANTIALIAS)
-            if h is not None:
-                h_perc = h / float(frame.size[1])
-                _w = int((float(frame.size[0]) * float(h_perc)))
-                # We resize only up to a given width
-                if self.maxw is not None and _w > self.maxw:
-                    _w = self.maxw
-                return frame.resize((_w, h), Image.ANTIALIAS)
-        return frame
-
-    def render(self, background: Image = None, frame: int = 0):
-        if frame > len(self.frames) - 1:
-            if self.repeat:
-                frame = frame % len(self.frames)
-            else:
-                frame = len(self.frames) - 1
-        if self.half_speed and self.repeat:
-            frame = int(frame / 2)
-        _img = self.frames[frame]
-        if background is None:
-            _w, _h = _img.size
-            _background = Image.new("RGBA", (_w, _h), (255, 255, 255, 255))
-        else:
-            _background = background
-        bg_w, bg_h = _background.size
-        offset = (self.x, self.y)
-        if self.shake_effect:
-            offset = (self.x + r.randint(-1, 1), self.y + r.randint(-1, 1))
-        _background.paste(_img, offset, mask=_img)
-        if background is None:
-            return _background
-
-    def __str__(self):
-        return self.path
-
-
-class AnimText:
-    def __init__(
-        self,
-        text: str,
-        *,
-        x: int = 0,
-        y: int = 0,
-        font_path: str = None,
-        font_size: int = 12,
-        typewriter_effect: bool = False,
-        colour: str = "#ffffff",
-    ):
-        self.x = x
-        self.y = y
-        self.text = text
-        self.typewriter_effect = typewriter_effect
-        self.font_path = font_path
-        self.font_size = font_size
-        self.colour = colour
-
-    def render(self, background: Image, frame: int = 0):
-        draw = ImageDraw.Draw(background)
-        _text = self.text
-        if self.typewriter_effect:
-            _text = _text[:frame]
-        if self.font_path is not None:
-            font = ImageFont.truetype(self.font_path, self.font_size)
-            draw.text((self.x, self.y), _text, font=font, fill=self.colour)
-        else:
-            draw.text((self.x, self.y), _text, fill=self.colour)
-        return background
-
-    def __str__(self):
-        return self.text
-
-
-class AnimScene:
-    def __init__(self, arr: List, length: int, start_frame: int = 0):
-        self.frames = []
-        text_idx = 0
-        #         print([str(x) for x in arr])
-        for idx in range(start_frame, length + start_frame):
-            if isinstance(arr[0], AnimImg):
-                background = arr[0].render()
-            else:
-                background = arr[0]
-            for obj in arr[1:]:
-                if isinstance(obj, AnimText):
-                    obj.render(background, frame=text_idx)
-                else:
-                    obj.render(background, frame=idx)
-            self.frames.append(background)
-            text_idx += 1
-
-
-class AnimVideo:
-    def __init__(self, scenes: List[AnimScene], fps: int = 10):
-        self.scenes = scenes
-        print(len(scenes))
-        self.fps = fps
-    # @profile
-    def render(self, output_path: str = None):
-        if output_path is None:
-            if not os.path.exists("tmp"):
-                os.makedirs("tmp")
-            rnd_hash = random.getrandbits(64)
-            output_path = f"tmp/{rnd_hash}.mp4"
-        fourcc = cv2.VideoWriter_fourcc(*"avc1")
-        background = self.scenes[0].frames[0]
-        if os.path.isfile(output_path):
-            os.remove(output_path)
-        video = cv2.VideoWriter(output_path, fourcc, self.fps, background.size)
-        for scene in self.scenes:
-            for frame in scene.frames:
-                video.write(cv2.cvtColor(np.array(frame), cv2.COLOR_RGB2BGR))
-        video.release()
-        return output_path
 
 
 def split_str_into_newlines(text: str, max_line_count: int = 34):
@@ -258,35 +41,6 @@ def split_str_into_newlines(text: str, max_line_count: int = 34):
     return new_text
 
 
-location_map = {
-    Location.COURTROOM_LEFT: "assets/defenseempty.png",
-    Location.WITNESS_STAND: "assets/witnessempty.png",
-    Location.COURTROOM_RIGHT: "assets/prosecutorempty.png",
-    Location.CO_COUNCIL: "assets/helperstand.png",
-    Location.JUDGE_STAND: "assets/judgestand.png",
-    Location.COURT_HOUSE: "assets/courtroomoverview.png",
-}
-
-character_map = {
-    Character.PHOENIX: "assets/Sprites-phoenix",
-    Character.EDGEWORTH: "assets/Sprites-edgeworth",
-    Character.GODOT: "assets/Sprites-Godot",
-    Character.FRANZISKA: "assets/Sprites-franziska",
-    Character.JUDGE: "assets/Sprites-judge",
-    Character.LARRY: "assets/Sprites-larry",
-    Character.MAYA: "assets/Sprites-maya",
-    Character.KARMA: "assets/Sprites-karma",
-    Character.PAYNE: "assets/Sprites-payne",
-    Character.MAGGEY: "assets/Sprites-Maggey",
-    Character.PEARL: "assets/Sprites-Pearl",
-    Character.LOTTA: "assets/Sprites-lotta",
-    Character.GUMSHOE: "assets/Sprites-gumshoe",
-    Character.GROSSBERG: "assets/Sprites-grossberg",
-}
-
-lag_frames = 25
-fps = 18
-
 # @profile
 def do_video(config: List[Dict], output_filename):
     scenes = []
@@ -294,17 +48,17 @@ def do_video(config: List[Dict], output_filename):
     part = 0
     for scene in config:
         # We pick up the images to be rendered
-        bg = AnimImg(location_map[scene["location"]])
+        bg = AnimImg(constants.location_map[scene["location"]])
         arrow = AnimImg("assets/arrow.png", x=235, y=170, w=15, h=15, key_x=5)
         textbox = AnimImg("assets/textbox4.png", w=bg.w)
         objection = AnimImg("assets/objection.gif")
         bench = None
-        # Location needs a more in-depth chose
-        if scene["location"] == Location.COURTROOM_LEFT:
+        # constants.Location needs a more in-depth chose
+        if scene["location"] == constants.Location.COURTROOM_LEFT:
             bench = AnimImg("assets/logo-left.png")
-        elif scene["location"] == Location.COURTROOM_RIGHT:
+        elif scene["location"] == constants.Location.COURTROOM_RIGHT:
             bench = AnimImg("assets/logo-right.png")
-        elif scene["location"] == Location.WITNESS_STAND:
+        elif scene["location"] == constants.Location.WITNESS_STAND:
             bench = AnimImg("assets/witness_stand.png", w=bg.w)
             bench.y = bg.h - bench.h
         if "audio" in scene:
@@ -316,15 +70,15 @@ def do_video(config: List[Dict], output_filename):
         for obj in scene["scene"]:
             # First we check for evidences
             if "evidence" in obj and obj['evidence'] is not None:
-                if scene["location"] == Location.COURTROOM_RIGHT:
+                if scene["location"] == constants.Location.COURTROOM_RIGHT:
                     evidence = AnimImg(obj["evidence"], x=26, y=19, w=85, maxh=75)
                 else:
                     evidence = AnimImg(obj["evidence"], x=145, y=19, w=85, maxh=75)
             else:
                 evidence = None
             if "character" in obj:
-                _dir = character_map[obj["character"]]
-                current_character_name = str(obj["character"])
+                _dir = constants.character_map[obj["character"]]
+                current_character_name = obj["character"]
                 #                 print('character change', current_character_name)
                 #                 if current_character_name == "Larry":
                 #                     current_character_name = "The Player"
@@ -385,8 +139,8 @@ def do_video(config: List[Dict], output_filename):
                 else:
                     talking_character = AnimImg(default_path, half_speed=True)
             if "action" in obj and (
-                obj["action"] == Action.TEXT
-                or obj["action"] == Action.TEXT_SHAKE_EFFECT
+                obj["action"] == constants.Action.TEXT
+                or obj["action"] == constants.Action.TEXT_SHAKE_EFFECT
             ):
                 character = talking_character
                 _text = split_str_into_newlines(obj["text"])
@@ -410,7 +164,7 @@ def do_video(config: List[Dict], output_filename):
                         x=4,
                         y=113,
                     )
-                if obj["action"] == Action.TEXT_SHAKE_EFFECT:
+                if obj["action"] == constants.Action.TEXT_SHAKE_EFFECT:
                     bg.shake_effect = True
                     character.shake_effect = True
                     if bench is not None:
@@ -426,7 +180,7 @@ def do_video(config: List[Dict], output_filename):
                     AnimScene(scene_objs, len(_text) - 1, start_frame=current_frame)
                 )
                 sound_effects.append({"_type": "bip", "length": len(_text) - 1})
-                if obj["action"] == Action.TEXT_SHAKE_EFFECT:
+                if obj["action"] == constants.Action.TEXT_SHAKE_EFFECT:
                     bg.shake_effect = False
                     character.shake_effect = False
                     if bench is not None:
@@ -445,7 +199,7 @@ def do_video(config: List[Dict], output_filename):
                 )
                 current_frame += num_frames
                 sound_effects.append({"_type": "silence", "length": lag_frames})
-            elif "action" in obj and obj["action"] == Action.SHAKE_EFFECT:
+            elif "action" in obj and obj["action"] == constants.Action.SHAKE_EFFECT:
                 bg.shake_effect = True
                 character.shake_effect = True
                 if bench is not None:
@@ -481,7 +235,7 @@ def do_video(config: List[Dict], output_filename):
                 if bench is not None:
                     bench.shake_effect = False
                 textbox.shake_effect = False
-            elif "action" in obj and obj["action"] == Action.OBJECTION:
+            elif "action" in obj and obj["action"] == constants.Action.OBJECTION:
                 #                 bg.shake_effect = True
                 #                 character.shake_effect = True
                 #                 if bench is not None:
@@ -625,97 +379,6 @@ def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4"):
         os.remove(audio_filename)
 
 
-character_location_map = {
-    Character.PHOENIX: Location.COURTROOM_LEFT,
-    Character.EDGEWORTH: Location.COURTROOM_RIGHT,
-    Character.GODOT: Location.COURTROOM_RIGHT,
-    Character.FRANZISKA: Location.COURTROOM_RIGHT,
-    Character.JUDGE: Location.JUDGE_STAND,
-    Character.LARRY: Location.WITNESS_STAND,
-    Character.MAYA: Location.CO_COUNCIL,
-    Character.KARMA: Location.COURTROOM_RIGHT,
-    Character.PAYNE: Location.COURTROOM_RIGHT,
-    Character.MAGGEY: Location.WITNESS_STAND,
-    Character.PEARL: Location.WITNESS_STAND,
-    Character.LOTTA: Location.WITNESS_STAND,
-    Character.GUMSHOE: Location.WITNESS_STAND,
-    Character.GROSSBERG: Location.WITNESS_STAND,
-}
-
-character_emotions = {
-    Character.EDGEWORTH: {
-        "happy": ["confident", "pointing", "smirk"],
-        "neutral": ["document", "normal", "thinking"],
-        "sad": ["handondesk"],
-    },
-    Character.PHOENIX: {
-        "happy": ["confident", "pointing", "handsondesk"],
-        "neutral": ["document", "normal", "thinking", "coffee"],
-        "sad": ["emo", "sheepish", "sweating"],
-    },
-    Character.MAYA: {
-        "happy": ["bench"],
-        "neutral": ["bench-hum", "bench-profile"],
-        "sad": ["bench-strict", "bench-ugh"],
-    },
-    Character.LARRY: {
-        "happy": ["hello"],
-        "neutral": ["normal"],
-        "sad": ["extra", "mad", "nervous"],
-    },
-    Character.GODOT: {
-        "happy": ["normal"],
-        "neutral": ["normal"],
-        "sad": ["steams", "pointing"],
-    },
-    Character.FRANZISKA: {
-        "happy": ["ha"],
-        "neutral": ["ready"],
-        "sad": ["mad", "sweating", "withwhip"],
-    },
-    Character.JUDGE: {
-        "happy": ["nodding"],
-        "neutral": ["normal"],
-        "sad": ["headshake", "warning"],
-    },
-    Character.KARMA: {
-        "happy": ["smirk", "snap"],
-        "neutral": ["normal"],
-        "sad": ["badmood", "break", "sweat"],
-    },
-    Character.PAYNE: {
-        "happy": ["confident"],
-        "neutral": ["normal"],
-        "sad": ["sweating"],
-    },
-    Character.MAGGEY: {
-        "happy": ["pumped", "shining"],
-        "neutral": ["normal"],
-        "sad": ["sad"],
-    },
-    Character.PEARL: {
-        "happy": ["sparkle", "surprised"],
-        "neutral": ["normal", "shy", "thinking"],
-        "sad": ["cries", "disappointed", "fight"],
-    },
-    Character.LOTTA: {
-        "happy": ["confident", "smiling"],
-        "neutral": ["normal", "shy", "thinking"],
-        "sad": ["badmood", "disappointed", "mad"],
-    },
-    Character.GUMSHOE: {
-        "happy": ["laughing", "confident", "pumped"],
-        "neutral": ["normal", "shy", "side", "thinking"],
-        "sad": ["disheartened", "mad"],
-    },
-    Character.GROSSBERG: {
-        "happy": ["normal"],
-        "neutral": ["normal"],
-        "sad": ["sweating"],
-    },
-}
-
-
 def get_characters(most_common: List):
     characters = {Character.PHOENIX: most_common[0]}
     if len(most_common) > 0:
@@ -771,11 +434,11 @@ def comments_to_scene(comments: List, characters: Dict, name_music = "PWR", **kw
                     i += 1
         character_block = []
         character = inv_characters[comment.author.name]
-        main_emotion = random.choice(character_emotions[character]["neutral"])
+        main_emotion = random.choice(constants.character_emotions[character]["neutral"])
         if polarity == '-' or comment.score < 0:
-            main_emotion = random.choice(character_emotions[character]["sad"])
+            main_emotion = random.choice(constants.character_emotions[character]["sad"])
         elif polarity == '+':
-            main_emotion = random.choice(character_emotions[character]["happy"])
+            main_emotion = random.choice(constants.character_emotions[character]["happy"])
         # For each sentence we temporaly store it in character_block
         for idx, chunk in enumerate(joined_sentences):
             character_block.append(
@@ -809,7 +472,7 @@ def comments_to_scene(comments: List, characters: Dict, name_music = "PWR", **kw
             scene_objs.append(
                 {
                     "character": character_block[0]["character"],
-                    "action": Action.OBJECTION,
+                    "action": constants.Action.OBJECTION,
                 }
             )
             if name_music == 'PWR':
@@ -830,7 +493,7 @@ def comments_to_scene(comments: List, characters: Dict, name_music = "PWR", **kw
             scene_objs.append(
                 {
                     "character": obj["character"],
-                    "action": Action.TEXT,
+                    "action": constants.Action.TEXT,
                     "emotion": obj["emotion"],
                     "text": obj["text"],
                     "name": obj["name"],
@@ -839,7 +502,7 @@ def comments_to_scene(comments: List, characters: Dict, name_music = "PWR", **kw
             )
         # One scene may have several sub-scenes. I.e: A scene may have an objection followed by text
         formatted_scene = {
-            "location": character_location_map[character_block[0]["character"]],
+            "location": constants.character_location_map[character_block[0]["character"]],
             "scene": scene_objs,
         }
         if change_audio:
