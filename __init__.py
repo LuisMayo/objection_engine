@@ -1,0 +1,2 @@
+from ace_attorney_bot.beans import comment
+import ace_attorney_bot.anim
