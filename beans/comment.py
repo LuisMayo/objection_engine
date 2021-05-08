@@ -1,7 +1,7 @@
 class Comment:
     def __init__(self,
-    user_id: str,
-    evidence_path: str,
+    user_id: str = None,
+    evidence_path: str = None,
     user_name = 'Prosecutor',
     text_content = '...',
     score = 0
