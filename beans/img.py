@@ -23,9 +23,13 @@ class AnimImg:
         shake_effect: bool = False,
         half_speed: bool = False,
         repeat: bool = True,
+        maxw: int = None,
+        maxh: int = None
     ):
         self.x = x
         self.y = y
+        self.maxw = maxw
+        self.maxh = maxh
         self.path = path
         img = Image.open(path, "r")
         if img.format == "GIF" and img.is_animated:
@@ -63,10 +67,16 @@ class AnimImg:
             if w is not None:
                 w_perc = w / float(frame.size[0])
                 _h = int((float(frame.size[1]) * float(w_perc)))
+                # We resize only up to a given height
+                if self.maxh is not None and _h > self.maxh:
+                    _h = self.maxh
                 return frame.resize((w, _h), Image.ANTIALIAS)
             if h is not None:
                 h_perc = h / float(frame.size[1])
                 _w = int((float(frame.size[0]) * float(h_perc)))
+                # We resize only up to a given width
+                if self.maxw is not None and _w > self.maxw:
+                    _w = self.maxw
                 return frame.resize((_w, h), Image.ANTIALIAS)
         return frame
 

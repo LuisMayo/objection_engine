@@ -19,4 +19,3 @@ class AnimScene:
                     obj.render(background, frame=idx)
             self.frames.append(background)
             text_idx += 1
-
