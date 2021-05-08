@@ -46,6 +46,26 @@ Check the exmaple
 `python example.py`
 
 ### Using it as a library
+ - Add it as a library with 
+`git submodule add https://github.com/LuisMayo/objection_engine.git`
+
+ - Import it into your python file
+``` python
+import sys
+sys.path.append('objection_engine/')
+import objection_engine
+```
+ - Create a list of comments
+``` python
+foo = [objection_engine.comment.Comment(), objection_engine.comment.Comment(text_content='Second comment',  user_name="Second user")]
+```
+ - Render the list
+``` python
+objection_engine.renderer.render_comment_list(foo)
+```
+For a list of arguments to the class and method check both https://github.com/LuisMayo/objection_engine/blob/main/renderer.py and https://github.com/LuisMayo/objection_engine/blob/main/beans/comment.py
+
+There is a complete example in https://github.com/LuisMayo/objection-engine-testing
 
 ## Contributing
 Since this is a tiny project we don't have strict rules about contributions. Just open a Pull Request to fix any of the project issues or any improvement you have percieved on your own. Any contributions which improve or fix the project will be accepted as long as they don't deviate too much from the project objectives. If you have doubts about whether the PR would be accepted or not you can open an issue before coding to ask for my opinion
