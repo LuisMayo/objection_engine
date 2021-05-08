@@ -1,4 +1,4 @@
-## Ace Attorney Court renderer 👨🏼‍⚖️
+## Objection! rendering engine 👨🏼‍⚖️
 
 Code that allows you to convert chains of comments into ace attorney scenes. It's meant to be used by bots or other apps.
 List of users:
