@@ -24,7 +24,7 @@ This is a fork of a wonderful [Reddit bot](https://github.com/micah5/ace-attorne
 Clone the repository
 
 ```
-git clone https://github.com/LuisMayo/ace-attorney-bot
+git clone https://github.com/LuisMayo/objection_engine
 ```
 Install dependencies (in case any problems are encountered please check faq.md)
 ``` bash
