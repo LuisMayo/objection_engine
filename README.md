@@ -34,7 +34,7 @@ python -m pip install -r requirements.txt
 Install OpenCV if you are on Windows (if you're on Linux and you don't have a working installation check faq.md)
 `pip install opencv-python`
 
-In case you want language support outside English install polyglot and its dependencies:
+(optional) In case you want language support outside English install polyglot and its dependencies:
 (if on windows check faq.md)
 
 ```bash
