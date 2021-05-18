@@ -19,3 +19,4 @@ class Comment:
         self.text_content = text_content
         self.score = score
         self.evidence_path = evidence_path
+        self.effective_id = self.user_id or self.user_name

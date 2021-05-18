@@ -18,3 +18,7 @@ def render_comment_list(comment_list: List[Comment], output_filename = 'hello.mp
     if (output_filename[-4:] != '.mp4'):
         output_filename += '.mp4'
     return anim.comments_to_scene(thread, characters, name_music = music_code, output_filename=output_filename)
+
+
+def get_characters(common: Counter):
+    
