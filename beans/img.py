@@ -24,7 +24,8 @@ class AnimImg:
         half_speed: bool = False,
         repeat: bool = True,
         maxw: int = None,
-        maxh: int = None
+        maxh: int = None,
+        multiplier: int = 1
     ):
         self.x = x
         self.y = y
@@ -54,8 +55,8 @@ class AnimImg:
                     )
         else:
             self.frames = [self.resize(img, w=w, h=h).convert("RGBA")]
-        self.w = self.frames[0].size[0]
-        self.h = self.frames[0].size[1]
+        self.w = self.frames[0].size[0] * multiplier
+        self.h = self.frames[0].size[1] * multiplier
         self.shake_effect = shake_effect
         self.half_speed = half_speed
         self.repeat = repeat
