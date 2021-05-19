@@ -8,6 +8,7 @@ class CommentBridge:
     self.body = comment.text_content
     self.score = comment.score
     self.evidence = comment.evidence_path
+    self.character = comment.character
 
 class Author:
     def __init__(self, name):
