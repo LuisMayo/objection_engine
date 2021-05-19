@@ -1,3 +1,4 @@
+from beans.comment_bridge import CommentBridge
 from PIL import Image, ImageDraw, ImageFont
 from matplotlib.pyplot import imshow
 import numpy as np
@@ -410,9 +411,8 @@ def get_characters(most_common: List):
     return characters
 
 
-def comments_to_scene(comments: List, characters: Dict, name_music = "PWR", **kwargs):
+def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwargs):
     scene = []
-    inv_characters = {v: k for k, v in characters.items()}
     for comment in comments:
         polarity = analizer.get_sentiment(comment.body)
         tokens = nlp(comment.body)
@@ -433,7 +433,7 @@ def comments_to_scene(comments: List, characters: Dict, name_music = "PWR", **kw
                     joined_sentences.append(sentence)
                     i += 1
         character_block = []
-        character = inv_characters[comment.author.name]
+        character = comment.character
         main_emotion = random.choice(constants.character_emotions[character]["neutral"])
         if polarity == '-' or comment.score < 0:
             main_emotion = random.choice(constants.character_emotions[character]["sad"])
