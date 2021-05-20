@@ -54,6 +54,9 @@ Check the exmaple
 import sys
 sys.path.append('objection_engine/')
 import objection_engine
+# You can also import the components like this
+from objection_engine.renderer import render_comment_list
+from objection_engine.beans.comment import Comment
 ```
  - Create a list of comments
 ``` python
