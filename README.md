@@ -13,7 +13,6 @@ This is a fork of a wonderful [Reddit bot](https://github.com/micah5/ace-attorne
 ### Prerequisites
 
  - Python 3
- - Ace Attorney data. Download it [here](https://drive.google.com/drive/folders/1jNpnB3pjHFvOyrfZ-WxlOXNaZ-XH4INx?usp=sharing) and put them in `./assets/`
  - FFMPEG instalation. In most Linux distros it should be available in the default package manager, although it may have some caveats (more info on faq.md). In Windows systems it'd include downloading a [pre-compiled zip folder](https://ffmpeg.org/download.html#build-windows), extracting it and adding the /bin folder into the [system path](https://helpdeskgeek.com/windows-10/add-windows-path-environment-variable/)
 
 #### Optional
