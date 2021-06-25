@@ -3,6 +3,7 @@ from beans import scene
 import cv2
 import os
 import numpy as np
+import random
 
 class AnimVideo:
     def __init__(self, scenes: List[scene.AnimScene], fps: int = 10):
@@ -15,7 +16,8 @@ class AnimVideo:
                 os.makedirs("tmp")
             rnd_hash = random.getrandbits(64)
             output_path = f"tmp/{rnd_hash}.mp4"
-        fourcc = cv2.VideoWriter_fourcc(*"avc1")
+        
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         background = self.scenes[0].frames[0]
         if os.path.isfile(output_path):
             os.remove(output_path)
