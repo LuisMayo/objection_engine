@@ -12,8 +12,8 @@ This is a fork of a wonderful [Reddit bot](https://github.com/micah5/ace-attorne
 
 ### Prerequisites
 
- - Python 3
- - FFMPEG instalation. In most Linux distros it should be available in the default package manager, although it may have some caveats (more info on faq.md). In Windows systems it'd include downloading a [pre-compiled zip folder](https://ffmpeg.org/download.html#build-windows), extracting it and adding the /bin folder into the [system path](https://helpdeskgeek.com/windows-10/add-windows-path-environment-variable/)
+ - Python 3 with pip
+ - FFMPEG instalation. In most Linux distros it should be available in the default package manager. In Windows systems it'd include downloading a [pre-compiled zip folder](https://ffmpeg.org/download.html#build-windows), extracting it and adding the /bin folder into the [system path](https://helpdeskgeek.com/windows-10/add-windows-path-environment-variable/)
 
 #### Optional
  - [Google Translation API Credentials](https://cloud.google.com/translate/docs/setup): These are needed for language support other than English. Other languages may work even without this credentials as the system will fallback to TextBlob's translation system.
@@ -29,9 +29,6 @@ Install dependencies (in case any problems are encountered please check faq.md)
 ``` bash
 python -m pip install -r requirements.txt
 ```
-
-Install OpenCV if you are on Windows (if you're on Linux and you don't have a working installation check faq.md)
-`pip install opencv-python`
 
 (optional) In case you want language support outside English install polyglot and its dependencies:
 (if on windows check faq.md)
