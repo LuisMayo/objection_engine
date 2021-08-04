@@ -367,7 +367,7 @@ def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4"):
         textInput,
         audio,
         output_filename,
-        vcodec="copy",
+        vcodec="libx264",
         acodec="aac",
         strict="experimental"
     )
