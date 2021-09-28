@@ -2,7 +2,19 @@ from PIL import Image, ImageDraw, ImageFont
 from fontTools.ttLib import TTFont
 
 class AnimText:
-    font_array = ['./assets/igiari/Igiari.ttf', './assets/igiari/STANRG__.ttf']
+    font_array = [
+        # AA-Like > Pixel > Generic
+        # AA-like, Latin, hiragana, katakana, (part of) cyrillic
+        './assets/igiari/Igiari.ttf',
+        # Pixel, Kanji, Hiragana, Katakana
+        './assets/igiari/jackeyfont.ttf',
+        # Pixel font, Arabic
+        './assets/igiari/bitsy-font-with-arabic.ttf',
+        # Pixel-font, Hebrew
+        './assets/igiari/STANRG__.ttf',
+        # Generic
+        './assets/igiari/NotoSans-Regular.ttf'
+    ]
     def __init__(
         self,
         text: str,
@@ -39,7 +51,7 @@ class AnimText:
             if self._check_font(font_path):
                 return font_path
         print('WARNING. NO SUITABLE FONT FOUND')
-        return self.font_array[0]
+        return self.font_array[-1]
 
     def _check_font(self, font_path):
         font = TTFont(font_path)
