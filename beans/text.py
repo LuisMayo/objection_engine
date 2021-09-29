@@ -1,3 +1,4 @@
+from typing import Dict
 from PIL import Image, ImageDraw, ImageFont
 from fontTools.ttLib import TTFont
 
@@ -5,15 +6,15 @@ class AnimText:
     font_array = [
         # AA-Like > Pixel > Generic
         # AA-like, Latin, hiragana, katakana, (part of) cyrillic
-        # './assets/igiari/Igiari.ttf',
+        {'path': './assets/igiari/Igiari.ttf'},
         # Pixel, Kanji, Hiragana, Katakana
-        # './assets/igiari/jackeyfont.ttf',
+        {'path':'./assets/igiari/jackeyfont.ttf'},
         # Pixel font, Arabic
-        './assets/igiari/bitsy-font-with-arabic.ttf',
+        {'path':'./assets/igiari/bitsy-font-with-arabic.ttf', 'size': 8},
         # Pixel-font, Hebrew
-        # './assets/igiari/STANRG__.ttf',
+        {'path':'./assets/igiari/STANRG__.ttf'},
         # Generic
-        # './assets/igiari/NotoSans-Regular.ttf'
+        {'path':'./assets/igiari/NotoSans-Regular.ttf'}
     ]
     def __init__(
         self,
@@ -29,9 +30,14 @@ class AnimText:
         self.x = x
         self.y = y
         self.text = text
+        # Used for font handling internals
+        self._internal_text = text.replace('\n', '').replace('\r', '').replace('\t', '')
         self.typewriter_effect = typewriter_effect
-        self.font_path = self._select_best_font()
         self.font_size = font_size
+        self.font = self._select_best_font()
+        self.font_path = self.font['path']
+        if ('size' in self.font):
+            self.font_size = self.font['size']
         self.colour = colour
 
     def render(self, background: Image, frame: int = 0):
@@ -47,25 +53,30 @@ class AnimText:
         return background
 
     def _select_best_font(self):
-        for font_path in self.font_array:
-            if self._check_font(font_path):
-                return font_path
-        print('WARNING. NO SUITABLE FONT FOUND')
-        return self.font_array[-1]
+        best_font = self.font_array[-1]
+        best_font_points = 0
+        for font in self.font_array:
+            font_points = self._check_font(font)
+            if font_points > best_font_points:
+                best_font_points = font_points
+                best_font = font
+            if best_font_points >= len(self._internal_text):
+                return font
+        print(f'WARNING. NO OPTIMAL FONT FOUND, font score: {best_font_points}/{len(self._internal_text)}, text {self._internal_text}')
+        return best_font
 
-    def _check_font(self, font_path):
+    def _check_font(self, font):
+        font_path = font['path']
         font = TTFont(font_path)
         # We check all chars for presence on the font
-        for char in self.text.replace('\n', '').replace('\r', '').replace('\t', ''):
-            valid_char = False
+        valid_char = 0
+        for char in self._internal_text:
             # We check if the char is in any table of the font
             for table in font['cmap'].tables:
                 if ord(char) in table.cmap:
-                    valid_char = True
+                    valid_char += 1
                     break
-            if not valid_char:
-                return False
-        return True
+        return valid_char
 
     # We may need to use some heuristics to guess better a font than character matching
     def _manual_font_overrides():
