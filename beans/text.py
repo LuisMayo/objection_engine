@@ -5,15 +5,15 @@ class AnimText:
     font_array = [
         # AA-Like > Pixel > Generic
         # AA-like, Latin, hiragana, katakana, (part of) cyrillic
-        './assets/igiari/Igiari.ttf',
+        # './assets/igiari/Igiari.ttf',
         # Pixel, Kanji, Hiragana, Katakana
-        './assets/igiari/jackeyfont.ttf',
+        # './assets/igiari/jackeyfont.ttf',
         # Pixel font, Arabic
         './assets/igiari/bitsy-font-with-arabic.ttf',
         # Pixel-font, Hebrew
-        './assets/igiari/STANRG__.ttf',
+        # './assets/igiari/STANRG__.ttf',
         # Generic
-        './assets/igiari/NotoSans-Regular.ttf'
+        # './assets/igiari/NotoSans-Regular.ttf'
     ]
     def __init__(
         self,
@@ -56,7 +56,7 @@ class AnimText:
     def _check_font(self, font_path):
         font = TTFont(font_path)
         # We check all chars for presence on the font
-        for char in self.text:
+        for char in self.text.replace('\n', '').replace('\r', '').replace('\t', ''):
             valid_char = False
             # We check if the char is in any table of the font
             for table in font['cmap'].tables:
@@ -66,6 +66,10 @@ class AnimText:
             if not valid_char:
                 return False
         return True
+
+    # We may need to use some heuristics to guess better a font than character matching
+    def _manual_font_overrides():
+        print()
 
     def __str__(self):
         return self.text
