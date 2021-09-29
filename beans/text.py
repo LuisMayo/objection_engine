@@ -78,9 +78,5 @@ class AnimText:
                     break
         return valid_char
 
-    # We may need to use some heuristics to guess better a font than character matching
-    def _manual_font_overrides():
-        print()
-
     def __str__(self):
         return self.text
