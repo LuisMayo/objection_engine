@@ -10,7 +10,7 @@ class AnimText:
         # Pixel, Kanji, Hiragana, Katakana
         {'path':'./assets/igiari/jackeyfont.ttf'},
         # Pixel font, Arabic
-        {'path':'./assets/igiari/bitsy-font-with-arabic.ttf', 'size': 8},
+        {'path':'./assets/igiari/bitsy-font-with-arabic.ttf', 'size': 10},
         # Pixel-font, Hebrew
         {'path':'./assets/igiari/STANRG__.ttf'},
         # Generic
