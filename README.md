@@ -17,6 +17,7 @@ This is a fork of a wonderful [Reddit bot](https://github.com/micah5/ace-attorne
 
 #### Optional
  - [Google Translation API Credentials](https://cloud.google.com/translate/docs/setup): These are needed for language support other than English. Other languages may work even without this credentials as the system will fallback to TextBlob's translation system.
+ - Libraqm: Improves text rendering on right-to-left languages. In windows refer to the faq.md
  
 ### Installing
 
