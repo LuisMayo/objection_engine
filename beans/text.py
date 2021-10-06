@@ -9,12 +9,14 @@ class AnimText:
         {'path': './assets/igiari/Igiari.ttf'},
         # Pixel, Kanji, Hiragana, Katakana
         {'path':'./assets/igiari/jackeyfont.ttf'},
-        # Pixel font, Arabic
-        {'path':'./assets/igiari/bitsy-font-with-arabic.ttf', 'size': 10},
+        # Arabic
+        {'path':'./assets/igiari/arabic-1.ttf', 'size': 12},
         # Pixel-font, Hebrew
         {'path':'./assets/igiari/STANRG__.ttf'},
         # Generic
-        {'path':'./assets/igiari/NotoSans-Regular.ttf'}
+        {'path':'./assets/igiari/NotoSans-Regular.ttf'},
+        # Pixel font, Arabic
+        {'path':'./assets/igiari/bitsy-font-with-arabic.ttf', 'size': 10},
     ]
     def __init__(
         self,
