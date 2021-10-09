@@ -18,6 +18,12 @@ def get_characters(common: Counter):
         Character.LOTTA,
         Character.GUMSHOE,
         Character.GROSSBERG,
+        Character.APOLLO,
+        Character.KLAVIER,
+        Character.MIA,
+        Character.WILL,
+        Character.OLDBAG,
+        Character.REDD,
     ]
     rnd_characters = []
     if len(most_common) > 0:

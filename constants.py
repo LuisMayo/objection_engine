@@ -22,6 +22,12 @@ class Character():
     LOTTA = 'LOTTA'
     GUMSHOE = 'GUMSHOE'
     GROSSBERG = 'GROSSBERG'
+    APOLLO = 'APOLLO'
+    KLAVIER = 'KLAVIER'
+    MIA = 'MIA'
+    WILL = 'WILL'
+    OLDBAG = 'OLDBAG'
+    REDD = 'REDD'
 
 
 class Location(IntEnum):
@@ -106,6 +112,36 @@ character_emotions = {
         "neutral": ["normal"],
         "sad": ["sweating"],
     },
+    Character.APOLLO: {
+        "happy": ["bashful","confident",],
+        "neutral": ["normal","document","thinks","objects","zoom"],
+        "sad": ["sweating","damage","deskslam","sweats"],
+    },
+    Character.KLAVIER: {
+        "happy": ["forwardhair","forwardlean","guitars","laughs","leans","snaps"],
+        "neutral": ["normal","forwardnormal","objects","up","zoom"],
+        "sad": ["fist","forwardmad","pounds","sweats"],
+    },
+    Character.MIA: {
+        "happy": ["grinning","smiling"],
+        "neutral": ["normal","ohmy","bench-geez","bench-stern","bench-wut"],
+        "sad": ["bench-sad"],
+    },
+    Character.WILL: {
+        "happy": ["smiling","suit-smiling"],
+        "neutral": ["normal","suit","suit-thinking"],
+        "sad": ["hanky","suit-hanky","nervous","suit-nervous"],
+    },
+    Character.OLDBAG: {
+        "happy": ["inlove","teasing","teehee"],
+        "neutral": ["damage","normal"],
+        "sad": ["mad"],
+    },
+    Character.REDD: {
+        "happy": ["bragging","mymy"],
+        "neutral": ["normal","shrug","thinking"],
+        "sad": ["breaks","damage","sweating","twitch"],
+    },
 }
 
 character_map = {
@@ -123,6 +159,12 @@ character_map = {
     Character.LOTTA: "assets/Sprites-lotta",
     Character.GUMSHOE: "assets/Sprites-gumshoe",
     Character.GROSSBERG: "assets/Sprites-grossberg",
+    Character.APOLLO: "assets/Sprites-Apollo",
+    Character.KLAVIER: "assets/Sprites-Klavier",
+    Character.MIA: "assets/Sprites-mia",
+    Character.WILL: "assets/Sprites-will",
+    Character.OLDBAG: "assets/Sprites-oldbag",
+    Character.REDD: "assets/Sprites-redd",
 }
 
 character_location_map = {
@@ -140,6 +182,12 @@ character_location_map = {
     Character.LOTTA: Location.WITNESS_STAND,
     Character.GUMSHOE: Location.WITNESS_STAND,
     Character.GROSSBERG: Location.WITNESS_STAND,
+    Character.APOLLO: Location.COURTROOM_LEFT,
+    Character.KLAVIER: Location.COURTROOM_RIGHT,
+    Character.MIA: Location.COURTROOM_RIGHT,
+    Character.WILL: Location.WITNESS_STAND,
+    Character.OLDBAG: Location.WITNESS_STAND,
+    Character.REDD: Location.WITNESS_STAND,
 }
 
 
