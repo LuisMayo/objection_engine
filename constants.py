@@ -115,10 +115,10 @@ character_emotions = {
     Character.APOLLO: {
         "happy": ["bashful","confident",],
         "neutral": ["normal","document","thinks","objects","zoom"],
-        "sad": ["sweating","damage","deskslam","sweats"],
+        "sad": ["damage","deskslam","sweats"],
     },
     Character.KLAVIER: {
-        "happy": ["forwardhair","forwardlean","guitars","laughs","leans","snaps"],
+        "happy": ["forwardhair","forwardlean","guitars","laughs","lean","snaps"],
         "neutral": ["normal","forwardnormal","objects","up","zoom"],
         "sad": ["fist","forwardmad","pounds","sweats"],
     },
