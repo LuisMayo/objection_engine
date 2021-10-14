@@ -184,7 +184,7 @@ character_location_map = {
     Character.GROSSBERG: Location.WITNESS_STAND,
     Character.APOLLO: Location.COURTROOM_LEFT,
     Character.KLAVIER: Location.COURTROOM_RIGHT,
-    Character.MIA: Location.COURTROOM_RIGHT,
+    Character.MIA: Location.CO_COUNCIL,
     Character.WILL: Location.WITNESS_STAND,
     Character.OLDBAG: Location.WITNESS_STAND,
     Character.REDD: Location.WITNESS_STAND,
