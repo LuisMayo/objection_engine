@@ -115,10 +115,10 @@ character_emotions = {
     Character.APOLLO: {
         "happy": ["bashful","confident",],
         "neutral": ["normal","document","thinks","objects","zoom"],
-        "sad": ["sweating","damage","deskslam","sweats"],
+        "sad": ["damage","deskslam","sweats"],
     },
     Character.KLAVIER: {
-        "happy": ["forwardhair","forwardlean","guitars","laughs","leans","snaps"],
+        "happy": ["forwardhair","forwardlean","guitars","laughs","lean","snaps"],
         "neutral": ["normal","forwardnormal","objects","up","zoom"],
         "sad": ["fist","forwardmad","pounds","sweats"],
     },
@@ -184,7 +184,7 @@ character_location_map = {
     Character.GROSSBERG: Location.WITNESS_STAND,
     Character.APOLLO: Location.COURTROOM_LEFT,
     Character.KLAVIER: Location.COURTROOM_RIGHT,
-    Character.MIA: Location.COURTROOM_RIGHT,
+    Character.MIA: Location.CO_COUNCIL,
     Character.WILL: Location.WITNESS_STAND,
     Character.OLDBAG: Location.WITNESS_STAND,
     Character.REDD: Location.WITNESS_STAND,
