@@ -9,3 +9,5 @@ db.json
 
 # Ignore the assets
 assets/
+*.mp4
+.wakatime-project

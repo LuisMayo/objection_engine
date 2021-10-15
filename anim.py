@@ -30,12 +30,16 @@ nlp = spacy.load("xx_ent_wiki_sm")
 nlp.add_pipe(nlp.create_pipe('sentencizer'))
 
 
-def split_str_into_newlines(text: str, max_line_count: int = 34):
+def split_str_into_newlines(text: str,font_path,font_size):
+    font = ImageFont.truetype(font_path, font_size)
+    image_size = font.getsize(text=text)
+    print(text,image_size)
+
     words = text.split(" ")
     new_text = ""
     for word in words:
         last_sentence = new_text.split("\n")[-1] + word + " "
-        if len(last_sentence) >= max_line_count:
+        if font.getsize(text=last_sentence)[0] >= 240:
             new_text += "\n" + word + " "
         else:
             new_text += word + " "
@@ -144,11 +148,14 @@ def do_video(config: List[Dict], output_filename):
                 or obj["action"] == constants.Action.TEXT_SHAKE_EFFECT
             ):
                 character = talking_character
-                _text = split_str_into_newlines(obj["text"])
+                font_path = "assets/igiari/Igiari.ttf"
+                font_size = 15
+                font_path = AnimText(obj["text"])._select_best_font()['path']
+                _text = split_str_into_newlines(obj["text"],font_path,font_size)
                 _colour = None if "colour" not in obj else obj["colour"]
                 text = AnimText(
                     _text,
-                    font_path="assets/igiari/Igiari.ttf",
+                    font_path=font_path,
                     font_size=15,
                     x=5,
                     y=130,
