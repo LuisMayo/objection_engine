@@ -148,7 +148,7 @@ def do_video(config: List[Dict], output_filename):
                 or obj["action"] == constants.Action.TEXT_SHAKE_EFFECT
             ):
                 character = talking_character
-                splitter_font_path = AnimText(obj["text"])._select_best_font()['path']
+                splitter_font_path = AnimText(obj["text"]).font_path
                 _text = split_str_into_newlines(obj["text"],splitter_font_path,15)
                 _colour = None if "colour" not in obj else obj["colour"]
                 text = AnimText(
