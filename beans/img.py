@@ -36,7 +36,9 @@ class AnimImg:
             self.frames = []
             for idx in range(img.n_frames):
                 img.seek(idx)
-                self.frames.append(self.resize(img, w=w, h=h).convert("RGBA"))
+                resized = self.resize(img, w=w, h=h)
+                converted = resized.convert('RGBA',palette=Image.ADAPTIVE)
+                self.frames.append(converted)
         elif key_x is not None:
             self.frames = []
             for x_pad in range(key_x):
@@ -94,10 +96,14 @@ class AnimImg:
             _background = Image.new("RGBA", (_w, _h), (255, 255, 255, 255))
         else:
             _background = background
+        _img.convert("RGBA")
         bg_w, bg_h = _background.size
         offset = (self.x, self.y)
+        # if there is a shake effect to be applied
+        # adjust the paste offset with random ints 
         if self.shake_effect:
             offset = (self.x + r.randint(-1, 1), self.y + r.randint(-1, 1))
+        # paste _img onto _background with offset 
         _background.paste(_img, offset, mask=_img)
         if background is None:
             return _background
