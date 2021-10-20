@@ -1,5 +1,6 @@
 from beans.comment_bridge import CommentBridge
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont , ImageFile
+# ImageFile.LOAD_TRUNCATED_IMAGES = True
 from matplotlib.pyplot import imshow
 import numpy as np
 import cv2
