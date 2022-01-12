@@ -11,6 +11,7 @@ import zipfile
 
 def render_comment_list(comment_list: List[Comment], output_filename = 'hello.mp4', music_code = 'PWR'):
     ensure_assets_are_available()
+    music_code = music_code.lower()
     counter = Counter()
     thread = []
     for comment in comment_list:

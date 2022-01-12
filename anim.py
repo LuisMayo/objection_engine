@@ -465,12 +465,7 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
             )
         scene.append(character_block)
     formatted_scenes = []
-    if name_music == 'PWR':
-        last_audio = "03 - Turnabout Courtroom - Trial"
-    elif name_music == 'JFA':
-        last_audio = "Phoenix Wright Ace Attorney_ Justice for All OST - Trial"
-    else:
-        last_audio = "Phoenix Wright_ Trials and Tribulations OST - Trial"
+    last_audio = 'music/' + name_music + '/trial'
     change_audio = True
     for character_block in scene:
         scene_objs = []
@@ -481,18 +476,7 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
                     "action": constants.Action.OBJECTION,
                 }
             )
-            if name_music == 'PWR':
-                if last_audio != "08 - Pressing Pursuit _ Cornered":
-                    last_audio = "08 - Pressing Pursuit _ Cornered"
-                    change_audio = True
-            elif name_music == 'JFA':
-                if last_audio != "Phoenix Wright Ace Attorney_ Justice for All OST - Pressing Pursuit _ Cross-Examine":
-                    last_audio = "Phoenix Wright Ace Attorney_ Justice for All OST - Pressing Pursuit _ Cross-Examine"
-                    change_audio = True
-            else:
-                if last_audio != "Phoenix Wright_ Trials and Tribulations OST - Pressing Pursuit _ Caught":
-                    last_audio = "Phoenix Wright_ Trials and Tribulations OST - Pressing Pursuit _ Caught"
-                    change_audio = True
+            last_audio = 'music/' + name_music + '/press'
             
         for obj in character_block:
             # We insert the data in the character block in the definitive scene object
