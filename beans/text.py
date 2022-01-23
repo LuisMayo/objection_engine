@@ -7,6 +7,8 @@ class AnimText:
         # AA-Like > Pixel > Generic
         # AA-like, Latin, hiragana, katakana, (part of) cyrillic
         {'path': './assets/igiari/Igiari.ttf'},
+        # AA-like, Latin, hiragana, katakana, (part of) cyrillic
+        {'path': './assets/igiari/Galmuri11.ttf'},
         # Pixel, Kanji, Hiragana, Katakana
         {'path':'./assets/igiari/jackeyfont.ttf'},
         # Arabic
