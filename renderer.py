@@ -6,8 +6,7 @@ from beans.comment import Comment
 from collections import Counter
 import anim
 import os
-import requests
-import zipfile
+from utils import ensure_assets_are_available
 
 
 def render_comment_list(comment_list: List[Comment], output_filename = 'hello.mp4', music_code = 'PWR'):
@@ -33,13 +32,3 @@ def process_music_code(music_code):
     elif (music_code not in available_music):
         music_code = available_music[0]
     return music_code
-
-def ensure_assets_are_available():
-    if not os.path.exists('assets'):
-        print('Assets not present. Downloading them')
-        response = requests.get('https://dl.luismayo.com/assets.zip')
-        with open('assets.zip', 'wb') as file:
-            file.write(response.content)
-        with zipfile.ZipFile('assets.zip', 'r') as zip_ref:
-            zip_ref.extractall('assets')
-        os.remove('assets.zip')
