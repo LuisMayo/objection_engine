@@ -1,6 +1,7 @@
 from constants import Character
 import random
 from collections import Counter
+import os
 
 def get_characters(common: Counter):
     users_to_characters = {}
@@ -39,3 +40,9 @@ def get_characters(common: Counter):
                 rnd_characters.remove(rnd_character)
                 users_to_characters[character] = rnd_character
     return users_to_characters
+
+def is_music_avilable(music: str):
+    music = music.lower()
+    available_music = os.listdir('assets/music')
+    available_music.append('rnd')
+    return music in available_music
