@@ -9,7 +9,7 @@ comments = [
     Comment(user_name = 'جالكسي', text_content='حاب أذكركم انه باقي كم يوم وينتهي عرض الطلب المسبق على جالكسي Z فليب', user_id="id2"),
     Comment(user_name = 'd', text_content='Bonjout mâ fìlle. Coment ça-va'),
     Comment(user_name = 'e', text_content='Türkiye Türkçesi, dil ailesi sınıflandırmasında, Doğu Avrupa, Orta Asya ve Sibirya’da konuşulan 30 kadar yaşayan dili kapsayan'),
-    Comment(user_name = 'f', text_content='Hello OwO'),
+    Comment(user_name = 'f', text_content='б, г, ґ, д, ж, з, к, л, м, н, п, р, с, т, ф, х, ц, ч, ш, щ), ten vowels (а, е, є, и, і, ї, о, у, ю, я), and two semivowels (й/yot, and в'),
     Comment(user_name = 'g', text_content='Hello OwO'),
     Comment(user_name = 'h', text_content='Hello OwO'),
     Comment(user_name = 'i', text_content='Hello OwO'),
