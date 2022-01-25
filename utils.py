@@ -54,7 +54,7 @@ def get_characters(common: Counter):
                 users_to_characters[character] = rnd_character
     return users_to_characters
 
-def get_all_music_available() -> list[str]:
+def get_all_music_available():
     ensure_assets_are_available()
     available_music = os.listdir('assets/music')
     available_music.append('rnd')
