@@ -1,3 +1,4 @@
+from math import ceil
 from beans.comment_bridge import CommentBridge
 from PIL import Image, ImageDraw, ImageFont , ImageFile
 # ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -34,7 +35,6 @@ nlp.add_pipe(nlp.create_pipe('sentencizer'))
 def split_str_into_newlines(text: str,font_path,font_size):
     font = ImageFont.truetype(font_path, font_size)
     image_size = font.getsize(text=text)
-    print(text,image_size)
 
     words = text.split(" ")
     new_text = ""
@@ -341,9 +341,14 @@ def do_audio(sound_effects: List[Dict], output_filename):
     #     print(music_tracks)
     music_se = AudioSegment.empty()
     for track in music_tracks:
-        music_se += AudioSegment.from_mp3(track["src"])[
-            : int((track["length"] / fps) * 1000)
-        ]
+        loaded_audio = AudioSegment.from_mp3(track["src"])
+        # Total mp3 length in seconds
+        music_file_len = len(loaded_audio) / 1000
+        # Needed length, in seconds
+        needed_len = track["length"] / fps
+        if needed_len > music_file_len:
+            loaded_audio *= ceil(needed_len / music_file_len)
+        music_se += loaded_audio[:int(needed_len * 1000)]
     #     music_se = AudioSegment.from_mp3(sound_effects[0]["src"])[:len(audio_se)]
     #     music_se -= 5
     final_se = music_se.overlay(audio_se)
