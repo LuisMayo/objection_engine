@@ -10,6 +10,7 @@ except Exception as e:
 from textblob import TextBlob
 from collections import Counter
 import random
+import os
 
 class Analizer:
     def __init__(self):
@@ -22,6 +23,8 @@ class Analizer:
             self.official_api = False
     
     def get_sentiment(self, text):
+        if len(os.getenv('oe_bypass_sentiment', '')) > 0:
+            return 'N'
         try:
             try:
                 if (polyglot_available):
