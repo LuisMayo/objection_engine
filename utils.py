@@ -7,7 +7,7 @@ import zipfile
 
 
 def ensure_assets_are_available():
-    if not os.path.exists('assets'):
+    if not os.path.exists('assets') or not os.listdir('assets'):
         print('Assets not present. Downloading them')
         response = requests.get('https://dl.luismayo.com/assets.zip')
         with open('assets.zip', 'wb') as file:
