@@ -450,7 +450,7 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
             main_emotion = random.choice(constants.character_emotions[character]["sad"])
         elif polarity == '+':
             main_emotion = random.choice(constants.character_emotions[character]["happy"])
-        # For each sentence we temporaly store it in character_block
+        # For each sentence we temporarily store it in character_block
         for idx, chunk in enumerate(joined_sentences):
             character_block.append(
                 {
