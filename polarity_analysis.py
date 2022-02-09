@@ -27,7 +27,7 @@ class Analizer:
             return 'N'
         try:
             try:
-                if (polyglot_available):
+                if (polyglot_available and os.environ.get('POLYGLOT') != '0' ):
                     detector = Detector(text)
                     language = detector.language.code
                 else:

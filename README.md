@@ -66,6 +66,44 @@ objection_engine.renderer.render_comment_list(foo)
 For a list of arguments to the class and method check both https://github.com/LuisMayo/objection_engine/blob/main/renderer.py and https://github.com/LuisMayo/objection_engine/blob/main/beans/comment.py
 
 There is a complete example in https://github.com/LuisMayo/objection-engine-testing
+
+### Rendering a video using Docker
+
+``` bash
+cp example.py docker-entrypoint.py
+
+docker build --tag objection-engine .
+docker run --rm \
+  --volume $(pwd)/docker-entrypoint.py:/app/entrypoint.py:ro \
+  --volume $(pwd)/assets:/app/assets \
+  --volume $(pwd)/outputs:/app/outputs \
+  objection-engine
+```
+
+The video will be in the `/outputs` directory.
+
+You can download Polyglot models by setting `POLYGLOT_MODELS` environment variable and preserve the data by mounting `/root/polyglot_data`:
+
+``` bash
+docker run --rm \
+  --volume $(pwd)/docker-entrypoint.py:/app/entrypoint.py:ro \
+  --volume $(pwd)/assets:/app/assets \
+  --volume $(pwd)/outputs:/app/outputs \
+  --volume $(pwd)/polyglot_data:/root/polyglot_data \
+  --env POLYGLOT_MODELS="de fr" \
+  objection-engine
+```
+
+Or, you can turn off Polyglot entirely by setting `POLYGLOT=0`:
+``` bash
+docker run --rm \
+  --volume $(pwd)/docker-entrypoint.py:/app/entrypoint.py:ro \
+  --volume $(pwd)/assets:/app/assets \
+  --volume $(pwd)/outputs:/app/outputs \
+  --env POLYGLOT="0" \
+  objection-engine
+```
+
 #### Settings
 The following environment variables are honored by objection_engine:
 - oe_bypass_sentiment: If on any value other than the empty string, the sentiment analysis is bypassed
