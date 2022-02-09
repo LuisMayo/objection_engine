@@ -485,7 +485,7 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
             if last_audio != new_audio:
                 last_audio = new_audio
                 change_audio = True
-            
+
         for obj in character_block:
             # We insert the data in the character block in the definitive scene object
             scene_objs.append(
