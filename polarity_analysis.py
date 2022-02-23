@@ -21,7 +21,7 @@ class Analizer:
         except Exception as e:
             print('Warning! Translator couldn\'t be initialized, fallbacking to unofficial translation engine: ' + str(e))
             self.official_api = False
-    
+
     def get_sentiment(self, text):
         if len(os.getenv('oe_bypass_sentiment', '')) > 0:
             return 'N'
@@ -37,13 +37,13 @@ class Analizer:
 
             self.language_counter.update({language: 1})
             # print(self.language_counter)
-            
+
             if (language == 'en'):
                 return self.proccess_eng(text)
 
             if (language == 'google'):
                 return self.process_google(text)
-            
+
             try:
                 return self.process_poly(text)
             except ZeroDivisionError:
@@ -54,17 +54,17 @@ class Analizer:
         except Exception as e:
             print(e)
             return self.proccess_eng(text)
-        
+
 
     def process_google(self, text):
         if (self.official_api):
             result = self.translate_client.translate(text, target_language="en")
             return self.proccess_eng(result["translatedText"])
-        else: 
+        else:
             return self.proccess_eng(str(TextBlob(text).translate()))
-        
 
-    
+
+
     def proccess_eng(self, text):
         blob = TextBlob(text)
         if (blob.sentiment.polarity > 0.05):

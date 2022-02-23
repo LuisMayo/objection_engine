@@ -2,7 +2,7 @@ import anim
 import constants
 
 
-item = constants.Character().KLAVIER 
+item = constants.Character().KLAVIER
 for thing in constants.character_emotions[item]:
     for emotion in constants.character_emotions[item][thing]:
         scene = [
