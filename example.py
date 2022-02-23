@@ -18,6 +18,7 @@ comments = [
     Comment(user_name = 'l', text_content='Hello OwO'),
     Comment(user_name = 'm', text_content='Hello OwO'),
     Comment(user_name = 'n', text_content='Hello OwO'),
+    Comment(user_name = 'o', text_content='《长征》第1集 The Long March 01震惊世界的二万五千里长征（唐国强/陈道明）【CCTV电视剧】Highlights：毛泽东针对奔袭湘江的作战命令会给数万红军带来的严重损失，连夜找“三人团”请示复议作战计划，李德不耐烦地指责毛泽东是在危言耸听。'),    
     Comment(user_name = 'o', text_content='Hello OwO')
 ]  *  1
 render_comment_list(comments)
