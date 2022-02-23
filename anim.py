@@ -31,11 +31,15 @@ import re
 nlp = spacy.load("xx_ent_wiki_sm")
 nlp.add_pipe(nlp.create_pipe('sentencizer'))
 
-
+def spliteKeyWord(str):
+    regex = r"[\u4e00-\ufaff]|[0-9]+|[a-zA-Z]+\'*[a-z]*"
+    matches = re.findall(regex, str, re.UNICODE)
+    return matches
 def split_str_into_newlines(text: str,font_path,font_size):
     font = ImageFont.truetype(font_path, font_size)
     image_size = font.getsize(text=text)
-
+    text=spliteKeyWord(text)
+    text=' '.join(text)
     words = text.split(" ")
     new_text = ""
     for word in words:
