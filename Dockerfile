@@ -18,7 +18,7 @@ ENV reddit_client_id ${reddit_client_id}
 ENV reddit_client_secret ${reddit_client_secret}
 ENV reddit_refresh_token ${reddit_refresh_token}
 
-CMD for lang in ${POLYGLOT_MODELS}; do \
+CMD for lang in ${oe_polyglot_models}; do \
     # The download command is idempotent
     python -m polyglot download sentiment2.$lang --exit-on-error ;\
   done &&\
