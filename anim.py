@@ -382,7 +382,14 @@ def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4"):
         acodec="aac",
         strict="experimental"
     )
-    out.run()
+    try:
+        out.run(capture_stdout=True, capture_stderr=True)
+    except ffmpeg.Error as e:
+        print('ffmpeg error! stdout:')
+        print(e.stdout.decode('utf8'))
+        print('stderr:')
+        print(e.stderr.decode('utf8'))
+
     if os.path.exists(root_filename):
         shutil.rmtree(root_filename)
     if os.path.exists(text_filename):
