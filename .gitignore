@@ -4,10 +4,14 @@
 # Ignore __pycache__
 __pycache__/
 
-# ignore the db
+# Ignore the db
 db.json
 
 # Ignore the assets
 assets/
-*.mp4
+
+# Etc
+outputs/*.mp4
 .wakatime-project
+polyglot_data
+docker-entrypoint.py
