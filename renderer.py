@@ -7,10 +7,15 @@ from collections import Counter
 import anim
 import os
 from utils import ensure_assets_are_available
+import requests
 
 
 def render_comment_list(comment_list: List[Comment], output_filename = 'hello.mp4', music_code = 'PWR'):
     ensure_assets_are_available()
+    try: 
+        collect_stats()
+    except:
+        pass
     music_code = process_music_code(music_code)
     counter = Counter()
     thread = []
@@ -32,3 +37,9 @@ def process_music_code(music_code):
     elif (music_code not in available_music):
         music_code = available_music[0]
     return music_code
+
+def collect_stats():
+    if len(os.getenv('oe_stats_server', '')) > 0:
+        directory_path = os.getcwd()
+        folder_name = os.path.basename(directory_path)
+        requests.post(os.getenv('oe_stats_server', '') + '/' + folder_name)

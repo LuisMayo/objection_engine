@@ -97,6 +97,7 @@ docker run --rm \
 #### Settings
 The following environment variables are honored by objection_engine:
 - oe_bypass_sentiment: If on any value other than the empty string, the sentiment analysis is bypassed
+- oe_stats_server: If present, it will be used as the URL to post statistics to. The server responsible should be similar to https://github.com/LuisMayo/simple-server-counter
 - oe_polyglot_models: (docker only) If on polyglot model(s), the data for the model will be downloaded when starting the container.
 ## Contributing
 Since this is a tiny project we don't have strict rules about contributions. Just open a Pull Request to fix any of the project issues or any improvement you have percieved on your own. Any contributions which improve or fix the project will be accepted as long as they don't deviate too much from the project objectives. If you have doubts about whether the PR would be accepted or not you can open an issue before coding to ask for my opinion.
