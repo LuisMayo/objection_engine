@@ -48,7 +48,7 @@ def split_str_into_newlines(text: str,font_path,font_size):
 
 
 # @profile
-def do_video(config: List[Dict], output_filename):
+def do_video(config: List[Dict], output_filename, resolution_scale):
     scenes = []
     sound_effects = []
     part = 0
@@ -285,13 +285,13 @@ def do_video(config: List[Dict], output_filename):
                 sound_effects.append({"_type": "silence", "length": _length})
                 current_frame += _length
             if (len(scenes) > 50):
-                video = AnimVideo(scenes, fps=fps)
+                video = AnimVideo(scenes, fps=fps, resolution_scale=resolution_scale)
                 video.render(output_filename + '/' +str(part) + '.mp4')
                 part+=1
                 scenes = []
 
     if (len(scenes) > 0):
-        video = AnimVideo(scenes, fps=fps)
+        video = AnimVideo(scenes, fps=fps, resolution_scale=resolution_scale)
         video.render(output_filename + '/' +str(part) + '.mp4')
     return sound_effects
 
@@ -354,14 +354,14 @@ def do_audio(sound_effects: List[Dict], output_filename):
     final_se = music_se.overlay(audio_se)
     final_se.export(output_filename, format="mp3")
 
-def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4"):
+def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4", resolution_scale: int = 1):
     root_filename = output_filename[:-4]
     audio_filename = output_filename + '.audio.mp3'
     text_filename = root_filename + '.txt'
     if os.path.exists(root_filename):
         shutil.rmtree(root_filename)
     os.mkdir(root_filename)
-    sound_effects = do_video(config, root_filename)
+    sound_effects = do_video(config, root_filename, resolution_scale)
     do_audio(sound_effects, audio_filename)
     videos = []
     with open(text_filename, 'w') as txt:
