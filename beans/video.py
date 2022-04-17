@@ -32,7 +32,6 @@ class AnimVideo:
                 if(self.resolution_scale > 1):
                     # use cv2.resize to scale the frame with integer scaling
                     cv2_frame = cv2.resize(cv2_frame, (0, 0), fx=self.resolution_scale, fy=self.resolution_scale, interpolation=cv2.INTER_NEAREST)
-                    # frame = cv2.resize(frame, frame.size * self.resolution_scale, interpolation=cv2.INTER_NEAREST)
                 video.write(cv2_frame)
         video.release()
         return output_path
