@@ -10,7 +10,7 @@ from utils import ensure_assets_are_available
 import requests
 
 
-def render_comment_list(comment_list: List[Comment], output_filename = 'hello.mp4', music_code = 'PWR'):
+def render_comment_list(comment_list: List[Comment], output_filename = 'hello.mp4', music_code = 'PWR', resolution_scale: int = 1):
     ensure_assets_are_available()
     try: 
         collect_stats()
@@ -27,7 +27,7 @@ def render_comment_list(comment_list: List[Comment], output_filename = 'hello.mp
         thread.append(CommentBridge(comment))
     if (output_filename[-4:] != '.mp4'):
         output_filename += '.mp4'
-    return anim.comments_to_scene(thread, name_music = music_code, output_filename=output_filename)
+    return anim.comments_to_scene(thread, name_music = music_code, output_filename=output_filename, resolution_scale=resolution_scale)
 
 def process_music_code(music_code):
     music_code = music_code.lower()
