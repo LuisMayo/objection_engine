@@ -79,10 +79,8 @@ class AnimText:
     def __str__(self):
         return self.text
 
-"""
-TODO
-"""
 def score_font(font, text):
+    '''Scores a font based on a given text string'''
     font_path = font['path']
     font = TTFont(font_path)
     # We check all chars for presence on the font
@@ -95,10 +93,8 @@ def score_font(font, text):
                 break
     return valid_char
 
-"""
-TODO
-"""
 def is_renderable(text):
+    '''Determines if a given string is renderable against default fonts'''
     score = 0
     for font in FONT_ARRAY:
         score = max(score, score_font(font, text))
