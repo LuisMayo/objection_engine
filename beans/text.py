@@ -2,8 +2,8 @@ from typing import Dict
 from PIL import Image, ImageDraw, ImageFont
 from fontTools.ttLib import TTFont
 
-class AnimText:
-    font_array = [
+
+FONT_ARRAY = [
         # AA-Like > Pixel > Generic
         # AA-like, Latin, hiragana, katakana, (part of) cyrillic
         {'path': './assets/igiari/Igiari.ttf'},
@@ -20,6 +20,10 @@ class AnimText:
         # Pixel font, Arabic
         {'path':'./assets/igiari/bitsy-font-with-arabic.ttf', 'size': 10},
     ]
+
+
+class AnimText:
+    font_array = FONT_ARRAY
     def __init__(
         self,
         text: str,
@@ -70,17 +74,28 @@ class AnimText:
         return best_font
 
     def _check_font(self, font):
-        font_path = font['path']
-        font = TTFont(font_path)
-        # We check all chars for presence on the font
-        valid_char = 0
-        for char in self._internal_text:
-            # We check if the char is in any table of the font
-            for table in font['cmap'].tables:
-                if ord(char) in table.cmap:
-                    valid_char += 1
-                    break
-        return valid_char
+        return score_font(font, self._internal_text)
 
     def __str__(self):
         return self.text
+
+def score_font(font, text):
+    '''Scores a font based on a given text string'''
+    font_path = font['path']
+    font = TTFont(font_path)
+    # We check all chars for presence on the font
+    valid_char = 0
+    for char in text:
+        # We check if the char is in any table of the font
+        for table in font['cmap'].tables:
+            if ord(char) in table.cmap:
+                valid_char += 1
+                break
+    return valid_char
+
+def is_renderable(text):
+    '''Determines if a given string is renderable against default fonts'''
+    score = 0
+    for font in FONT_ARRAY:
+        score = max(score, score_font(font, text))
+    return score >= len(text)
