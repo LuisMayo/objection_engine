@@ -12,7 +12,7 @@ This is a fork of a wonderful [Reddit bot](https://github.com/micah5/ace-attorne
 
 ### Prerequisites
 
- - Python 3 with pip
+ - Python 3 with pip. The production environment uses 3.8.
  - FFMPEG instalation. In most Linux distros it should be available in the default package manager. In Windows systems it'd include downloading a [pre-compiled zip folder](https://ffmpeg.org/download.html#build-windows), extracting it and adding the /bin folder into the [system path](https://helpdeskgeek.com/windows-10/add-windows-path-environment-variable/)
 
 #### Optional
