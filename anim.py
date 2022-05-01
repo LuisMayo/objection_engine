@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFont , ImageFile
 from matplotlib.pyplot import imshow
 import numpy as np
 import cv2
-from typing import List, Dict
+from typing import List, Dict, Union
 import random
 import os
 import shutil
@@ -31,21 +31,23 @@ import re
 nlp = spacy.load("xx_ent_wiki_sm")
 nlp.add_pipe(nlp.create_pipe('sentencizer'))
 
-
-def split_str_into_newlines(text: str,font_path,font_size):
-    font = ImageFont.truetype(font_path, font_size)
-    image_size = font.getsize(text=text)
-
-    words = text.split(" ")
+def fit_words_within_width(words: Union[List[str], str], font: ImageFont.FreeTypeFont, insert_space: bool):
     new_text = ""
+    space = " " if insert_space else ""
     for word in words:
-        last_sentence = new_text.split("\n")[-1] + word + " "
+        last_sentence = new_text.split("\n")[-1] + word + space
         if font.getsize(text=last_sentence)[0] >= 240:
-            new_text += "\n" + word + " "
+            if new_text.split("\n")[-1] != "":
+                new_text += "\n"
+            new_text += fit_words_within_width(word, font, False) + space
         else:
-            new_text += word + " "
+            new_text += word + space
     return new_text
 
+def split_str_into_newlines(text: str, font_path, font_size):
+    font = ImageFont.truetype(font_path, font_size)
+    words = text.split(" ")
+    return fit_words_within_width(words, font, True)
 
 # @profile
 def do_video(config: List[Dict], output_filename, resolution_scale):
