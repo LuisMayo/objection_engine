@@ -1,5 +1,5 @@
 from typing import List
-from beans import scene
+from . import scene
 import cv2
 import os
 import numpy as np

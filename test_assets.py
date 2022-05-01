@@ -1,5 +1,5 @@
-import anim
-import constants
+from objection_engine import anim
+from objection_engine import constants
 for item in constants.character_emotions :
     for thing in constants.character_emotions[item]:
         for emotion in constants.character_emotions[item][thing]:

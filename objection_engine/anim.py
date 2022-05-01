@@ -1,5 +1,5 @@
 from math import ceil
-from beans.comment_bridge import CommentBridge
+from .beans.comment_bridge import CommentBridge
 from PIL import Image, ImageDraw, ImageFont , ImageFile
 # ImageFile.LOAD_TRUNCATED_IMAGES = True
 from matplotlib.pyplot import imshow
@@ -18,14 +18,14 @@ from collections import Counter
 import random
 from textwrap import wrap
 import spacy
-from polarity_analysis import Analizer
+from .polarity_analysis import Analizer
 analizer = Analizer()
-from beans.img import AnimImg
-from beans.text import AnimText
-from beans.scene import AnimScene
-from beans.video import AnimVideo
-from constants import Character, lag_frames, fps
-import constants
+from .beans.img import AnimImg
+from .beans.text import AnimText
+from .beans.scene import AnimScene
+from .beans.video import AnimVideo
+from .constants import Character, lag_frames, fps
+from . import constants
 import re
 
 nlp = spacy.load("xx_ent_wiki_sm")

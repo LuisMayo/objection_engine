@@ -1,5 +1,5 @@
-import anim
-import constants
+from objection_engine import anim
+from objection_engine import constants
 
 
 item = constants.Character().KLAVIER

@@ -1,6 +1,6 @@
 from typing import List
-from beans.img import AnimImg
-from beans.text import AnimText
+from .img import AnimImg
+from .text import AnimText
 
 class AnimScene:
     def __init__(self, arr: List, length: int, start_frame: int = 0):

@@ -1,18 +1,18 @@
 import random
 from typing import List
-from utils import get_characters
-from beans.comment_bridge import CommentBridge
-from beans.comment import Comment
+from .utils import get_characters
+from .beans.comment_bridge import CommentBridge
+from .beans.comment import Comment
 from collections import Counter
-import anim
+from . import anim
 import os
-from utils import ensure_assets_are_available
+from .utils import ensure_assets_are_available
 import requests
 
 
 def render_comment_list(comment_list: List[Comment], output_filename = 'hello.mp4', music_code = 'PWR', resolution_scale: int = 1):
     ensure_assets_are_available()
-    try: 
+    try:
         collect_stats()
     except:
         pass
