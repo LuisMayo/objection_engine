@@ -13,7 +13,7 @@ comments = [
     Comment(user_name = 'f', text_content='気やすく呼ぶんじゃないよ!このギザギザ男がッ!アンタのせいで、オバチャンまた、ワルモノにされちまったョ!'),
     Comment(user_name = 'g', text_content='검사 따위는 때려 치고 말겠다!'),
     Comment(user_name = 'h', text_content='б, г, ґ, д, ж, з, к, л, м, н, п, р, с, т, ф, х, ц, ч, ш, щ), ten vowels (а, е, є, и, і, ї, о, у, ю, я), and two semivowels (й/yot, and в'),
-    Comment(user_name = 'i', text_content='Hello OwO'),
+    Comment(user_name = 'i', text_content='This is a complex sentence mad up of several smaller sentences. This sentence should be divided in several different screens, as it clearly does not fit in one alone. So I hope this is long enough for this little test of ours'),
     Comment(user_name = 'j', text_content='Hello OwO'),
     Comment(user_name = 'k', text_content='Hello OwO'),
     Comment(user_name = 'l', text_content='Hello OwO'),
