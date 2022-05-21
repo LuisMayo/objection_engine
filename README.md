@@ -44,12 +44,10 @@ Check the exmaple
 
 ### Using it as a library
  - Add it as a library with
-`git submodule add https://github.com/LuisMayo/objection_engine.git`
+`https://github.com/LuisMayo/objection_engine.git`
 
  - Import it into your python file
 ``` python
-import sys
-sys.path.append('objection_engine/')
 import objection_engine
 # You can also import the components like this
 from objection_engine.renderer import render_comment_list
