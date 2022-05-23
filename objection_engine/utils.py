@@ -1,4 +1,4 @@
-from constants import Character
+from .constants import Character
 import random
 from collections import Counter
 import os

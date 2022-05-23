@@ -1,4 +1,4 @@
-from constants import Character
+from ..constants import Character
 
 """
 All arguments are optional

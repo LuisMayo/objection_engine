@@ -1,4 +1,4 @@
-from beans.comment import Comment
+from .comment import Comment
 """
 Internal use only, do not use outside here
 """

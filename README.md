@@ -18,7 +18,7 @@ This is a fork of a wonderful [Reddit bot](https://github.com/micah5/ace-attorne
 #### Optional
  - [Google Translation API Credentials](https://cloud.google.com/translate/docs/setup): These are needed for language support other than English. Other languages may work even without this credentials as the system will fallback to TextBlob's translation system.
  - Libraqm: Improves text rendering on right-to-left languages. In windows refer to the faq.md
- 
+
 ### Installing
 
 Clone the repository
@@ -28,7 +28,7 @@ git clone https://github.com/LuisMayo/objection_engine
 ```
 Install dependencies (in case any problems are encountered please check faq.md)
 ``` bash
-python -m pip install -r requirements.txt
+python -m pip install -r pyproject.toml
 ```
 
 (optional) In case you want language support outside English install polyglot and its dependencies:
@@ -43,13 +43,11 @@ Check the exmaple
 `python example.py`
 
 ### Using it as a library
- - Add it as a library with 
-`git submodule add https://github.com/LuisMayo/objection_engine.git`
+ - Add this git repository as a library:
+`git+https://github.com/LuisMayo/objection_engine.git`
 
  - Import it into your python file
 ``` python
-import sys
-sys.path.append('objection_engine/')
 import objection_engine
 # You can also import the components like this
 from objection_engine.renderer import render_comment_list
