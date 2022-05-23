@@ -43,8 +43,8 @@ Check the exmaple
 `python example.py`
 
 ### Using it as a library
- - Add it as a library with
-`https://github.com/LuisMayo/objection_engine.git`
+ - Add this git repository as a library:
+`git+https://github.com/LuisMayo/objection_engine.git`
 
  - Import it into your python file
 ``` python
