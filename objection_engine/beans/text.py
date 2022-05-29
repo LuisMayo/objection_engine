@@ -1,6 +1,6 @@
 from typing import Dict
 from PIL import Image, ImageDraw, ImageFont
-from fonttools.ttLib import TTFont
+from fontTools.ttLib import TTFont
 
 
 FONT_ARRAY = [
