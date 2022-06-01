@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "objection_engine"
-version = "2.1.0"
+version = "3.0.0"
 description = "Library that turns comment chains into ace attorney scenes, used in several bots"
 authors = ["Luis Mayo Valbuena <luismayovalbuena@outlook.es>"]
 license = "MIT"
