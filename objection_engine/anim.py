@@ -380,8 +380,8 @@ def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4", r
         textInput,
         audio,
         output_filename,
-        vcodec="libx264",
-        acodec="aac",
+        vcodec="copy" if os.getenv('OE_DIRECT_H264_ENCODING', 'false') == 'true' else "libx264",
+        acodec="copy",
         strict="experimental"
     )
     try:
