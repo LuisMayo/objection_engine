@@ -97,7 +97,7 @@ The following environment variables are honored by objection_engine:
 - oe_bypass_sentiment: If on any value other than the empty string, the sentiment analysis is bypassed
 - oe_stats_server: If present, it will be used as the URL to post statistics to. The server responsible should be similar to https://github.com/LuisMayo/simple-server-counter
 - oe_polyglot_models: (docker only) If on polyglot model(s), the data for the model will be downloaded when starting the container.
-- OE_DIRECT_H264_ENCODING: If true it 
+- OE_DIRECT_H264_ENCODING: If "true" then it will directly encode the videos in H264 with OpenCV, instead of encoding in mp4v and re-encoding later. This is faster than the default, but it requires running on windows or having a self-compiled OpenCV build in your system. If you don't know what any of this means, don't enable it.
 ## Contributing
 Since this is a tiny project we don't have strict rules about contributions. Just open a Pull Request to fix any of the project issues or any improvement you have percieved on your own. Any contributions which improve or fix the project will be accepted as long as they don't deviate too much from the project objectives. If you have doubts about whether the PR would be accepted or not you can open an issue before coding to ask for my opinion.
 
