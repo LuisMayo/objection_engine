@@ -354,11 +354,11 @@ def do_audio(sound_effects: List[Dict], output_filename):
     #     music_se = AudioSegment.from_mp3(sound_effects[0]["src"])[:len(audio_se)]
     #     music_se -= 5
     final_se = music_se.overlay(audio_se)
-    final_se.export(output_filename, format="mp3")
+    final_se.export(output_filename, format="adts")
 
 def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4", resolution_scale: int = 1):
     root_filename = output_filename[:-4]
-    audio_filename = output_filename + '.audio.mp3'
+    audio_filename = output_filename + '.audio.aac'
     text_filename = root_filename + '.txt'
     if os.path.exists(root_filename):
         shutil.rmtree(root_filename)
