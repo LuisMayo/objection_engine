@@ -57,6 +57,7 @@ class Analizer:
 
 
     def process_google(self, text):
+        return 'N'
         if (self.official_api):
             result = self.translate_client.translate(text, target_language="en")
             return self.proccess_eng(result["translatedText"])
