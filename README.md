@@ -11,8 +11,7 @@ This is a fork of a wonderful [Reddit bot](https://github.com/micah5/ace-attorne
 ## Getting Started
 
 ### Prerequisites
-
- - Python 3 with pip. Python 3.8 and 3.9 have been proven to work. 3.10 has been proven to not work
+ - Python 3 with poetry. Python 3.8 and 3.9 have been proven to work. 3.10 has been proven to not work
  - FFMPEG instalation. In most Linux distros it should be available in the default package manager. In Windows systems it'd include downloading a [pre-compiled zip folder](https://ffmpeg.org/download.html#build-windows), extracting it and adding the /bin folder into the [system path](https://helpdeskgeek.com/windows-10/add-windows-path-environment-variable/)
 
 #### Optional
@@ -28,8 +27,10 @@ git clone https://github.com/LuisMayo/objection_engine
 ```
 Install dependencies (in case any problems are encountered please check faq.md)
 ``` bash
-python -m pip install -r pyproject.toml
+poetry install
 ```
+If you don't have poetry installed and you aren't able to install it, you can manually install the dependencies using pip. The dependencies are those specified at `pyproject.toml`
+
 
 (optional) In case you want language support outside English install polyglot and its dependencies:
 (if on windows check faq.md)
