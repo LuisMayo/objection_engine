@@ -25,11 +25,17 @@ Clone the repository
 ```
 git clone https://github.com/LuisMayo/objection_engine
 ```
+
 Install dependencies (in case any problems are encountered please check faq.md)
+You can use either pip
+``` bash
+python -m pip install .
+```
+Or poerty
 ``` bash
 poetry install
 ```
-If you don't have poetry installed and you aren't able to install it, you can manually install the dependencies using pip. The dependencies are those specified at `pyproject.toml`
+
 
 
 (optional) In case you want language support outside English install polyglot and its dependencies:
