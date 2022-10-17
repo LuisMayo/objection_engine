@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "objection_engine"
-version = "3.1.1"
+version = "3.1.2"
 description = "Library that turns comment chains into ace attorney scenes, used in several bots"
 authors = ["Luis Mayo Valbuena <luismayovalbuena@outlook.es>"]
 license = "MIT"
@@ -13,11 +13,10 @@ matplotlib = "^3.5.1"
 pydub = "^0.25.1"
 moviepy = "^1.0.3"
 ffmpeg-python = "^0.2.0"
-spacy = "^2.3.5"
+spacy = "^3.1.4"
 textblob = "^0.17.1"
 praw = "^7.5.0"
 tinydb = "^4.7.0"
-xx-ent-wiki-sm = {url = "https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-2.3.0/xx_ent_wiki_sm-2.3.0.tar.gz"}
 google-cloud-translate = "^2.0.1"
 opencv-python = "^4.5.5"
 fonttools = "^4.33.3"
