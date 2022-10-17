@@ -28,8 +28,8 @@ from .constants import Character, lag_frames, fps
 from . import constants
 import re
 
-nlp = spacy.load("xx_ent_wiki_sm")
-nlp.add_pipe(nlp.create_pipe('sentencizer'))
+nlp = spacy.blank("xx")
+nlp.add_pipe('sentencizer')
 
 def fit_words_within_width(words: Union[List[str], str], font: ImageFont.FreeTypeFont, insert_space: bool):
     new_text = ""
@@ -436,7 +436,7 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
     for comment in comments:
         polarity = analizer.get_sentiment(comment.body)
         tokens = nlp(comment.body)
-        sentences = [sent.string.strip() for sent in tokens.sents]
+        sentences = [sent.text.strip() for sent in tokens.sents]
         joined_sentences = []
         i = 0
         while i < len(sentences):
