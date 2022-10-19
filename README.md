@@ -51,7 +51,7 @@ Check the exmaple
 
 ### Using it as a library
  - Add this git repository as a library:
-`git+https://github.com/LuisMayo/objection_engine.git`
+`pip install objection_engine`
 
  - Import it into your python file
 ``` python
