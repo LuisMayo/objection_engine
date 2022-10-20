@@ -51,6 +51,10 @@ def split_str_into_newlines(text: str, font_path, font_size):
 
 # @profile
 def do_video(config: List[Dict], output_filename, resolution_scale):
+    """
+    Renders the video, and returns a list of sound effects that can be used to
+    render the sound for the video.
+    """
     scenes = []
     sound_effects = []
     part = 0
@@ -61,6 +65,7 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
         textbox = AnimImg("assets/textbox4.png", w=bg.w)
         objection = AnimImg("assets/objection.gif")
         bench = None
+
         # constants.Location needs a more in-depth chose
         if scene["location"] == constants.Location.COURTROOM_LEFT:
             bench = AnimImg("assets/logo-left.png")
@@ -69,12 +74,13 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
         elif scene["location"] == constants.Location.WITNESS_STAND:
             bench = AnimImg("assets/witness_stand.png", w=bg.w)
             bench.y = bg.h - bench.h
+
         if "audio" in scene:
             sound_effects.append({"_type": "bg", "src": f'assets/{scene["audio"]}.mp3'})
+
         current_frame = 0
         current_character_name = None
         text = None
-        #         print('scene', scene)
         for obj in scene["scene"]:
             # First we check for evidences
             if "evidence" in obj and obj['evidence'] is not None:
@@ -84,12 +90,11 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                     evidence = AnimImg(obj["evidence"], x=145, y=19, w=85, maxh=75)
             else:
                 evidence = None
+            
+            # Next, find the current character's sprite
             if "character" in obj:
                 _dir = constants.character_map[obj["character"]]
                 current_character_name = obj["character"]
-                #                 print('character change', current_character_name)
-                #                 if current_character_name == "Larry":
-                #                     current_character_name = "The Player"
                 character_name = AnimText(
                     current_character_name,
                     font_path="assets/igiari/Igiari.ttf",
@@ -105,15 +110,12 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                     default_path = (
                         f"{_dir}/{current_character_name.lower()}-{default}.gif"
                     )
-                if not os.path.isfile(
-                        default_path
-                        ):
-                        default_path = (
-                            f"{_dir}/{current_character_name.lower()}-normal(a).gif"
-                        )
-                assert os.path.isfile(
-                    default_path
-                ), f"{default_path} does not exist"
+                if not os.path.isfile(default_path):
+                    default_path = (
+                        f"{_dir}/{current_character_name.lower()}-normal(a).gif"
+                    )
+                assert os.path.isfile(default_path), f"{default_path} does not exist"
+
                 default_character = AnimImg(default_path, half_speed=True)
                 if "(a)" in default_path:
                     talking_character = AnimImg(
@@ -121,6 +123,7 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                     )
                 else:
                     talking_character = AnimImg(default_path, half_speed=True)
+
             if "emotion" in obj:
                 default = obj["emotion"]
                 default_path = (
@@ -130,15 +133,12 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                     default_path = (
                         f"{_dir}/{current_character_name.lower()}-{default}.gif"
                     )
-                if not os.path.isfile(
-                        default_path
-                        ):
-                        default_path = (
-                            f"{_dir}/{current_character_name.lower()}-normal(a).gif"
-                        )
-                assert os.path.isfile(
-                    default_path
-                ), f"{default_path} does not exist"
+                if not os.path.isfile(default_path):
+                    default_path = (
+                        f"{_dir}/{current_character_name.lower()}-normal(a).gif"
+                    )
+                assert os.path.isfile(default_path), f"{default_path} does not exist"
+
                 default_character = AnimImg(default_path, half_speed=True)
                 if "(a)" in default_path:
                     talking_character = AnimImg(
@@ -146,6 +146,8 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                     )
                 else:
                     talking_character = AnimImg(default_path, half_speed=True)
+
+            # Handle case of character onscreen speaking with text
             if "action" in obj and (
                 obj["action"] == constants.Action.TEXT
                 or obj["action"] == constants.Action.TEXT_SHAKE_EFFECT
@@ -208,6 +210,8 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                 )
                 current_frame += num_frames
                 sound_effects.append({"_type": "silence", "length": lag_frames})
+            
+            # Handle case of shake effect without text
             elif "action" in obj and obj["action"] == constants.Action.SHAKE_EFFECT:
                 bg.shake_effect = True
                 character.shake_effect = True
@@ -215,7 +219,6 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                     bench.shake_effect = True
                 textbox.shake_effect = True
                 character = default_character
-                #                 print(character, textbox, character_name, text)
                 if text is not None:
                     scene_objs = list(
                         filter(
@@ -234,6 +237,7 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                     )
                 else:
                     scene_objs = [bg, character, bench]
+
                 scenes.append(
                     AnimScene(scene_objs, lag_frames, start_frame=current_frame)
                 )
@@ -244,11 +248,9 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                 if bench is not None:
                     bench.shake_effect = False
                 textbox.shake_effect = False
+
+            # Handle case of Objection bubble
             elif "action" in obj and obj["action"] == constants.Action.OBJECTION:
-                #                 bg.shake_effect = True
-                #                 character.shake_effect = True
-                #                 if bench is not None:
-                #                     bench.shake_effect = True
                 objection.shake_effect = True
                 character = default_character
                 scene_objs = list(
@@ -271,8 +273,9 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                     }
                 )
                 current_frame += 11
+
+            # Handle case of presenting evidence without any dialogue(?)
             else:
-                # list(filter(lambda x: x is not None, scene_objs))
                 character = default_character
                 scene_objs = list(
                     filter(lambda x: x is not None, [bg, character, bench, evidence])
@@ -286,6 +289,7 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                 character.repeat = True
                 sound_effects.append({"_type": "silence", "length": _length})
                 current_frame += _length
+
             if (len(scenes) > 50):
                 video = AnimVideo(scenes, fps=fps, resolution_scale=resolution_scale)
                 video.render(output_filename + '/' +str(part) + '.mp4')
@@ -434,14 +438,17 @@ def get_characters(most_common: List):
 def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwargs):
     scene = []
     for comment in comments:
+        # Determine the sentiment of the comment (if it's positive, negative, or neutral)
         polarity = analizer.get_sentiment(comment.body)
+
+        # Calculate how to split up comment text for line wrapping
         tokens = nlp(comment.body)
         sentences = [sent.string.strip() for sent in tokens.sents]
         joined_sentences = []
         i = 0
         while i < len(sentences):
             sentence = sentences[i]
-            if len(sentence) > 85:
+            if len(sentence) > 85: # Long sentences should be wrapped to multiple shorter lines
                 text_chunks = [chunk for chunk in wrap(sentence, 85)]
                 joined_sentences = [*joined_sentences, *text_chunks]
                 i += 1
@@ -452,13 +459,17 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
                 else:
                     joined_sentences.append(sentence)
                     i += 1
+
         character_block = []
         character = comment.character
+
+        # Determine the character's emotion based on the sentiment check from earlier
         main_emotion = random.choice(constants.character_emotions[character]["neutral"])
         if polarity == '-' or comment.score < 0:
             main_emotion = random.choice(constants.character_emotions[character]["sad"])
         elif polarity == '+':
             main_emotion = random.choice(constants.character_emotions[character]["happy"])
+
         # For each sentence we temporarily store it in character_block
         for idx, chunk in enumerate(joined_sentences):
             character_block.append(
@@ -478,6 +489,7 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
                 }
             )
         scene.append(character_block)
+
     formatted_scenes = []
     last_audio = 'music/' + name_music + '/trial'
     change_audio = True
