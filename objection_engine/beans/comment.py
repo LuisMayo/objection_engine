@@ -1,21 +1,22 @@
 from ..constants import Character
 
-"""
-All arguments are optional
-user_id: An unique identifier to tell users appart
-evidence_path: Path pointing to an image to be used as evidence
-user_name: Name of the user
-text_content: Text to display
-score: Positiveness of a commentary (negative below zero, positive above zero)
-"""
+
 class Comment:
     def __init__(self,
     user_id: str = None,
-    user_name = 'Prosecutor',
-    text_content = '...',
+    user_name: str = 'Prosecutor',
+    text_content: str = '...',
     evidence_path: str = None,
-    score = 0
+    score: float = 0
     ):
+        """
+        All arguments are optional
+        :param str user_id: An unique identifier to tell users appart
+        :param str evidence_path: Path pointing to an image to be used as evidence
+        :param str user_name: Name of the user
+        :param str text_content: Text to display
+        :param float score: Positiveness of a commentary (negative below zero, positive above zero)
+        """
         self.user_name = user_name
         self.user_id = user_id
         self.text_content = text_content
