@@ -167,6 +167,29 @@ character_map = {
     Character.REDD: "assets/Sprites-redd",
 }
 
+character_gender_map = {
+    Character.PHOENIX: "male",
+    Character.EDGEWORTH: "male",
+    Character.GODOT: "male",
+    Character.FRANZISKA: "female",
+    Character.JUDGE: "male",
+    Character.LARRY: "male",
+    Character.MAYA: "female",
+    Character.KARMA: "male",
+    Character.PAYNE: "male",
+    Character.MAGGEY: "female",
+    Character.PEARL: "female",
+    Character.LOTTA: "female",
+    Character.GUMSHOE: "male",
+    Character.GROSSBERG: "male",
+    Character.APOLLO: "male",
+    Character.KLAVIER: "male",
+    Character.MIA: "female",
+    Character.WILL: "male",
+    Character.OLDBAG: "female",
+    Character.REDD: "male",
+}
+
 character_location_map = {
     Character.PHOENIX: Location.COURTROOM_LEFT,
     Character.EDGEWORTH: Location.COURTROOM_RIGHT,
