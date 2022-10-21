@@ -326,7 +326,7 @@ def do_audio(sound_effects: List[Dict], output_filename):
     long_bip -= 10
 
     # "Next dialogue" sound effect
-    blink = AudioSegment.from_wav("assets/sfx general/sfx-blink.wav")
+    blink = AudioSegment.from_wav("assets/sfx general/sfx-pichoop.wav")
     blink -= 10
 
     # Shock sound effect
@@ -335,7 +335,8 @@ def do_audio(sound_effects: List[Dict], output_filename):
     # "Objection!" sound effects for characters with voiced objections
     pheonix_objection = AudioSegment.from_mp3("assets/Phoenix - objection.mp3")
     edgeworth_objection = AudioSegment.from_mp3("assets/Edgeworth - (English) objection.mp3")
-    default_objection = AudioSegment.from_mp3("assets/Payne - Objection.mp3")
+    payne_objection = AudioSegment.from_mp3("assets/Payne - Objection.mp3")
+    default_objection = AudioSegment.from_mp3("assets/sfx general/sfx-objection.wav")
 
     spf = 1 / fps * 1000
     for obj in sound_effects:
@@ -348,6 +349,8 @@ def do_audio(sound_effects: List[Dict], output_filename):
                 audio_se += pheonix_objection[: int(obj["length"] * spf)]
             elif obj["character"] == "edgeworth":
                 audio_se += edgeworth_objection[: int(obj["length"] * spf)]
+            elif obj["character"] == "payne":
+                audio_se += payne_objection[: int(obj["length"] * spf)]
             else:
                 audio_se += default_objection[: int(obj["length"] * spf)]
         elif obj["_type"] == "shock":
