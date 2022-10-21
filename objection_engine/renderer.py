@@ -42,9 +42,6 @@ def render_comment_list(comment_list: List[Comment], output_filename: str = 'hel
         counter.update({comment.effective_user_id: 1})
     characters = get_characters(counter)
 
-    print(counter)
-    print(characters)
-
     # Construct the information about the sequence of "shots" in
     # the finished video (e.g. the text spoken and which character
     # is speaking it).
