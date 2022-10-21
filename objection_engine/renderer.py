@@ -10,7 +10,7 @@ from .utils import ensure_assets_are_available
 import requests
 
 
-def render_comment_list(comment_list: List[Comment], output_filename: str = 'hello.mp4', music_code: str = 'PWR', resolution_scale: int = 1):
+def render_comment_list(comment_list: List[Comment], output_filename: str = 'hello.mp4', music_code: str = 'PWR', resolution_scale: int = 1, assigned_characters: dict = None):
     """
     Given a list of Comments, writes a resulting video to disk at the
     location specified by `output_filename`.
@@ -26,6 +26,10 @@ def render_comment_list(comment_list: List[Comment], output_filename: str = 'hel
     - "TAT" uses music from "Trials and Tribulations"
     - "RND" chooses a random game
     :param int resolution_scale: How much to scale the outputted video by
+    :param list[dict] assigned_characters: A dictionary with Character keys \
+        and string user ID values that manually assign a given user to be portrayed \
+        by a specific character. Any users who do not have a character \
+        assigned to them via this dictionary will have one assigned at random.
     """
     ensure_assets_are_available()
     try:
@@ -40,7 +44,7 @@ def render_comment_list(comment_list: List[Comment], output_filename: str = 'hel
     counter = Counter()
     for comment in comment_list:
         counter.update({comment.effective_user_id: 1})
-    characters = get_characters(counter)
+    characters = get_characters(counter, assigned_characters=assigned_characters)
 
     # Construct the information about the sequence of "shots" in
     # the finished video (e.g. the text spoken and which character
