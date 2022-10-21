@@ -329,7 +329,7 @@ def do_audio(sound_effects: List[Dict], output_filename):
     blink = AudioSegment.from_wav("assets/sfx general/sfx-blink.wav")
     blink -= 10
 
-    # "Objection!" sound effect for characters without voiced objections(?)
+    # Shock sound effect
     badum = AudioSegment.from_wav("assets/sfx general/sfx-fwashing.wav")
 
     # "Objection!" sound effects for characters with voiced objections
@@ -353,7 +353,7 @@ def do_audio(sound_effects: List[Dict], output_filename):
         elif obj["_type"] == "shock":
             audio_se += badum[: int(obj["length"] * spf)]
 
-    # Assemble the background music information(?)
+    # Assemble the background music information
     music_tracks = []
     len_counter = 0
     for obj in sound_effects:
