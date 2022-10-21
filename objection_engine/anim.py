@@ -1,7 +1,6 @@
 from math import ceil
 from .beans.comment_bridge import CommentBridge
 from PIL import Image, ImageDraw, ImageFont , ImageFile
-# ImageFile.LOAD_TRUNCATED_IMAGES = True
 from matplotlib.pyplot import imshow
 import numpy as np
 import cv2
@@ -49,7 +48,6 @@ def split_str_into_newlines(text: str, font_path, font_size):
     words = text.split(" ")
     return fit_words_within_width(words, font, True)
 
-# @profile
 def do_video(config: List[Dict], output_filename, resolution_scale):
     """
     Renders the video, and returns a list of sound effects that can be used to
@@ -316,21 +314,30 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
     return sound_effects
 
 def do_audio(sound_effects: List[Dict], output_filename):
+    """
+    Renders the sound for the video given the data outputted by do_video().
+    """
+    # Track containing sound effects
     audio_se = AudioSegment.empty()
-    bip = AudioSegment.from_wav(
-        "assets/sfx general/sfx-blipmale.wav"
-    ) + AudioSegment.silent(duration=50)
-    blink = AudioSegment.from_wav("assets/sfx general/sfx-blink.wav")
-    blink -= 10
-    badum = AudioSegment.from_wav("assets/sfx general/sfx-fwashing.wav")
+
+    # Character speech sound effect
+    bip = AudioSegment.from_wav("assets/sfx general/sfx-blipmale.wav") + AudioSegment.silent(duration=50)
     long_bip = bip * 100
     long_bip -= 10
-    spf = 1 / fps * 1000
+
+    # "Next dialogue" sound effect
+    blink = AudioSegment.from_wav("assets/sfx general/sfx-blink.wav")
+    blink -= 10
+
+    # "Objection!" sound effect for characters without voiced objections(?)
+    badum = AudioSegment.from_wav("assets/sfx general/sfx-fwashing.wav")
+
+    # "Objection!" sound effects for characters with voiced objections
     pheonix_objection = AudioSegment.from_mp3("assets/Phoenix - objection.mp3")
-    edgeworth_objection = AudioSegment.from_mp3(
-        "assets/Edgeworth - (English) objection.mp3"
-    )
+    edgeworth_objection = AudioSegment.from_mp3("assets/Edgeworth - (English) objection.mp3")
     default_objection = AudioSegment.from_mp3("assets/Payne - Objection.mp3")
+
+    spf = 1 / fps * 1000
     for obj in sound_effects:
         if obj["_type"] == "silence":
             audio_se += AudioSegment.silent(duration=int(obj["length"] * spf))
@@ -345,7 +352,8 @@ def do_audio(sound_effects: List[Dict], output_filename):
                 audio_se += default_objection[: int(obj["length"] * spf)]
         elif obj["_type"] == "shock":
             audio_se += badum[: int(obj["length"] * spf)]
-    #     audio_se -= 10
+
+    # Assemble the background music information(?)
     music_tracks = []
     len_counter = 0
     for obj in sound_effects:
@@ -358,7 +366,8 @@ def do_audio(sound_effects: List[Dict], output_filename):
             len_counter += obj["length"]
     if len(music_tracks) > 0:
         music_tracks[-1]["length"] = len_counter
-    #     print(music_tracks)
+
+    # Track containing the background music
     music_se = AudioSegment.empty()
     for track in music_tracks:
         loaded_audio = AudioSegment.from_mp3(track["src"])
@@ -369,20 +378,29 @@ def do_audio(sound_effects: List[Dict], output_filename):
         if needed_len > music_file_len:
             loaded_audio *= ceil(needed_len / music_file_len)
         music_se += loaded_audio[:int(needed_len * 1000)]
-    #     music_se = AudioSegment.from_mp3(sound_effects[0]["src"])[:len(audio_se)]
-    #     music_se -= 5
+
     final_se = music_se.overlay(audio_se)
     final_se.export(output_filename, format="adts")
 
 def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4", resolution_scale: int = 1):
+    """
+    Render the Ace Attorney sequence provided by `config` to the file named `output_filename`.
+    """
+    # Set up the filenames for the output files
     root_filename = output_filename[:-4]
     audio_filename = output_filename + '.audio.aac'
     text_filename = root_filename + '.txt'
     if os.path.exists(root_filename):
         shutil.rmtree(root_filename)
     os.mkdir(root_filename)
+
+    # Render the video clips, and get the sound information.
     sound_effects = do_video(config, root_filename, resolution_scale)
+
+    # Using the sound information, render the audio.
     do_audio(sound_effects, audio_filename)
+
+    # Compile all of the rendered videos and audio into a single video file.
     videos = []
     with open(text_filename, 'w') as txt:
         for file in os.listdir(root_filename):
@@ -410,13 +428,13 @@ def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4", r
         print('stderr:')
         print(e.stderr.decode('utf8'))
 
+    # Clean up the temporary files that were created.
     if os.path.exists(root_filename):
         shutil.rmtree(root_filename)
     if os.path.exists(text_filename):
         os.remove(text_filename)
     if os.path.exists(audio_filename):
         os.remove(audio_filename)
-
 
 def get_characters(most_common: List):
     characters = {Character.PHOENIX: most_common[0]}
@@ -447,7 +465,6 @@ def get_characters(most_common: List):
             )
             characters[rnd_character] = character
     return characters
-
 
 def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwargs):
     scene = []
