@@ -26,8 +26,8 @@ def render_comment_list(comment_list: List[Comment], output_filename: str = 'hel
     - "TAT" uses music from "Trials and Tribulations"
     - "RND" chooses a random game
     :param int resolution_scale: How much to scale the outputted video by
-    :param list[dict] assigned_characters: A dictionary with Character keys \
-        and string user ID values that manually assign a given user to be portrayed \
+    :param list[dict] assigned_characters: A dictionary with string user ID keys \
+        and Character values that manually assign a given user to be portrayed \
         by a specific character. Any users who do not have a character \
         assigned to them via this dictionary will have one assigned at random.
     """

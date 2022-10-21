@@ -1,3 +1,4 @@
+from datetime import datetime
 from objection_engine.renderer import render_comment_list
 from objection_engine.beans.comment import Comment
 from objection_engine.constants import Character
@@ -24,9 +25,11 @@ comments = [
 ]
 
 characters = {
-    Character.PHOENIX: "a",
-    Character.PAYNE: "b",
-    Character.REDD: "c"
+    "a": Character.PHOENIX,
+    "b": Character.PAYNE,
+    "c": Character.REDD
 }
 
-render_comment_list(comments, f'output-manual-character-{str(int(time()))}.mp4', resolution_scale=2, assigned_characters=characters)
+t = datetime.now().strftime("%Y%m%dT%H%M%S")
+render_comment_list(comments, f'output-{t}-auto.mp4', resolution_scale=2)
+render_comment_list(comments, f'output-{t}-manual.mp4', resolution_scale=2, assigned_characters=characters)

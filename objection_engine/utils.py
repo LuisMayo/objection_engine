@@ -17,12 +17,7 @@ def ensure_assets_are_available():
         os.remove('assets.zip')
 
 def get_characters(common: Counter, assigned_characters: dict = None):
-    if assigned_characters is None:
-        assigned_characters = {}
-    else:
-        assigned_characters = assigned_characters.copy()
-
-    users_to_characters = {}
+    users_to_characters = {} if assigned_characters is None else assigned_characters.copy()
     most_common =  [t[0] for t in common.most_common()]
     all_rnd_characters = [
         Character.GODOT,
@@ -45,37 +40,25 @@ def get_characters(common: Counter, assigned_characters: dict = None):
         Character.REDD,
     ]
 
-    # If Phoenix was manually assigned, then assign him to his user.
-    # Otherwise, assign him to the user with the most comments.
-    if Character.PHOENIX in assigned_characters:
-        users_to_characters[assigned_characters[Character.PHOENIX]] = Character.PHOENIX
-        del assigned_characters[Character.PHOENIX]
-    else:
+    # If Phoenix was not manually assigned and the user with
+    # the most comments wasn't manually assigned a character,
+    # assign Phoenix to the user with the most comments.
+    if Character.PHOENIX not in users_to_characters.values() and most_common[0] not in users_to_characters:
         try:
             users_to_characters[most_common[0]] = Character.PHOENIX
         except IndexError:
             pass
 
-    # Same for Edgeworth, but in the case of no manual assignment,
-    # assign him to the user with the second-most comments.
-    if Character.EDGEWORTH in assigned_characters:
-        users_to_characters[assigned_characters[Character.EDGEWORTH]] = Character.EDGEWORTH
-        del assigned_characters[Character.EDGEWORTH]
-    else:
+    # Same for Edgeworth, but to the user with the second-most comments.
+    if Character.EDGEWORTH not in users_to_characters.values() and most_common[1] not in users_to_characters:
         try:
             users_to_characters[most_common[1]] = Character.EDGEWORTH
         except IndexError:
             pass
 
-    # Before we start randomly assigning characters, let's match up all of the
-    # manually assigned characters to their user IDs.
-    for character, user_id in assigned_characters.items():
-        users_to_characters[user_id] = character
-        all_rnd_characters.remove(character)
-
     # Finally, from the remaining pool of characters, let's assign them randomly
     # to the remaining user IDs.
-    rnd_characters = []
+    rnd_characters = [c for c in all_rnd_characters if c not in users_to_characters.values()]
     for user_id in most_common:
         # Skip users who were manually assigned characters.
         if user_id in users_to_characters:
