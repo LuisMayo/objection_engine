@@ -78,6 +78,7 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
 
         current_frame = 0
         current_character_name = None
+        current_character_gender = "male"
         text = None
         for obj in scene["scene"]:
             # First we check for evidences
@@ -93,6 +94,7 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
             if "character" in obj:
                 _dir = constants.character_map[obj["character"]]
                 current_character_name = obj["character"]
+                current_character_gender = constants.character_gender_map[obj["character"]]
                 character_name = AnimText(
                     current_character_name,
                     font_path="assets/igiari/Igiari.ttf",
@@ -193,7 +195,7 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                 scenes.append(
                     AnimScene(scene_objs, len(_text) - 1, start_frame=current_frame)
                 )
-                sound_effects.append({"_type": "bip", "length": len(_text) - 1})
+                sound_effects.append({"_type": "bip", "length": len(_text) - 1, "gender": current_character_gender})
 
                 # Reset shake effect
                 if obj["action"] == constants.Action.TEXT_SHAKE_EFFECT:
@@ -321,9 +323,13 @@ def do_audio(sound_effects: List[Dict], output_filename):
     audio_se = AudioSegment.empty()
 
     # Character speech sound effect
-    bip = AudioSegment.from_wav("assets/sfx general/sfx-blipmale.wav") + AudioSegment.silent(duration=50)
-    long_bip = bip * 100
-    long_bip -= 10
+    male_bip = AudioSegment.from_wav("assets/sfx general/sfx-blipmale.wav") + AudioSegment.silent(duration=50)
+    long_male_bip = male_bip * 100
+    long_male_bip -= 10
+
+    female_bip = AudioSegment.from_wav("assets/sfx general/sfx-blipfemale.wav") + AudioSegment.silent(duration=50)
+    long_female_bip = female_bip * 100
+    long_female_bip -= 10
 
     # "Next dialogue" sound effect
     blink = AudioSegment.from_wav("assets/sfx general/sfx-blink.wav")
@@ -342,7 +348,10 @@ def do_audio(sound_effects: List[Dict], output_filename):
         if obj["_type"] == "silence":
             audio_se += AudioSegment.silent(duration=int(obj["length"] * spf))
         elif obj["_type"] == "bip":
-            audio_se += blink + long_bip[: max(int(obj["length"] * spf - len(blink)), 0)]
+            if obj["gender"] == "female":
+                audio_se += blink + long_female_bip[: max(int(obj["length"] * spf - len(blink)), 0)]
+            else:
+                audio_se += blink + long_male_bip[: max(int(obj["length"] * spf - len(blink)), 0)]
         elif obj["_type"] == "objection":
             if obj["character"] == "phoenix":
                 audio_se += pheonix_objection[: int(obj["length"] * spf)]
