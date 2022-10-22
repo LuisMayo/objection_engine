@@ -50,6 +50,7 @@ class AnimText:
         if ('size' in self.font):
             self.font_size = self.font['size']
         self.colour = colour
+        self.font_object = ImageFont.truetype(self.font_path, self.font_size)
 
     def render(self, background: Image, frame: int = 0):
         draw = ImageDraw.Draw(background)
@@ -57,11 +58,13 @@ class AnimText:
         if self.typewriter_effect:
             _text = _text[:frame]
         if self.font_path is not None:
-            font = ImageFont.truetype(self.font_path, self.font_size)
-            draw.text((self.x, self.y), _text, font=font, fill=self.colour)
+            draw.text((self.x, self.y), _text, font=self.font_object, fill=self.colour)
         else:
             draw.text((self.x, self.y), _text, fill=self.colour)
         return background
+
+    def get_text_size(self):
+        return self.font_object.getsize(self.text)
 
     def _select_best_font(self):
         best_font = self.font_array[-1]

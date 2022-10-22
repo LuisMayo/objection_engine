@@ -60,7 +60,8 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
         # We pick up the images to be rendered
         bg = AnimImg(constants.location_map[scene["location"]])
         arrow = AnimImg("assets/arrow.png", x=235, y=170, w=15, h=15, key_x=5)
-        textbox = AnimImg("assets/textbox4.png", w=bg.w)
+        textbox = AnimImg("assets/textbox/mainbox.png", x=1, y=129, w=bg.w-2)
+        namebox_l = AnimImg("assets/textbox/nametag_left.png", x=1, y=129-12)
         objection = AnimImg("assets/objection.gif")
         bench = None
 
@@ -169,13 +170,31 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
 
                 # Draw the user's name above the text box
                 _character_name = character_name
+                _namebox_center = None
+                _namebox_right = None
                 if "name" in obj:
                     _character_name = AnimText(
                         obj["name"],
                         font_path="assets/igiari/Igiari.ttf",
                         font_size=12,
-                        x=4,
-                        y=113,
+                        x=6,
+                        y=129-11,
+                    )
+
+                    name_width = _character_name.get_text_size()[0]
+
+                    _namebox_center = AnimImg(
+                        "assets/textbox/nametag_center.png",
+                        x=3,
+                        y=129-12,
+                        w=name_width + 6,
+                        h=14
+                    )
+
+                    _namebox_right = AnimImg(
+                        "assets/textbox/nametag_right.png",
+                        x=3 + name_width + 6,
+                        y=129-12
                     )
 
                 # Apply shake effect to the scene if desired
@@ -189,7 +208,7 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                 scene_objs = list(
                     filter(
                         lambda x: x is not None,
-                        [bg, character, bench, textbox, _character_name, text, evidence],
+                        [bg, character, bench, textbox, namebox_l, _namebox_center, _namebox_right, _character_name, text, evidence],
                     )
                 )
                 scenes.append(
