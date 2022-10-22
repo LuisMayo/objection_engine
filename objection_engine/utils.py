@@ -40,6 +40,12 @@ def get_characters(common: Counter, assigned_characters: dict = None):
         Character.REDD,
     ]
 
+    # Confirm that all of the assigned characters are valid.
+    all_characters = all_rnd_characters + [Character.PHOENIX, Character.EDGEWORTH]
+    for character in users_to_characters.values():
+        if character not in all_characters:
+            raise ValueError(f"\"{character}\" is not a valid character")
+
     # If Phoenix was not manually assigned and the user with
     # the most comments wasn't manually assigned a character,
     # assign Phoenix to the user with the most comments.
