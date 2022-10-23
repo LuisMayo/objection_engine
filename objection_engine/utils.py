@@ -16,8 +16,8 @@ def ensure_assets_are_available():
             zip_ref.extractall('assets')
         os.remove('assets.zip')
 
-def get_characters(common: Counter):
-    users_to_characters = {}
+def get_characters(common: Counter, assigned_characters: dict = None):
+    users_to_characters = {} if assigned_characters is None else assigned_characters.copy()
     most_common =  [t[0] for t in common.most_common()]
     all_rnd_characters = [
         Character.GODOT,
@@ -39,19 +39,47 @@ def get_characters(common: Counter):
         Character.OLDBAG,
         Character.REDD,
     ]
-    rnd_characters = []
-    if len(most_common) > 0:
-        users_to_characters[most_common[0]] = Character.PHOENIX
-        if len(most_common) > 1:
+
+    # Confirm that all of the assigned characters are valid.
+    all_characters = all_rnd_characters + [Character.PHOENIX, Character.EDGEWORTH]
+    for character in users_to_characters.values():
+        if character not in all_characters:
+            raise ValueError(f"\"{character}\" is not a valid character")
+
+    # If Phoenix was not manually assigned and the user with
+    # the most comments wasn't manually assigned a character,
+    # assign Phoenix to the user with the most comments.
+    if Character.PHOENIX not in users_to_characters.values() and most_common[0] not in users_to_characters:
+        try:
+            users_to_characters[most_common[0]] = Character.PHOENIX
+        except IndexError:
+            pass
+
+    # Same for Edgeworth, but to the user with the second-most comments.
+    if Character.EDGEWORTH not in users_to_characters.values() and most_common[1] not in users_to_characters:
+        try:
             users_to_characters[most_common[1]] = Character.EDGEWORTH
-            for character in most_common[2:]:
-                if len(rnd_characters) == 0:
-                    rnd_characters = all_rnd_characters.copy()
-                rnd_character = random.choice(
-                    rnd_characters
-                )
-                rnd_characters.remove(rnd_character)
-                users_to_characters[character] = rnd_character
+        except IndexError:
+            pass
+
+    # Finally, from the remaining pool of characters, let's assign them randomly
+    # to the remaining user IDs.
+    rnd_characters = [c for c in all_rnd_characters if c not in users_to_characters.values()]
+    for user_id in most_common:
+        # Skip users who were manually assigned characters.
+        if user_id in users_to_characters:
+            continue
+
+        # Reload the choosable characters, if we ran out.
+        if len(rnd_characters) == 0:
+            rnd_characters = all_rnd_characters.copy()
+
+        # Assign a character randomly chosen from the list to this user,
+        # and remove them from the pool.
+        rnd_character = random.choice(rnd_characters)
+        rnd_characters.remove(rnd_character)
+        users_to_characters[user_id] = rnd_character
+
     return users_to_characters
 
 def get_all_music_available():
