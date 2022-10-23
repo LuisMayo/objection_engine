@@ -20,7 +20,7 @@ import spacy
 from .polarity_analysis import Analizer
 analizer = Analizer()
 from .beans.img import AnimImg
-from .beans.text import AnimText
+from .beans.text import AnimText, TextType
 from .beans.scene import AnimScene
 from .beans.video import AnimVideo
 from .constants import Character, lag_frames, fps
@@ -56,8 +56,8 @@ def create_nameplate(obj: dict):
     if "name" not in obj: return []
     character_name = AnimText(
         obj["name"],
-        font_path = "assets/igiari/Igiari.ttf",
-        font_size = 12,
+        text_type=TextType.NAME,
+        font_size = 8,
         x = 6,
         y = 129 - 11
     )
@@ -138,13 +138,6 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                 _dir = constants.character_map[obj["character"]]
                 current_character_name = obj["character"]
                 current_character_gender = constants.character_gender_map[obj["character"]]
-                character_name = AnimText(
-                    current_character_name,
-                    font_path="assets/igiari/Igiari.ttf",
-                    font_size=12,
-                    x=4,
-                    y=113,
-                )
                 default = "normal" if "emotion" not in obj else obj["emotion"]
                 default_path = (
                     f"{_dir}/{current_character_name.lower()}-{default}(a).gif"
@@ -201,10 +194,9 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                 _colour = None if "colour" not in obj else obj["colour"]
                 text = AnimText(
                     _text,
-                    font_path="assets/igiari/Igiari.ttf",
                     font_size=15,
-                    x=5,
-                    y=130,
+                    x=11,
+                    y=134,
                     typewriter_effect=True,
                     colour=_colour,
                 )

@@ -1,3 +1,4 @@
+from enum import IntEnum
 from typing import Dict
 from PIL import Image, ImageDraw, ImageFont
 try:
@@ -5,6 +6,9 @@ try:
 except:
     from fonttools.ttLib import TTFont
 
+class TextType(IntEnum):
+    DIALOGUE = 0
+    NAME = 1
 
 FONT_ARRAY = [
         # AA-Like > Pixel > Generic
@@ -15,7 +19,7 @@ FONT_ARRAY = [
         # Pixel, Kanji, Hiragana, Katakana
         {'path':'./assets/igiari/jackeyfont.ttf'},
         # Arabic
-        {'path':'./assets/igiari/arabic-1.ttf', 'size': 12},
+        {'path':'./assets/igiari/arabic-1.ttf', 'size': 12, 'offset': {TextType.NAME: (0, -5)}},
         # Pixel-font, Hebrew
         {'path':'./assets/igiari/STANRG__.ttf'},
         # Generic
@@ -23,6 +27,11 @@ FONT_ARRAY = [
         # Pixel font, Arabic
         {'path':'./assets/igiari/bitsy-font-with-arabic.ttf', 'size': 10},
     ]
+
+NAMETAG_FONT_ARRAY = [
+    {'path': './assets/ace-name/ace-name.ttf', 'size': 8}
+] + FONT_ARRAY
+
 
 
 class AnimText:
@@ -37,6 +46,7 @@ class AnimText:
         font_size: int = 12,
         typewriter_effect: bool = False,
         colour: str = "#ffffff",
+        text_type: TextType = TextType.DIALOGUE
     ):
         self.x = x
         self.y = y
@@ -44,13 +54,30 @@ class AnimText:
         # Used for font handling internals
         self._internal_text = text.replace('\n', '').replace('\r', '').replace('\t', '')
         self.typewriter_effect = typewriter_effect
+        
+        self.text_type = text_type
+        if self.text_type == TextType.DIALOGUE:
+            self.font_array = FONT_ARRAY
+        elif self.text_type == TextType.NAME:
+            self.font_array = NAMETAG_FONT_ARRAY
+
         self.font_size = font_size
-        self.font = self._select_best_font()
-        self.font_path = self.font['path']
-        if ('size' in self.font):
-            self.font_size = self.font['size']
+
+        if font_path is None:
+            best_font = self._select_best_font()
+            self.font_path = best_font['path']
+            if 'size' in best_font:
+                self.font_size = best_font['size']
+
+            offsets = best_font.get('offset', {}).get(self.text_type, (0,0))
+            self.x += offsets[0]
+            self.y += offsets[1]
+
+        else:
+            self.font_path = font_path
+
         self.colour = colour
-        self.font_object = ImageFont.truetype(self.font_path, self.font_size)
+        self.font = ImageFont.truetype(self.font_path, self.font_size)
 
     def render(self, background: Image, frame: int = 0):
         draw = ImageDraw.Draw(background)
@@ -58,13 +85,13 @@ class AnimText:
         if self.typewriter_effect:
             _text = _text[:frame]
         if self.font_path is not None:
-            draw.text((self.x, self.y), _text, font=self.font_object, fill=self.colour)
+            draw.text((self.x, self.y), _text, font=self.font, fill=self.colour)
         else:
             draw.text((self.x, self.y), _text, fill=self.colour)
         return background
 
     def get_text_size(self):
-        return self.font_object.getsize(self.text)
+        return self.font.getsize(self.text)
 
     def _select_best_font(self):
         best_font = self.font_array[-1]
