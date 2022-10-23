@@ -48,6 +48,49 @@ def split_str_into_newlines(text: str, font_path, font_size):
     words = text.split(" ")
     return fit_words_within_width(words, font, True)
 
+def create_nameplate(obj: dict):
+    """
+    Creates the layers for a nameplate that
+    resizes to fit the user's name.
+    """
+    if "name" not in obj: return []
+    character_name = AnimText(
+        obj["name"],
+        font_path = "assets/igiari/Igiari.ttf",
+        font_size = 12,
+        x = 6,
+        y = 129 - 11
+    )
+
+    name_width = character_name.get_text_size()[0]
+
+    namebox_l = AnimImg(
+        "assets/textbox/nametag_left.png",
+        x = 1,
+        y = 129 - 12
+    )
+
+    namebox_c = AnimImg(
+        "assets/textbox/nametag_center.png",
+        x = 3,
+        y = 129-12,
+        w = name_width + 6,
+        h = 14
+    )
+
+    namebox_r = AnimImg(
+        "assets/textbox/nametag_right.png",
+        x = 3 + name_width + 6,
+        y = 129 - 12
+    )
+
+    if obj.get("action") == constants.Action.TEXT_SHAKE_EFFECT:
+        namebox_l.shake_effect = True
+        namebox_c.shake_effect = True
+        namebox_r.shake_effect = True
+
+    return [namebox_l, namebox_c, namebox_r, character_name]
+
 def do_video(config: List[Dict], output_filename, resolution_scale):
     """
     Renders the video, and returns a list of sound effects that can be used to
@@ -61,7 +104,6 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
         bg = AnimImg(constants.location_map[scene["location"]])
         arrow = AnimImg("assets/arrow.png", x=235, y=170, w=15, h=15, key_x=5)
         textbox = AnimImg("assets/textbox/mainbox.png", x=1, y=129, w=bg.w-2)
-        namebox_l = AnimImg("assets/textbox/nametag_left.png", x=1, y=129-12)
         objection = AnimImg("assets/objection.gif")
         bench = None
 
@@ -168,35 +210,6 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                 )
                 num_frames = len(_text) + lag_frames
 
-                # Draw the user's name above the text box
-                _character_name = character_name
-                _namebox_center = None
-                _namebox_right = None
-                if "name" in obj:
-                    _character_name = AnimText(
-                        obj["name"],
-                        font_path="assets/igiari/Igiari.ttf",
-                        font_size=12,
-                        x=6,
-                        y=129-11,
-                    )
-
-                    name_width = _character_name.get_text_size()[0]
-
-                    _namebox_center = AnimImg(
-                        "assets/textbox/nametag_center.png",
-                        x=3,
-                        y=129-12,
-                        w=name_width + 6,
-                        h=14
-                    )
-
-                    _namebox_right = AnimImg(
-                        "assets/textbox/nametag_right.png",
-                        x=3 + name_width + 6,
-                        y=129-12
-                    )
-
                 # Apply shake effect to the scene if desired
                 if obj["action"] == constants.Action.TEXT_SHAKE_EFFECT:
                     bg.shake_effect = True
@@ -208,7 +221,17 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                 scene_objs = list(
                     filter(
                         lambda x: x is not None,
-                        [bg, character, bench, textbox, namebox_l, _namebox_center, _namebox_right, _character_name, text, evidence],
+                        [
+                            bg,
+                            character,
+                            bench,
+                            textbox
+                        ]
+                        + create_nameplate(obj) +
+                        [
+                            text,
+                            evidence
+                        ]
                     )
                 )
                 scenes.append(
@@ -231,7 +254,7 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                 scene_objs = list(
                     filter(
                         lambda x: x is not None,
-                        [bg, character, bench, textbox, _character_name, text, arrow, evidence],
+                        [bg, character, bench, textbox] + create_nameplate(obj) + [text, arrow, evidence],
                     )
                 )
                 scenes.append(
@@ -256,8 +279,10 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                                 bg,
                                 character,
                                 bench,
-                                textbox,
-                                character_name,
+                                textbox
+                            ]
+                            + create_nameplate(obj) +
+                            [
                                 text,
                                 arrow,
                                 evidence,
