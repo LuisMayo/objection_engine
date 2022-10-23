@@ -49,18 +49,18 @@ def get_characters(common: Counter, assigned_characters: dict = None):
     # If Phoenix was not manually assigned and the user with
     # the most comments wasn't manually assigned a character,
     # assign Phoenix to the user with the most comments.
-    if Character.PHOENIX not in users_to_characters.values() and most_common[0] not in users_to_characters:
-        try:
+    try:
+        if Character.PHOENIX not in users_to_characters.values() and most_common[0] not in users_to_characters:
             users_to_characters[most_common[0]] = Character.PHOENIX
-        except IndexError:
-            pass
+    except IndexError:
+        pass
 
     # Same for Edgeworth, but to the user with the second-most comments.
-    if Character.EDGEWORTH not in users_to_characters.values() and most_common[1] not in users_to_characters:
-        try:
+    try:
+        if Character.EDGEWORTH not in users_to_characters.values() and most_common[1] not in users_to_characters:
             users_to_characters[most_common[1]] = Character.EDGEWORTH
-        except IndexError:
-            pass
+    except IndexError:
+        pass
 
     # Finally, from the remaining pool of characters, let's assign them randomly
     # to the remaining user IDs.
