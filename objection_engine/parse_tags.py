@@ -62,8 +62,9 @@ def add_line_breaks(text: str, tags: list[dict], max_chars: int = 15):
             line_end_index += 1
 
         # If we're currently in the middle of a word, then move the line end index back to the previous space
-        while line_end_index < len(text) and not text[line_end_index].isspace():
-            line_end_index -= 1
+        # while line_end_index < len(text) and not text[line_end_index].isspace():
+        #     line_end_index -= 1
+        #     print(text[line_start_index:line_end_index])
 
         new_line = text[line_start_index:line_end_index]
 
@@ -151,12 +152,32 @@ def merge_character_chunks(characters: list[tuple[str, list[dict]]]):
     chunks.append((current_string, current_tags))
     return chunks
 
-test_string = "Hello, my name is <red>Bob</red> and I like to <green>eat avocados</green>. <shake/>Yum! <blue>(Wish I had more...)</blue>"
 
-text, tags = parse_text(test_string)
-lines = add_line_breaks(text, tags, 40)
-character_chunk_lines = [line_to_character_chunks(*i) for i in lines]
-continuous_chunks = [merge_character_chunks(line) for line in character_chunk_lines]
-print(character_chunk_lines)
-print()
-print(continuous_chunks)
+def show_max_chars(chunks: list[list[tuple[str, list[dict]]]], chars: int):
+    """
+    TODO: Given the chunks array, remove text/chunks outside of the max char count!
+    """
+    ...
+
+def group_into_lines(chunks: list[tuple[str, list[dict]]], lines: int = 3):
+    return [chunks[i:i+lines] for i in range(0, len(chunks), lines)]
+
+def reconstruct_string_for_box(chunks: list[list[tuple[str, list[dict]]]]):
+    output = ""
+    for list_of_line_chunks in chunks:
+        for line_chunk in list_of_line_chunks:
+            output += line_chunk[0]
+        output += " "
+    return output
+
+# test_string = "Hello, my name is <red>Bob</red> and I like to <green>eat avocados</green>. <shake/>Yum! <blue>(Wish I had more...)</blue> Here's some more text because we need this to be really long and go on for more than 3 lines."
+
+def get_rich_boxes(text: str, line_length: int, num_lines = 3):
+    parsed_text, tags = parse_text(text)
+    lines = add_line_breaks(parsed_text, tags, line_length)
+    character_chunk_lines = [line_to_character_chunks(*i) for i in lines]
+    continuous_chunks = [merge_character_chunks(line) for line in character_chunk_lines]
+    grouped_in_threes = group_into_lines(continuous_chunks, num_lines)
+    return grouped_in_threes
+
+# print(get_rich_boxes(test_string, 40, 3))

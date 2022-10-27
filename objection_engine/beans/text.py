@@ -1,6 +1,8 @@
 from enum import IntEnum
 from typing import Dict
 from PIL import Image, ImageDraw, ImageFont
+
+from objection_engine.parse_tags import reconstruct_string_for_box
 try:
     from fontTools.ttLib import TTFont
 except:
@@ -52,8 +54,10 @@ class AnimText:
         self.y = y
         self.text = text
         # Used for font handling internals
-        self._internal_text = text.replace('\n', '').replace('\r', '').replace('\t', '')
+        self._internal_text = text
         self.typewriter_effect = typewriter_effect
+
+        print("Create AnimText with text:", self.text, reconstruct_string_for_box(self.text))
         
         self.text_type = text_type
         if self.text_type == TextType.DIALOGUE:
@@ -82,6 +86,7 @@ class AnimText:
     def render(self, background: Image, frame: int = 0):
         draw = ImageDraw.Draw(background)
         _text = self.text
+        print(_text)
         if self.typewriter_effect:
             _text = _text[:frame]
         if self.font_path is not None:
@@ -107,7 +112,7 @@ class AnimText:
         return best_font
 
     def _check_font(self, font):
-        return score_font(font, self._internal_text)
+        return score_font(font, reconstruct_string_for_box(self.text))
 
     def __str__(self):
         return self.text

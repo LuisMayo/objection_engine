@@ -1,4 +1,6 @@
 from math import ceil
+
+from objection_engine.parse_tags import get_rich_boxes
 from .beans.comment_bridge import CommentBridge
 from PIL import Image, ImageDraw, ImageFont , ImageFile
 from matplotlib.pyplot import imshow
@@ -190,7 +192,7 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
             ):
                 character = talking_character
                 splitter_font_path = AnimText(obj["text"]).font_path
-                _text = split_str_into_newlines(obj["text"],splitter_font_path,15)
+                _text = obj["text"]
                 _colour = None if "colour" not in obj else obj["colour"]
                 text = AnimText(
                     _text,
@@ -521,23 +523,25 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
         polarity = analizer.get_sentiment(comment.body)
 
         # Calculate how to split up comment text for line wrapping
-        tokens = nlp(comment.body)
-        sentences = [sent.text.strip() for sent in tokens.sents]
-        joined_sentences = []
-        i = 0
-        while i < len(sentences):
-            sentence = sentences[i]
-            if len(sentence) > 85: # Long sentences should be wrapped to multiple shorter lines
-                text_chunks = [chunk for chunk in wrap(sentence, 85)]
-                joined_sentences = [*joined_sentences, *text_chunks]
-                i += 1
-            else:
-                if i + 1 < len(sentences) and len(f"{sentence} {sentences[i+1]}") <= 85: # Maybe we can join two different sentences
-                    joined_sentences.append(sentence + " " + sentences[i+1])
-                    i += 2
-                else:
-                    joined_sentences.append(sentence)
-                    i += 1
+        # tokens = nlp(comment.body)
+        # sentences = [sent.text.strip() for sent in tokens.sents]
+        # joined_sentences = []
+        # i = 0
+        # while i < len(sentences):
+        #     sentence = sentences[i]
+        #     if len(sentence) > 85: # Long sentences should be wrapped to multiple shorter lines
+        #         text_chunks = [chunk for chunk in wrap(sentence, 85)]
+        #         joined_sentences = [*joined_sentences, *text_chunks]
+        #         i += 1
+        #     else:
+        #         if i + 1 < len(sentences) and len(f"{sentence} {sentences[i+1]}") <= 85: # Maybe we can join two different sentences
+        #             joined_sentences.append(sentence + " " + sentences[i+1])
+        #             i += 2
+        #         else:
+        #             joined_sentences.append(sentence)
+        #             i += 1
+
+        rich_boxes = get_rich_boxes(comment.body, 85, 3)
 
         character_block = []
         character = comment.character
@@ -550,12 +554,12 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
             main_emotion = random.choice(constants.character_emotions[character]["happy"])
 
         # For each sentence we temporarily store it in character_block
-        for idx, chunk in enumerate(joined_sentences):
+        for idx, box in enumerate(rich_boxes):
             character_block.append(
                 {
                     "character": character,
                     "name": comment.author.name,
-                    "text": chunk,
+                    "text": box,
                     "objection": (
                         polarity == '-'
                         or comment.score < 0
