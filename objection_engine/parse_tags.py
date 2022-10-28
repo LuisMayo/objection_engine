@@ -1,5 +1,81 @@
 from curses.ascii import isspace
+from dataclasses import dataclass
 from re import compile
+from typing import Union
+from textwrap import wrap
+
+@dataclass
+class DialogueTag:
+    name: str
+    start: int
+    end: int
+
+    def range(self):
+        return range(self.start, self.end)
+
+@dataclass
+class DialogueAction:
+    name: str
+    index: int
+
+@dataclass
+class DialogueTextChunk:
+    text: str
+    tags: list[str]
+
+@dataclass
+class DialoguePage:
+    chunks: list[DialogueTextChunk]
+
+@dataclass
+class DialogueTextContent:
+    cleaned_lines: str
+    tags: list[Union[DialogueTag, DialogueAction]]
+
+    def get_text_chunks(self, line_width: int = None, visible_chars: int = None) -> list[DialoguePage]:
+        wrapped_lines = wrap(self.cleaned_lines)
+        formatted_lines = []
+        for line in wrapped_lines:
+            start_index = self.cleaned_lines.index(line)
+            chars_and_tags = []
+            for i, char in enumerate(line):
+                this_char_tags = []
+                for tag in self.tags:
+                    if isinstance(tag, DialogueAction) and i == tag.index + start_index:
+                        this_char_tags.append(tag.name)
+                            
+                    elif isinstance(tag, DialogueTag) and i + start_index in tag.range():
+                        this_char_tags.append(tag.name)
+
+                chars_and_tags.append((char, this_char_tags))
+
+            formatted_lines.append(chars_and_tags)
+
+
+        # We have the big ugly list of characters, now we want to condense it into continuous chunks
+        lines_of_chunks = []
+        for line in formatted_lines:
+            chunks = []
+            current_string = ""
+            current_tags = None
+            for char, tags in line:
+                char: str
+                tags: list[str]
+                if tags == current_tags or current_tags is None:
+                    current_string += char
+                    if current_tags is None:
+                        current_tags = tags.copy()
+                else:
+                    chunks.append(DialogueTextChunk(current_string, current_tags))
+                    current_tags = tags.copy()
+                    current_string = char
+
+            if len(current_string) > 0:
+                chunks.append(DialogueTextChunk(current_string, current_tags))
+
+            lines_of_chunks.append(chunks)
+        print(lines_of_chunks)
+
 
 # Group 1: Optional slash at the beginning (i.e. it's a closing tag)
 # Group 2: Tag name
@@ -45,11 +121,19 @@ def parse_text(text: str):
         if is_self_closing_tag:
             final_tags.append({
                 "name": tag_name,
-                "start": start
+                "index": start
             })
         next_match = tag_re.search(stripped_text)
 
-    return (stripped_text, final_tags)
+    # Construct list of tags and actions
+    tag_objects = []
+    for tag in final_tags:
+        if "index" in tag:
+            tag_objects.append(DialogueAction(**tag))
+        else:
+            tag_objects.append(DialogueTag(**tag))
+
+    return DialogueTextContent(stripped_text, tag_objects)
 
 def add_line_breaks(text: str, tags: list[dict], max_chars: int = 15):
     lines = []
@@ -170,14 +254,15 @@ def reconstruct_string_for_box(chunks: list[list[tuple[str, list[dict]]]]):
         output += " "
     return output
 
-# test_string = "Hello, my name is <red>Bob</red> and I like to <green>eat avocados</green>. <shake/>Yum! <blue>(Wish I had more...)</blue> Here's some more text because we need this to be really long and go on for more than 3 lines."
-
 def get_rich_boxes(text: str, line_length: int, num_lines = 3):
-    parsed_text, tags = parse_text(text)
-    lines = add_line_breaks(parsed_text, tags, line_length)
-    character_chunk_lines = [line_to_character_chunks(*i) for i in lines]
-    continuous_chunks = [merge_character_chunks(line) for line in character_chunk_lines]
-    grouped_in_threes = group_into_lines(continuous_chunks, num_lines)
-    return grouped_in_threes
+    text_object = parse_text(text)
+    print(text_object)
+    text_object.get_text_chunks(70, 30)
+    # lines = add_line_breaks(parsed_text, tags, line_length)
+    # character_chunk_lines = [line_to_character_chunks(*i) for i in lines]
+    # continuous_chunks = [merge_character_chunks(line) for line in character_chunk_lines]
+    # grouped_in_threes = group_into_lines(continuous_chunks, num_lines)
+    # return grouped_in_threes
 
-# print(get_rich_boxes(test_string, 40, 3))
+test_string = "Hello, my name is <red>Bob</red> and I like to <green>eat avocados</green>. <shake/>Yum!<blue>(Wish I had more...)</blue> Here's some more text because we need this to be really long and go on for more than 3 lines."
+print(get_rich_boxes(test_string, 40, 3))
