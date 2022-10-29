@@ -2,7 +2,8 @@ from enum import IntEnum
 from typing import Dict
 from PIL import Image, ImageDraw, ImageFont
 
-from objection_engine.parse_tags import reconstruct_string_for_box
+from objection_engine.parse_tags import DialoguePage
+
 try:
     from fontTools.ttLib import TTFont
 except:
@@ -40,7 +41,7 @@ class AnimText:
     font_array = FONT_ARRAY
     def __init__(
         self,
-        text: str,
+        text: DialoguePage,
         *,
         x: int = 0,
         y: int = 0,
@@ -57,7 +58,7 @@ class AnimText:
         self._internal_text = text
         self.typewriter_effect = typewriter_effect
 
-        print("Create AnimText with text:", self.text, reconstruct_string_for_box(self.text))
+        print("Create AnimText with text:", self.text)
         
         self.text_type = text_type
         if self.text_type == TextType.DIALOGUE:
@@ -88,11 +89,19 @@ class AnimText:
         _text = self.text
         print(_text)
         if self.typewriter_effect:
-            _text = _text[:frame]
-        if self.font_path is not None:
-            draw.text((self.x, self.y), _text, font=self.font, fill=self.colour)
-        else:
-            draw.text((self.x, self.y), _text, fill=self.colour)
+            if isinstance(_text, str):
+                _text = _text[:frame]
+            elif isinstance(_text, DialoguePage):
+                _text = _text.get_visible_text(frame)
+
+        if isinstance(_text, str):
+            if self.font_path is not None:
+                draw.text((self.x, self.y), _text, font=self.font, fill=self.colour)
+            else:
+                draw.text((self.x, self.y), _text, fill=self.colour)
+
+        elif isinstance(_text, DialoguePage):
+            ... # TODO: draw each block!!
         return background
 
     def get_text_size(self):
@@ -108,11 +117,11 @@ class AnimText:
                 best_font = font
             if best_font_points >= len(self._internal_text):
                 return font
-        print(f'WARNING. NO OPTIMAL FONT FOUND, font score: {best_font_points}/{len(self._internal_text)}, text {self._internal_text}')
+        print(f'WARNING. NO OPTIMAL FONT FOUND, font score: {best_font_points}/{len(self._internal_text.get_raw_text())}, text {self._internal_text}')
         return best_font
 
     def _check_font(self, font):
-        return score_font(font, reconstruct_string_for_box(self.text))
+        return score_font(font, self.text)
 
     def __str__(self):
         return self.text
@@ -123,7 +132,14 @@ def score_font(font, text):
     font = TTFont(font_path)
     # We check all chars for presence on the font
     valid_char = 0
-    for char in text:
+
+    text_iterator = None
+    if isinstance(text, str):
+        text_iterator = text
+    elif isinstance(text, DialoguePage):
+        text_iterator = text.get_raw_text()
+
+    for char in text_iterator:
         # We check if the char is in any table of the font
         for table in font['cmap'].tables:
             if ord(char) in table.cmap:

@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from re import compile
 from typing import Union
 from textwrap import wrap
+from pprint import pprint
+from copy import deepcopy
 
 @dataclass
 class DialogueTag:
@@ -23,17 +25,66 @@ class DialogueTextChunk:
     text: str
     tags: list[str]
 
+    def __len__(self) -> int:
+        return len(self.text)
+
 @dataclass
 class DialoguePage:
-    chunks: list[DialogueTextChunk]
+    lines: list[list[DialogueTextChunk]]
+
+    def __len__(self) -> int:
+        lens = []
+        for line in self.lines:
+            for chunk in line:
+                lens.append(len(chunk))
+        return sum(lens)
+
+    def get_raw_text(self) -> str:
+        texts = []
+        for line in self.lines:
+            for chunk in line:
+                texts.append(chunk.text)
+        return ''.join(texts)
+
+    def get_visible_text(self, visible_chars: int = 10) -> 'DialoguePage':
+        """
+        Iterate through each line, and within each line, its chunks.
+        Count the characters and keep adding to a variable.
+        Once the variable hits visible_chars, stop counting.
+        The chunks we read should be added to a list, and the chunk we're reading right now
+        should be cut off to its correct length before being added.
+        """
+        chars_remaining = visible_chars
+        new_lines = []
+        for line in self.lines:
+            new_line = []
+            for chunk in line:
+                if chars_remaining >= len(chunk):
+                    new_line.append(deepcopy(chunk))
+                    chars_remaining -= len(chunk)
+                elif chars_remaining > 0:
+                    partial_copy = deepcopy(chunk)
+                    partial_copy.text = partial_copy.text[:chars_remaining]
+                    new_line.append(partial_copy)
+                    chars_remaining = 0
+                    break
+                else:
+                    break
+            new_lines.append(new_line)
+            if chars_remaining <= 0:
+                break
+
+        return DialoguePage(new_lines)
+                
+
 
 @dataclass
 class DialogueTextContent:
     cleaned_lines: str
     tags: list[Union[DialogueTag, DialogueAction]]
 
-    def get_text_chunks(self, line_width: int = None, visible_chars: int = None) -> list[DialoguePage]:
-        wrapped_lines = wrap(self.cleaned_lines)
+    def get_text_chunks(self, line_width: int = 50, lines_per_box: int = 3) -> list[DialoguePage]:
+        wrapped_lines = wrap(self.cleaned_lines, width=line_width)
         formatted_lines = []
         for line in wrapped_lines:
             start_index = self.cleaned_lines.index(line)
@@ -74,7 +125,12 @@ class DialogueTextContent:
                 chunks.append(DialogueTextChunk(current_string, current_tags))
 
             lines_of_chunks.append(chunks)
-        print(lines_of_chunks)
+
+        lines_grouped_into_threes = [lines_of_chunks[i:i+lines_per_box] for i in range(0, len(lines_of_chunks), lines_per_box)]
+        
+
+        pages: list[DialoguePage] = [DialoguePage(group_of_lines) for group_of_lines in lines_grouped_into_threes]
+        return pages
 
 
 # Group 1: Optional slash at the beginning (i.e. it's a closing tag)
@@ -83,7 +139,7 @@ class DialogueTextContent:
 # Group 4: Optional slash at end (i.e. it's self-closing, like an action)
 tag_re = compile(r"<(/??)([a-z]*?)(/??)>")
 
-def parse_text(text: str):
+def parse_text(text: str) -> DialogueTextContent:
     tag_stack = []
     final_tags = []
     stripped_text = text
@@ -135,134 +191,121 @@ def parse_text(text: str):
 
     return DialogueTextContent(stripped_text, tag_objects)
 
-def add_line_breaks(text: str, tags: list[dict], max_chars: int = 15):
-    lines = []
+# def add_line_breaks(text: str, tags: list[dict], max_chars: int = 15):
+#     lines = []
 
-    line_start_index = 0
-    line_end_index = 0
+#     line_start_index = 0
+#     line_end_index = 0
 
-    while line_end_index < len(text) - 1:
-        while line_end_index - line_start_index < max_chars:
-            line_end_index += 1
+#     while line_end_index < len(text) - 1:
+#         while line_end_index - line_start_index < max_chars:
+#             line_end_index += 1
 
-        # If we're currently in the middle of a word, then move the line end index back to the previous space
-        # while line_end_index < len(text) and not text[line_end_index].isspace():
-        #     line_end_index -= 1
-        #     print(text[line_start_index:line_end_index])
+#         # If we're currently in the middle of a word, then move the line end index back to the previous space
+#         # while line_end_index < len(text) and not text[line_end_index].isspace():
+#         #     line_end_index -= 1
+#         #     print(text[line_start_index:line_end_index])
 
-        new_line = text[line_start_index:line_end_index]
+#         new_line = text[line_start_index:line_end_index]
 
-        new_line_tags = []
+#         new_line_tags = []
 
         
-        for tag in tags:
-            name = tag["name"]
-            start = tag["start"]
-            rel_start = start - line_start_index
-            local_start = max(0, rel_start)
+#         for tag in tags:
+#             name = tag["name"]
+#             start = tag["start"]
+#             rel_start = start - line_start_index
+#             local_start = max(0, rel_start)
 
-            new_tag = {
-                "name": name,
-                "start": local_start
-            }
+#             new_tag = {
+#                 "name": name,
+#                 "start": local_start
+#             }
 
-            if "end" in tag:
-                end = tag["end"]
-                rel_end = rel_start + (end - start)
-                local_end = min(len(new_line), rel_end)
+#             if "end" in tag:
+#                 end = tag["end"]
+#                 rel_end = rel_start + (end - start)
+#                 local_end = min(len(new_line), rel_end)
 
-                # If this tag doesn't overlap at all with this line of text, then skip it
-                if rel_end < 0 or rel_start >= len(new_line):
-                    continue
+#                 # If this tag doesn't overlap at all with this line of text, then skip it
+#                 if rel_end < 0 or rel_start >= len(new_line):
+#                     continue
 
-                new_tag["end"] = local_end
-                new_line_tags.append(new_tag)
+#                 new_tag["end"] = local_end
+#                 new_line_tags.append(new_tag)
 
-            else:
-                if rel_start < 0 or rel_start >= len(new_line):
-                    continue
+#             else:
+#                 if rel_start < 0 or rel_start >= len(new_line):
+#                     continue
 
-                new_line_tags.append(new_tag)
+#                 new_line_tags.append(new_tag)
 
-        # Let's strip whitespace.
-        # First, strip whitespace from the beginning.
-        line_len_before_lstrip = len(new_line)
-        new_line = new_line.lstrip()
-        chars_removed = line_len_before_lstrip - len(new_line)
-        for tag in new_line_tags:
-            tag["start"] = max(0, tag["start"] - chars_removed)
-            if "end" in tag:
-                tag["end"] = max(0, tag["end"] - chars_removed)
+#         # Let's strip whitespace.
+#         # First, strip whitespace from the beginning.
+#         line_len_before_lstrip = len(new_line)
+#         new_line = new_line.lstrip()
+#         chars_removed = line_len_before_lstrip - len(new_line)
+#         for tag in new_line_tags:
+#             tag["start"] = max(0, tag["start"] - chars_removed)
+#             if "end" in tag:
+#                 tag["end"] = max(0, tag["end"] - chars_removed)
 
-        # Next, strip whitespace from the end.
-        line_len_before_rstrip = len(new_line)
-        new_line = new_line.rstrip()
-        chars_removed = line_len_before_rstrip - len(new_line)
-        for tag in new_line_tags:
-            if "end" in tag:
-                tag["end"] = min(tag["end"] - chars_removed, len(new_line))
+#         # Next, strip whitespace from the end.
+#         line_len_before_rstrip = len(new_line)
+#         new_line = new_line.rstrip()
+#         chars_removed = line_len_before_rstrip - len(new_line)
+#         for tag in new_line_tags:
+#             if "end" in tag:
+#                 tag["end"] = min(tag["end"] - chars_removed, len(new_line))
 
-        # Go to next line
-        lines.append((new_line, new_line_tags))
-        line_start_index = line_end_index
+#         # Go to next line
+#         lines.append((new_line, new_line_tags))
+#         line_start_index = line_end_index
 
-    return lines
+#     return lines
 
-def line_to_character_chunks(text: str, tags: list[dict]):
-    return [
-        (c, [
-            item["name"] for item in tags
-            if "end" not in item and item["start"] == i
-            or "end" in item and i in range(item["start"], item["end"])
-            ])
-        for i, c in enumerate(text)
-    ]
+# def line_to_character_chunks(text: str, tags: list[dict]):
+#     return [
+#         (c, [
+#             item["name"] for item in tags
+#             if "end" not in item and item["start"] == i
+#             or "end" in item and i in range(item["start"], item["end"])
+#             ])
+#         for i, c in enumerate(text)
+#     ]
 
-def merge_character_chunks(characters: list[tuple[str, list[dict]]]):
-    current_string = ""
-    current_tags = characters[0][1]
-    chunks = []
-    for c, tags in characters:
-        c: str
-        tags: list[dict]
-        if tags == current_tags:
-            current_string += c
-        else:
-            chunks.append((current_string, current_tags))
-            current_string = ""
-            current_tags = tags.copy()
-            current_string += c
+# def merge_character_chunks(characters: list[tuple[str, list[dict]]]):
+#     current_string = ""
+#     current_tags = characters[0][1]
+#     chunks = []
+#     for c, tags in characters:
+#         c: str
+#         tags: list[dict]
+#         if tags == current_tags:
+#             current_string += c
+#         else:
+#             chunks.append((current_string, current_tags))
+#             current_string = ""
+#             current_tags = tags.copy()
+#             current_string += c
 
-    chunks.append((current_string, current_tags))
-    return chunks
+#     chunks.append((current_string, current_tags))
+#     return chunks
 
+# def reconstruct_string_for_box(chunks: list[list[tuple[str, list[dict]]]]):
+#     output = ""
+#     for list_of_line_chunks in chunks:
+#         for line_chunk in list_of_line_chunks:
+#             output += line_chunk[0]
+#         output += " "
+#     return output
 
-def show_max_chars(chunks: list[list[tuple[str, list[dict]]]], chars: int):
+def get_rich_boxes(text: str, line_width: int = 40, lines_per_box: int = 3):
     """
-    TODO: Given the chunks array, remove text/chunks outside of the max char count!
+    Given input `text`, returns a list of `DialoguePage` objects. Each object
+    represents a single dialogue box.
     """
-    ...
+    return parse_text(text).get_text_chunks(line_width, lines_per_box)
 
-def group_into_lines(chunks: list[tuple[str, list[dict]]], lines: int = 3):
-    return [chunks[i:i+lines] for i in range(0, len(chunks), lines)]
-
-def reconstruct_string_for_box(chunks: list[list[tuple[str, list[dict]]]]):
-    output = ""
-    for list_of_line_chunks in chunks:
-        for line_chunk in list_of_line_chunks:
-            output += line_chunk[0]
-        output += " "
-    return output
-
-def get_rich_boxes(text: str, line_length: int, num_lines = 3):
-    text_object = parse_text(text)
-    print(text_object)
-    text_object.get_text_chunks(70, 30)
-    # lines = add_line_breaks(parsed_text, tags, line_length)
-    # character_chunk_lines = [line_to_character_chunks(*i) for i in lines]
-    # continuous_chunks = [merge_character_chunks(line) for line in character_chunk_lines]
-    # grouped_in_threes = group_into_lines(continuous_chunks, num_lines)
-    # return grouped_in_threes
-
-test_string = "Hello, my name is <red>Bob</red> and I like to <green>eat avocados</green>. <shake/>Yum!<blue>(Wish I had more...)</blue> Here's some more text because we need this to be really long and go on for more than 3 lines."
-print(get_rich_boxes(test_string, 40, 3))
+# test_string = "Hello, my name is <red>Bob</red> and I like to <green>eat avocados</green>. <shake/>Yum!<blue>(Wish I had more...)</blue> Here's some more text because we need this to be really long and go on for more than 3 lines. Wow this still isn't enough text? Time to go on for even longer, I guess. Maybe this is enough? Or should I go a bit farther?"
+# get_rich_boxes(test_string, 40, 3)
