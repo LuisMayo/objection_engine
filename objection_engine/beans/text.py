@@ -35,7 +35,11 @@ NAMETAG_FONT_ARRAY = [
     {'path': './assets/ace-name/ace-name.ttf', 'size': 8}
 ] + FONT_ARRAY
 
-
+TEXT_COLORS = {
+    "red": (240, 112, 56),
+    "blue": (104, 192, 240),
+    "green": (0, 240, 0)
+}
 
 class AnimText:
     font_array = FONT_ARRAY
@@ -57,8 +61,6 @@ class AnimText:
         # Used for font handling internals
         self._internal_text = text
         self.typewriter_effect = typewriter_effect
-
-        print("Create AnimText with text:", self.text)
         
         self.text_type = text_type
         if self.text_type == TextType.DIALOGUE:
@@ -87,7 +89,6 @@ class AnimText:
     def render(self, background: Image, frame: int = 0):
         draw = ImageDraw.Draw(background)
         _text = self.text
-        print(_text)
         if self.typewriter_effect:
             if isinstance(_text, str):
                 _text = _text[:frame]
@@ -101,7 +102,35 @@ class AnimText:
                 draw.text((self.x, self.y), _text, fill=self.colour)
 
         elif isinstance(_text, DialoguePage):
-            ... # TODO: draw each block!!
+            for line_no, line in enumerate(_text.lines):
+                x_offset = 0
+                for chunk_no, chunk in enumerate(line):
+                    drawing_args = {
+                        "xy": (self.x + x_offset, self.y + (self.font_size + 3) * line_no),
+                        "text": chunk.text,
+                        "fill": (255,0,255)
+                    }
+
+                    if len(chunk.tags) == 0:
+                        drawing_args["fill"] = (255,255,255)
+                    else:
+                        drawing_args["fill"] = TEXT_COLORS[chunk.tags[-1]]
+
+                    if self.font_path is not None:
+                        drawing_args["font"] = self.font
+
+                    draw.text(**drawing_args)
+
+                    try:
+                        add_to_x_offset = draw.textlength(chunk.text)
+                        if chunk_no < len(line) - 1:
+                            next_char = line[chunk_no + 1].text[0]
+                            add_to_x_offset = draw.textlength(chunk.text + next_char, self.font) - draw.textlength(next_char, self.font)
+                    except UnicodeEncodeError:
+                        print(f"Couldn't use textlength() to determine length of \"{chunk.text}\", so using getsize() instead")
+                        add_to_x_offset = self.font.getsize(chunk.text)[0]
+                    x_offset += add_to_x_offset
+                        
         return background
 
     def get_text_size(self):

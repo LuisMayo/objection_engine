@@ -541,7 +541,7 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
         #             joined_sentences.append(sentence)
         #             i += 1
 
-        rich_boxes = get_rich_boxes(comment.body, 85, 3)
+        rich_boxes = get_rich_boxes(comment.body, 40, 3)
 
         character_block = []
         character = comment.character
