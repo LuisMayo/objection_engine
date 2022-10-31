@@ -1,45 +1,15 @@
 from enum import IntEnum
 from typing import Dict
 from PIL import Image, ImageDraw, ImageFont
+from objection_engine.beans.font_tools import get_best_font, get_font_score
 
 from objection_engine.parse_tags import DialoguePage
+from objection_engine.beans.font_constants import FONT_ARRAY, NAMETAG_FONT_ARRAY, TEXT_COLORS, TextType
 
 try:
     from fontTools.ttLib import TTFont
 except:
     from fonttools.ttLib import TTFont
-
-class TextType(IntEnum):
-    DIALOGUE = 0
-    NAME = 1
-
-FONT_ARRAY = [
-        # AA-Like > Pixel > Generic
-        # AA-like, Latin, hiragana, katakana, (part of) cyrillic
-        {'path': './assets/igiari/Igiari.ttf'},
-        # AA-like, Latin, hiragana, katakana, (part of) cyrillic
-        {'path': './assets/igiari/Galmuri11.ttf'},
-        # Pixel, Kanji, Hiragana, Katakana
-        {'path':'./assets/igiari/jackeyfont.ttf'},
-        # Arabic
-        {'path':'./assets/igiari/arabic-1.ttf', 'size': 12, 'offset': {TextType.NAME: (0, -5)}},
-        # Pixel-font, Hebrew
-        {'path':'./assets/igiari/STANRG__.ttf'},
-        # Generic
-        {'path':'./assets/igiari/NotoSans-Regular.ttf'},
-        # Pixel font, Arabic
-        {'path':'./assets/igiari/bitsy-font-with-arabic.ttf', 'size': 10},
-    ]
-
-NAMETAG_FONT_ARRAY = [
-    {'path': './assets/ace-name/ace-name.ttf', 'size': 8}
-] + FONT_ARRAY
-
-TEXT_COLORS = {
-    "red": (240, 112, 56),
-    "blue": (104, 192, 240),
-    "green": (0, 240, 0)
-}
 
 class AnimText:
     font_array = FONT_ARRAY
@@ -122,7 +92,7 @@ class AnimText:
                     draw.text(**drawing_args)
 
                     try:
-                        add_to_x_offset = draw.textlength(chunk.text)
+                        add_to_x_offset = draw.textlength(chunk.text, font=self.font)
                         if chunk_no < len(line) - 1:
                             next_char = line[chunk_no + 1].text[0]
                             add_to_x_offset = draw.textlength(chunk.text + next_char, self.font) - draw.textlength(next_char, self.font)
@@ -137,17 +107,10 @@ class AnimText:
         return self.font.getsize(self.text)
 
     def _select_best_font(self):
-        best_font = self.font_array[-1]
-        best_font_points = 0
-        for font in self.font_array:
-            font_points = self._check_font(font)
-            if font_points > best_font_points:
-                best_font_points = font_points
-                best_font = font
-            if best_font_points >= len(self._internal_text):
-                return font
-        print(f'WARNING. NO OPTIMAL FONT FOUND, font score: {best_font_points}/{len(self._internal_text.get_raw_text())}, text {self._internal_text}')
-        return best_font
+        if isinstance(self._internal_text, str):
+            return get_best_font(self._internal_text, self.font_array)
+        elif isinstance(self._internal_text, DialoguePage):
+            return get_best_font(self._internal_text.get_raw_text(), self.font_array)
 
     def _check_font(self, font):
         return score_font(font, self.text)
@@ -157,24 +120,9 @@ class AnimText:
 
 def score_font(font, text):
     '''Scores a font based on a given text string'''
-    font_path = font['path']
-    font = TTFont(font_path)
-    # We check all chars for presence on the font
-    valid_char = 0
-
-    text_iterator = None
-    if isinstance(text, str):
-        text_iterator = text
-    elif isinstance(text, DialoguePage):
-        text_iterator = text.get_raw_text()
-
-    for char in text_iterator:
-        # We check if the char is in any table of the font
-        for table in font['cmap'].tables:
-            if ord(char) in table.cmap:
-                valid_char += 1
-                break
-    return valid_char
+    if isinstance(text, DialoguePage):
+        text = text.get_raw_text()
+    return get_font_score(font, text)
 
 def is_renderable(text):
     '''Determines if a given string is renderable against default fonts'''

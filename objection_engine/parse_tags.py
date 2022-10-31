@@ -5,6 +5,8 @@ from typing import Union
 from textwrap import wrap
 from pprint import pprint
 from copy import deepcopy
+from objection_engine.beans.font_tools import get_best_font, get_font_score
+from objection_engine.beans.font_constants import FONT_ARRAY
 
 @dataclass
 class DialogueTag:
@@ -83,7 +85,15 @@ class DialogueTextContent:
     cleaned_lines: str
     tags: list[Union[DialogueTag, DialogueAction]]
 
+    def get_best_font(self):
+        print(f"Looking for best font for {self.cleaned_lines}")
+        best_font = get_best_font(self.cleaned_lines, FONT_ARRAY)
+        print(f"Looks like it's {best_font}")
+        print()
+
     def get_text_chunks(self, line_width: int = 50, lines_per_box: int = 3) -> list[DialoguePage]:
+        self.get_best_font()
+        
         wrapped_lines = wrap(self.cleaned_lines, width=line_width)
         formatted_lines = []
         for line in wrapped_lines:
