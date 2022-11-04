@@ -36,6 +36,7 @@ def get_font_score(font, text):
 def get_best_font(text, font_array):
     best_font = font_array[-1]
     best_font_points = 0
+    text = text.replace('\n', '').replace('\r', '').replace('\t', '')
     for font in font_array:
         pts = get_font_score(font, text)
         if pts > best_font_points:
@@ -43,7 +44,7 @@ def get_best_font(text, font_array):
             best_font = font
         if best_font_points >= len(text):
             return font
-    # print(f'WARNING. NO OPTIMAL FONT FOUND, font score: {best_font_points}/{len(text)}, text {text}')
+    print(f'WARNING. NO OPTIMAL FONT FOUND, font: {best_font}, font score: {best_font_points}/{len(text)}, text \"{text}\"\n')
     return best_font
 
 
@@ -52,14 +53,13 @@ def fit_words_within_width(words: Union[list[str], str], font: ImageFont.FreeTyp
     space = " " if insert_space else ""
     for word in words:
         last_sentence = new_text.split("\n")[-1] + word + space
-        if font.getsize(text=last_sentence)[0] >= 240:
+        if font.getlength(text=last_sentence) >= 240:
             if new_text.split("\n")[-1] != "":
                 new_text += "\n"
             new_text += fit_words_within_width(word, font, False) + space
         else:
             new_text += word + space
-    # if new_text[-1] == space:
-    #     new_text = new_text[:-1]
+
     return new_text
 
 def split_str_into_newlines(text: str, font_path, font_size):
@@ -68,7 +68,7 @@ def split_str_into_newlines(text: str, font_path, font_size):
     return fit_words_within_width(words, font, True)
 
 
-def split_with_joined_sentences(text: str, font_path, font_size):
+def split_with_joined_sentences(text: str):
     """
     """
     tokens = nlp(text)

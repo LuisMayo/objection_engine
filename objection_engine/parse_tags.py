@@ -95,26 +95,17 @@ class DialoguePage:
             lines_of_chunks.append(chunks)
         return DialoguePage(lines_of_chunks)
 
-                
-
-
 @dataclass
 class DialogueTextContent:
     cleaned_lines: str
     tags: list[Union[DialogueTag, DialogueAction]]
 
-    def get_best_font(self):
-        return get_best_font(self.cleaned_lines, FONT_ARRAY)
-
     def get_text_chunks(self) -> list[DialoguePage]:
-        best_font = self.get_best_font()
-        font_path = best_font['path']
-        font_size = 15
-
         pages = []
         current_position = 0
-        for box_text in split_with_joined_sentences(self.cleaned_lines, best_font, font_size):
-            wrapped_box_lines = split_str_into_newlines(box_text, font_path, font_size).split('\n')
+        for box_text in split_with_joined_sentences(self.cleaned_lines):
+            splitter_font_path = get_best_font(box_text, FONT_ARRAY)['path']
+            wrapped_box_lines = split_str_into_newlines(box_text, splitter_font_path, 15).split('\n')
             lines: list[list[DialogueTextChunk]] = []
             for line in wrapped_box_lines:
                 chunks: list[DialogueTextChunk] = []
