@@ -32,24 +32,6 @@ import re
 nlp = spacy.blank("xx")
 nlp.add_pipe('sentencizer')
 
-def fit_words_within_width(words: Union[List[str], str], font: ImageFont.FreeTypeFont, insert_space: bool):
-    new_text = ""
-    space = " " if insert_space else ""
-    for word in words:
-        last_sentence = new_text.split("\n")[-1] + word + space
-        if font.getsize(text=last_sentence)[0] >= 240:
-            if new_text.split("\n")[-1] != "":
-                new_text += "\n"
-            new_text += fit_words_within_width(word, font, False) + space
-        else:
-            new_text += word + space
-    return new_text
-
-def split_str_into_newlines(text: str, font_path, font_size):
-    font = ImageFont.truetype(font_path, font_size)
-    words = text.split(" ")
-    return fit_words_within_width(words, font, True)
-
 def create_nameplate(obj: dict):
     """
     Creates the layers for a nameplate that
@@ -541,7 +523,7 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
         #             joined_sentences.append(sentence)
         #             i += 1
 
-        rich_boxes = get_rich_boxes(comment.body, 40, 3)
+        rich_boxes = get_rich_boxes(comment.body)
 
         character_block = []
         character = comment.character

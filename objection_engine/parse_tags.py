@@ -1,11 +1,8 @@
-from curses.ascii import isspace
 from dataclasses import dataclass
 from re import compile
 from typing import Union
-from textwrap import wrap
-from pprint import pprint
 from copy import deepcopy
-from objection_engine.beans.font_tools import get_best_font, get_font_score
+from objection_engine.beans.font_tools import get_best_font, split_str_into_newlines, split_with_joined_sentences
 from objection_engine.beans.font_constants import FONT_ARRAY
 
 @dataclass
@@ -77,6 +74,27 @@ class DialoguePage:
                 break
 
         return DialoguePage(new_lines)
+
+    def condense_chunks(self) -> 'DialoguePage':
+        lines_of_chunks = []
+        for line in self.lines:
+            current_string = ""
+            current_tags = None
+            chunks: list[DialogueTextChunk] = []
+            for chunk in line:
+                if current_tags is None or chunk.tags == current_tags:
+                    current_string += chunk.text
+                    if current_tags is None:
+                        current_tags = chunk.tags.copy()
+                else:
+                    chunks.append(DialogueTextChunk(current_string, current_tags))
+                    current_string = chunk.text
+                    current_tags = chunk.tags.copy()
+            if len(current_string) > 0:
+                chunks.append(DialogueTextChunk(current_string, current_tags))
+            lines_of_chunks.append(chunks)
+        return DialoguePage(lines_of_chunks)
+
                 
 
 
@@ -86,60 +104,33 @@ class DialogueTextContent:
     tags: list[Union[DialogueTag, DialogueAction]]
 
     def get_best_font(self):
-        print(f"Looking for best font for {self.cleaned_lines}")
-        best_font = get_best_font(self.cleaned_lines, FONT_ARRAY)
-        print(f"Looks like it's {best_font}")
-        print()
+        return get_best_font(self.cleaned_lines, FONT_ARRAY)
 
-    def get_text_chunks(self, line_width: int = 50, lines_per_box: int = 3) -> list[DialoguePage]:
-        self.get_best_font()
-        
-        wrapped_lines = wrap(self.cleaned_lines, width=line_width)
-        formatted_lines = []
-        for line in wrapped_lines:
-            start_index = self.cleaned_lines.index(line)
-            chars_and_tags = []
-            for i, char in enumerate(line):
-                this_char_tags = []
-                for tag in self.tags:
-                    if isinstance(tag, DialogueAction) and i == tag.index + start_index:
-                        this_char_tags.append(tag.name)
-                            
-                    elif isinstance(tag, DialogueTag) and i + start_index in tag.range():
-                        this_char_tags.append(tag.name)
+    def get_text_chunks(self) -> list[DialoguePage]:
+        best_font = self.get_best_font()
+        font_path = best_font['path']
+        font_size = 15
 
-                chars_and_tags.append((char, this_char_tags))
+        pages = []
+        current_position = 0
+        for box_text in split_with_joined_sentences(self.cleaned_lines, best_font, font_size):
+            wrapped_box_lines = split_str_into_newlines(box_text, font_path, font_size).split('\n')
+            lines: list[list[DialogueTextChunk]] = []
+            for line in wrapped_box_lines:
+                chunks: list[DialogueTextChunk] = []
+                for char in line:
+                    this_char_tags: list[str] = []
+                    for tag in self.tags:
+                        if isinstance(tag, DialogueTag) and current_position in tag.range():
+                            this_char_tags.append(tag.name)
+                    chunks.append(DialogueTextChunk(char, this_char_tags))
+                    current_position += 1
 
-            formatted_lines.append(chars_and_tags)
+                lines.append(chunks)
 
-
-        # We have the big ugly list of characters, now we want to condense it into continuous chunks
-        lines_of_chunks = []
-        for line in formatted_lines:
-            chunks = []
-            current_string = ""
-            current_tags = None
-            for char, tags in line:
-                char: str
-                tags: list[str]
-                if tags == current_tags or current_tags is None:
-                    current_string += char
-                    if current_tags is None:
-                        current_tags = tags.copy()
-                else:
-                    chunks.append(DialogueTextChunk(current_string, current_tags))
-                    current_tags = tags.copy()
-                    current_string = char
-
-            if len(current_string) > 0:
-                chunks.append(DialogueTextChunk(current_string, current_tags))
-
-            lines_of_chunks.append(chunks)
-
-        lines_grouped_into_threes = [lines_of_chunks[i:i+lines_per_box] for i in range(0, len(lines_of_chunks), lines_per_box)]
-        
-
-        pages: list[DialoguePage] = [DialoguePage(group_of_lines) for group_of_lines in lines_grouped_into_threes]
+            new_page = DialoguePage(lines).condense_chunks()
+            pages.append(new_page)
+            
         return pages
 
 
@@ -201,121 +192,12 @@ def parse_text(text: str) -> DialogueTextContent:
 
     return DialogueTextContent(stripped_text, tag_objects)
 
-# def add_line_breaks(text: str, tags: list[dict], max_chars: int = 15):
-#     lines = []
-
-#     line_start_index = 0
-#     line_end_index = 0
-
-#     while line_end_index < len(text) - 1:
-#         while line_end_index - line_start_index < max_chars:
-#             line_end_index += 1
-
-#         # If we're currently in the middle of a word, then move the line end index back to the previous space
-#         # while line_end_index < len(text) and not text[line_end_index].isspace():
-#         #     line_end_index -= 1
-#         #     print(text[line_start_index:line_end_index])
-
-#         new_line = text[line_start_index:line_end_index]
-
-#         new_line_tags = []
-
-        
-#         for tag in tags:
-#             name = tag["name"]
-#             start = tag["start"]
-#             rel_start = start - line_start_index
-#             local_start = max(0, rel_start)
-
-#             new_tag = {
-#                 "name": name,
-#                 "start": local_start
-#             }
-
-#             if "end" in tag:
-#                 end = tag["end"]
-#                 rel_end = rel_start + (end - start)
-#                 local_end = min(len(new_line), rel_end)
-
-#                 # If this tag doesn't overlap at all with this line of text, then skip it
-#                 if rel_end < 0 or rel_start >= len(new_line):
-#                     continue
-
-#                 new_tag["end"] = local_end
-#                 new_line_tags.append(new_tag)
-
-#             else:
-#                 if rel_start < 0 or rel_start >= len(new_line):
-#                     continue
-
-#                 new_line_tags.append(new_tag)
-
-#         # Let's strip whitespace.
-#         # First, strip whitespace from the beginning.
-#         line_len_before_lstrip = len(new_line)
-#         new_line = new_line.lstrip()
-#         chars_removed = line_len_before_lstrip - len(new_line)
-#         for tag in new_line_tags:
-#             tag["start"] = max(0, tag["start"] - chars_removed)
-#             if "end" in tag:
-#                 tag["end"] = max(0, tag["end"] - chars_removed)
-
-#         # Next, strip whitespace from the end.
-#         line_len_before_rstrip = len(new_line)
-#         new_line = new_line.rstrip()
-#         chars_removed = line_len_before_rstrip - len(new_line)
-#         for tag in new_line_tags:
-#             if "end" in tag:
-#                 tag["end"] = min(tag["end"] - chars_removed, len(new_line))
-
-#         # Go to next line
-#         lines.append((new_line, new_line_tags))
-#         line_start_index = line_end_index
-
-#     return lines
-
-# def line_to_character_chunks(text: str, tags: list[dict]):
-#     return [
-#         (c, [
-#             item["name"] for item in tags
-#             if "end" not in item and item["start"] == i
-#             or "end" in item and i in range(item["start"], item["end"])
-#             ])
-#         for i, c in enumerate(text)
-#     ]
-
-# def merge_character_chunks(characters: list[tuple[str, list[dict]]]):
-#     current_string = ""
-#     current_tags = characters[0][1]
-#     chunks = []
-#     for c, tags in characters:
-#         c: str
-#         tags: list[dict]
-#         if tags == current_tags:
-#             current_string += c
-#         else:
-#             chunks.append((current_string, current_tags))
-#             current_string = ""
-#             current_tags = tags.copy()
-#             current_string += c
-
-#     chunks.append((current_string, current_tags))
-#     return chunks
-
-# def reconstruct_string_for_box(chunks: list[list[tuple[str, list[dict]]]]):
-#     output = ""
-#     for list_of_line_chunks in chunks:
-#         for line_chunk in list_of_line_chunks:
-#             output += line_chunk[0]
-#         output += " "
-#     return output
-
-def get_rich_boxes(text: str, line_width: int = 40, lines_per_box: int = 3):
+def get_rich_boxes(text: str):
     """
     Given input `text`, returns a list of `DialoguePage` objects. Each object
     represents a single dialogue box.
     """
-    return parse_text(text).get_text_chunks(line_width, lines_per_box)
+    return parse_text(text).get_text_chunks()
 
 # test_string = "Hello, my name is <red>Bob</red> and I like to <green>eat avocados</green>. <shake/>Yum!<blue>(Wish I had more...)</blue> Here's some more text because we need this to be really long and go on for more than 3 lines. Wow this still isn't enough text? Time to go on for even longer, I guess. Maybe this is enough? Or should I go a bit farther?"
 # get_rich_boxes(test_string, 40, 3)

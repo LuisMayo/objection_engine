@@ -13,13 +13,13 @@ FONT_ARRAY = [
         # Pixel, Kanji, Hiragana, Katakana
         {'path':'./assets/igiari/jackeyfont.ttf'},
         # Arabic
-        {'path':'./assets/igiari/arabic-1.ttf', 'size': 12, 'offset': {TextType.NAME: (0, -5)}},
+        {'path':'./assets/igiari/arabic-1.ttf', 'size': 12, 'offset': {TextType.NAME: (0, -5)}, 'rtl': True},
         # Pixel-font, Hebrew
         {'path':'./assets/igiari/STANRG__.ttf'},
         # Generic
         {'path':'./assets/igiari/NotoSans-Regular.ttf'},
         # Pixel font, Arabic
-        {'path':'./assets/igiari/bitsy-font-with-arabic.ttf', 'size': 10},
+        {'path':'./assets/igiari/bitsy-font-with-arabic.ttf', 'size': 10, 'rtl': True},
     ]
 
 NAMETAG_FONT_ARRAY = [
@@ -31,3 +31,5 @@ TEXT_COLORS = {
     "blue": (104, 192, 240),
     "green": (0, 240, 0)
 }
+
+MAX_LINE_WIDTH = 220
