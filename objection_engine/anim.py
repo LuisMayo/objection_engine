@@ -43,7 +43,8 @@ def create_nameplate(obj: dict):
         text_type=TextType.NAME,
         font_size = 8,
         x = 6,
-        y = 129 - 11
+        y = 129 - 11,
+        force_no_rtl=True
     )
 
     name_width = character_name.get_text_size()[0]

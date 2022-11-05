@@ -22,6 +22,7 @@ class AnimText:
         font_path: str = None,
         font_size: int = 12,
         typewriter_effect: bool = False,
+        force_no_rtl: bool = False,
         colour: str = "#ffffff",
         text_type: TextType = TextType.DIALOGUE
     ):
@@ -39,12 +40,15 @@ class AnimText:
             self.font_array = NAMETAG_FONT_ARRAY
 
         self.font_size = font_size
+        self.use_rtl = False
 
         if font_path is None:
             best_font = self._select_best_font()
             self.font_path = best_font['path']
             if 'size' in best_font:
                 self.font_size = best_font['size']
+
+            self.use_rtl = best_font.get("rtl", False) and not force_no_rtl
 
             offsets = best_font.get('offset', {}).get(self.text_type, (0,0))
             self.x += offsets[0]
@@ -73,12 +77,16 @@ class AnimText:
 
         elif isinstance(_text, DialoguePage):
             for line_no, line in enumerate(_text.lines):
-                x_offset = 0
+                if self.use_rtl:
+                    x_offset = 220
+                else:
+                    x_offset = 0
                 for chunk_no, chunk in enumerate(line):
                     drawing_args = {
                         "xy": (self.x + x_offset, self.y + (self.font_size + 3) * line_no),
                         "text": chunk.text,
-                        "fill": (255,0,255)
+                        "fill": (255,0,255),
+                        "anchor": ("r" if self.use_rtl else "l") + "a"
                     }
 
                     if len(chunk.tags) == 0:
@@ -99,7 +107,11 @@ class AnimText:
                     except UnicodeEncodeError:
                         print(f"Couldn't use textlength() to determine length of \"{chunk.text}\", so using getsize() instead")
                         add_to_x_offset = self.font.getsize(chunk.text)[0]
-                    x_offset += add_to_x_offset
+                    
+                    if self.use_rtl:
+                        x_offset -= add_to_x_offset
+                    else:
+                        x_offset += add_to_x_offset
                         
         return background
 
