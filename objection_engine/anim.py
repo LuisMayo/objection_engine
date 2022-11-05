@@ -29,9 +29,6 @@ from .constants import Character, lag_frames, fps
 from . import constants
 import re
 
-nlp = spacy.blank("xx")
-nlp.add_pipe('sentencizer')
-
 def create_nameplate(obj: dict):
     """
     Creates the layers for a nameplate that
@@ -474,7 +471,6 @@ def get_characters(most_common: List):
     if len(most_common) > 0:
         characters[Character.EDGEWORTH] = most_common[1]
         for character in most_common[2:]:
-            #         rnd_characters = rnd_prosecutors if len(set(rnd_prosecutors) - set(characters.keys())) > 0 else rnd_witness
             rnd_characters = [
                 Character.GODOT,
                 Character.FRANZISKA,
@@ -504,26 +500,6 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
     for comment in comments:
         # Determine the sentiment of the comment (if it's positive, negative, or neutral)
         polarity = analizer.get_sentiment(comment.body)
-
-        # Calculate how to split up comment text for line wrapping
-        # tokens = nlp(comment.body)
-        # sentences = [sent.text.strip() for sent in tokens.sents]
-        # joined_sentences = []
-        # i = 0
-        # while i < len(sentences):
-        #     sentence = sentences[i]
-        #     if len(sentence) > 85: # Long sentences should be wrapped to multiple shorter lines
-        #         text_chunks = [chunk for chunk in wrap(sentence, 85)]
-        #         joined_sentences = [*joined_sentences, *text_chunks]
-        #         i += 1
-        #     else:
-        #         if i + 1 < len(sentences) and len(f"{sentence} {sentences[i+1]}") <= 85: # Maybe we can join two different sentences
-        #             joined_sentences.append(sentence + " " + sentences[i+1])
-        #             i += 2
-        #         else:
-        #             joined_sentences.append(sentence)
-        #             i += 1
-
         rich_boxes = get_rich_boxes(comment.body)
 
         character_block = []

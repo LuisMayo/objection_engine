@@ -189,6 +189,3 @@ def get_rich_boxes(text: str):
     represents a single dialogue box.
     """
     return parse_text(text).get_text_chunks()
-
-# test_string = "Hello, my name is <red>Bob</red> and I like to <green>eat avocados</green>. <shake/>Yum!<blue>(Wish I had more...)</blue> Here's some more text because we need this to be really long and go on for more than 3 lines. Wow this still isn't enough text? Time to go on for even longer, I guess. Maybe this is enough? Or should I go a bit farther?"
-# get_rich_boxes(test_string, 40, 3)
