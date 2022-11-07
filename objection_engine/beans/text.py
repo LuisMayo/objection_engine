@@ -92,7 +92,7 @@ class AnimText:
                     if len(chunk.tags) == 0:
                         drawing_args["fill"] = (255,255,255)
                     else:
-                        drawing_args["fill"] = TEXT_COLORS[chunk.tags[-1]]
+                        drawing_args["fill"] = TEXT_COLORS.get(chunk.tags[-1], (255,255,255))
 
                     if self.font_path is not None:
                         drawing_args["font"] = self.font

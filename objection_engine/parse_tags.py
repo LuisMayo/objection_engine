@@ -157,9 +157,13 @@ def parse_text(text: str) -> DialogueTextContent:
 
         # Closing tag, like </red>
         elif is_closing_tag:
+            if len(tag_stack) == 0:
+                # Closing tag before opening tag
+                return DialogueTextContent(text, [])
             tag = tag_stack.pop()
             if tag["name"] != tag_name:
-                raise Exception(f"Closing tag {tag_name} does not correspond to opening tag {tag['name']}")
+                # Tag mismatch
+                return DialogueTextContent(text, [])
 
             # I know it's confusing, sorry. This is the start index of the closing tag
             tag["end"] = start
