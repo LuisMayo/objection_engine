@@ -134,7 +134,7 @@ tag_re = compile(r"<(/??)([a-z]*?)(/??)>")
 def parse_text(text: str) -> DialogueTextContent:
     tag_stack = []
     final_tags = []
-    stripped_text = text
+    stripped_text = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
     
     next_match = tag_re.search(stripped_text)
     while next_match is not None:
