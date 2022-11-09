@@ -78,7 +78,7 @@ class AnimText:
         elif isinstance(_text, DialoguePage):
             for line_no, line in enumerate(_text.lines):
                 if self.use_rtl:
-                    x_offset = 220
+                    x_offset = 256 - 11 - 11
                 else:
                     x_offset = 0
                 for chunk_no, chunk in enumerate(line):

@@ -66,6 +66,14 @@ def create_nameplate(obj: dict):
         y = 129 - 12
     )
 
+    # If the text of the text box is RTL, then move
+    # the nameplate to the right side of the screen
+    if obj["text"].use_rtl():
+        namebox_l.x = 256 - 3 - name_width - 6
+        namebox_c.x = 256 - 3 - name_width - 3
+        namebox_r.x = 256 - 3
+        character_name.x = namebox_l.x + 5
+
     if obj.get("action") == constants.Action.TEXT_SHAKE_EFFECT:
         namebox_l.shake_effect = True
         namebox_c.shake_effect = True
