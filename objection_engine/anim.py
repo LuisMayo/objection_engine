@@ -535,6 +535,7 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
     formatted_scenes = []
 
     relaxed_music = ['cross-moderato', 'cross-allegro', 'trial']
+    tense_music = ['objection', 'press']
     last_audio = f'music/{name_music}/{random.choice(relaxed_music)}'
     change_audio = True
     for character_block in scene:
@@ -546,7 +547,7 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
                     "action": constants.Action.OBJECTION,
                 }
             )
-            new_audio = 'music/' + name_music + '/press'
+            new_audio = f'music/{name_music}/{random.choice(tense_music)}'
             if last_audio != new_audio:
                 last_audio = new_audio
                 change_audio = True
