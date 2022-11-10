@@ -1,50 +1,28 @@
 from enum import IntEnum
 from typing import Dict
 from PIL import Image, ImageDraw, ImageFont
+from objection_engine.beans.font_tools import get_best_font, get_font_score
+
+from objection_engine.parse_tags import DialoguePage
+from objection_engine.beans.font_constants import FONT_ARRAY, NAMETAG_FONT_ARRAY, TEXT_COLORS, TextType
+
 try:
     from fontTools.ttLib import TTFont
 except:
     from fonttools.ttLib import TTFont
 
-class TextType(IntEnum):
-    DIALOGUE = 0
-    NAME = 1
-
-FONT_ARRAY = [
-        # AA-Like > Pixel > Generic
-        # AA-like, Latin, hiragana, katakana, (part of) cyrillic
-        {'path': './assets/igiari/Igiari.ttf'},
-        # AA-like, Latin, hiragana, katakana, (part of) cyrillic
-        {'path': './assets/igiari/Galmuri11.ttf'},
-        # Pixel, Kanji, Hiragana, Katakana
-        {'path':'./assets/igiari/jackeyfont.ttf'},
-        # Arabic
-        {'path':'./assets/igiari/arabic-1.ttf', 'size': 12, 'offset': {TextType.NAME: (0, -5)}},
-        # Pixel-font, Hebrew
-        {'path':'./assets/igiari/STANRG__.ttf'},
-        # Generic
-        {'path':'./assets/igiari/NotoSans-Regular.ttf'},
-        # Pixel font, Arabic
-        {'path':'./assets/igiari/bitsy-font-with-arabic.ttf', 'size': 10},
-    ]
-
-NAMETAG_FONT_ARRAY = [
-    {'path': './assets/ace-name/ace-name.ttf', 'size': 8}
-] + FONT_ARRAY
-
-
-
 class AnimText:
     font_array = FONT_ARRAY
     def __init__(
         self,
-        text: str,
+        text: DialoguePage,
         *,
         x: int = 0,
         y: int = 0,
         font_path: str = None,
         font_size: int = 12,
         typewriter_effect: bool = False,
+        force_no_rtl: bool = False,
         colour: str = "#ffffff",
         text_type: TextType = TextType.DIALOGUE
     ):
@@ -52,7 +30,7 @@ class AnimText:
         self.y = y
         self.text = text
         # Used for font handling internals
-        self._internal_text = text.replace('\n', '').replace('\r', '').replace('\t', '')
+        self._internal_text = text
         self.typewriter_effect = typewriter_effect
         
         self.text_type = text_type
@@ -62,12 +40,15 @@ class AnimText:
             self.font_array = NAMETAG_FONT_ARRAY
 
         self.font_size = font_size
+        self.use_rtl = False
 
         if font_path is None:
             best_font = self._select_best_font()
             self.font_path = best_font['path']
             if 'size' in best_font:
                 self.font_size = best_font['size']
+
+            self.use_rtl = best_font.get("rtl", False) and not force_no_rtl
 
             offsets = best_font.get('offset', {}).get(self.text_type, (0,0))
             self.x += offsets[0]
@@ -83,48 +64,77 @@ class AnimText:
         draw = ImageDraw.Draw(background)
         _text = self.text
         if self.typewriter_effect:
-            _text = _text[:frame]
-        if self.font_path is not None:
-            draw.text((self.x, self.y), _text, font=self.font, fill=self.colour)
-        else:
-            draw.text((self.x, self.y), _text, fill=self.colour)
+            if isinstance(_text, str):
+                _text = _text[:frame]
+            elif isinstance(_text, DialoguePage):
+                _text = _text.get_visible_text(frame)
+
+        if isinstance(_text, str):
+            if self.font_path is not None:
+                draw.text((self.x, self.y), _text, font=self.font, fill=self.colour)
+            else:
+                draw.text((self.x, self.y), _text, fill=self.colour)
+
+        elif isinstance(_text, DialoguePage):
+            for line_no, line in enumerate(_text.lines):
+                if self.use_rtl:
+                    x_offset = 220
+                else:
+                    x_offset = 0
+                for chunk_no, chunk in enumerate(line):
+                    drawing_args = {
+                        "xy": (self.x + x_offset, self.y + (self.font_size + 3) * line_no),
+                        "text": chunk.text,
+                        "fill": (255,0,255),
+                        "anchor": ("r" if self.use_rtl else "l") + "a"
+                    }
+
+                    if len(chunk.tags) == 0:
+                        drawing_args["fill"] = (255,255,255)
+                    else:
+                        drawing_args["fill"] = TEXT_COLORS.get(chunk.tags[-1], (255,255,255))
+
+                    if self.font_path is not None:
+                        drawing_args["font"] = self.font
+
+                    draw.text(**drawing_args)
+
+                    try:
+                        add_to_x_offset = draw.textlength(chunk.text, font=self.font)
+                        if chunk_no < len(line) - 1:
+                            next_char = line[chunk_no + 1].text[0]
+                            add_to_x_offset = draw.textlength(chunk.text + next_char, self.font) - draw.textlength(next_char, self.font)
+                    except UnicodeEncodeError:
+                        print(f"Couldn't use textlength() to determine length of \"{chunk.text}\", so using getsize() instead")
+                        add_to_x_offset = self.font.getsize(chunk.text)[0]
+                    
+                    if self.use_rtl:
+                        x_offset -= add_to_x_offset
+                    else:
+                        x_offset += add_to_x_offset
+                        
         return background
 
     def get_text_size(self):
         return self.font.getsize(self.text)
 
     def _select_best_font(self):
-        best_font = self.font_array[-1]
-        best_font_points = 0
-        for font in self.font_array:
-            font_points = self._check_font(font)
-            if font_points > best_font_points:
-                best_font_points = font_points
-                best_font = font
-            if best_font_points >= len(self._internal_text):
-                return font
-        print(f'WARNING. NO OPTIMAL FONT FOUND, font score: {best_font_points}/{len(self._internal_text)}, text {self._internal_text}')
-        return best_font
+        if isinstance(self._internal_text, str):
+            return get_best_font(self._internal_text, self.font_array)
+        elif isinstance(self._internal_text, DialoguePage):
+            return get_best_font(self._internal_text.get_raw_text(), self.font_array)
 
     def _check_font(self, font):
-        return score_font(font, self._internal_text)
+        return score_font(font, self.text)
 
     def __str__(self):
         return self.text
 
 def score_font(font, text):
     '''Scores a font based on a given text string'''
-    font_path = font['path']
-    font = TTFont(font_path)
-    # We check all chars for presence on the font
-    valid_char = 0
-    for char in text:
-        # We check if the char is in any table of the font
-        for table in font['cmap'].tables:
-            if ord(char) in table.cmap:
-                valid_char += 1
-                break
-    return valid_char
+    if isinstance(text, DialoguePage):
+        text = text.get_raw_text()
+    return get_font_score(font, text)
 
 def is_renderable(text):
     '''Determines if a given string is renderable against default fonts'''
