@@ -92,8 +92,7 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
     for scene in config:
         # We pick up the images to be rendered
         bg = AnimImg(constants.location_map[scene["location"]])
-        arrow_right = AnimImg("assets/arrow.png", x=235, y=170, w=15, h=15, key_x=5)
-        arrow_left = AnimImg("assets/arrow.png", x=5, y=170, w=15, h=15, key_x=5, flip_x=True)
+        arrow = AnimImg("assets/arrow.gif", x=235, y=170, w=15, h=15)
         textbox = AnimImg("assets/textbox/mainbox.png", x=1, y=129, w=bg.w-2)
         objection = AnimImg("assets/objection.gif")
         bench = None
@@ -115,6 +114,12 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
         current_character_gender = "male"
         text = None
         for obj in scene["scene"]:
+            if obj["text"].use_rtl():
+                arrow.x = 7
+                arrow.flip_x = True
+            else:
+                arrow.x = 235
+                arrow.flip_x = False
             # First we check for evidences
             if "evidence" in obj and obj['evidence'] is not None:
                 if scene["location"] == constants.Location.COURTROOM_RIGHT:
@@ -237,7 +242,7 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                 scene_objs = list(
                     filter(
                         lambda x: x is not None,
-                        [bg, character, bench, textbox] + create_nameplate(obj) + [text, arrow_left if obj["text"].use_rtl() else arrow_right, evidence],
+                        [bg, character, bench, textbox] + create_nameplate(obj) + [text, arrow, evidence],
                     )
                 )
                 scenes.append(
@@ -267,7 +272,7 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
                             + create_nameplate(obj) +
                             [
                                 text,
-                                arrow_left if obj["text"].use_rtl() else arrow_right,
+                                arrow,
                                 evidence,
                             ],
                         )

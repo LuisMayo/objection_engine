@@ -18,8 +18,6 @@ class AnimImg:
         y: int = 0,
         w: int = None,
         h: int = None,
-        key_x: int = None,
-        key_x_reverse: bool = True,
         shake_effect: bool = False,
         half_speed: bool = False,
         repeat: bool = True,
@@ -41,27 +39,8 @@ class AnimImg:
                 resized = self.resize(img, w=w, h=h)
                 converted = resized.convert('RGBA',palette=Image.ADAPTIVE)
                 self.frames.append(converted)
-        elif key_x is not None:
-            self.frames = []
-            for x_pad in range(key_x):
-                self.frames.append(
-                    add_margin(
-                        self.resize(img, w=w, h=h).convert("RGBA"), 0, x_pad if self.flip_x else 0, 0, x_pad if not self.flip_x else 0
-                    )
-                )
-            if key_x_reverse:
-                for x_pad in reversed(range(key_x)):
-                    self.frames.append(
-                        add_margin(
-                            self.resize(img, w=w, h=h).convert("RGBA"), 0, x_pad if self.flip_x else 0, 0, x_pad if not self.flip_x else 0
-                        )
-                    )
         else:
             self.frames = [self.resize(img, w=w, h=h).convert("RGBA")]
-
-        if self.flip_x:
-            for i in range(len(self.frames)):
-                self.frames[i] = ImageOps.mirror(self.frames[i])
 
         self.w = self.frames[0].size[0]
         self.h = self.frames[0].size[1]
@@ -104,6 +83,9 @@ class AnimImg:
         else:
             _background = background
         _img.convert("RGBA")
+
+        if self.flip_x:
+            _img = ImageOps.mirror(_img)
 
         bg_w, bg_h = _background.size
         offset = (self.x, self.y)
