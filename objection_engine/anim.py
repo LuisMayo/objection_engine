@@ -538,6 +538,7 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
     tense_music = ['objection', 'press']
     last_audio = f'music/{name_music}/{random.choice(relaxed_music)}'
     change_audio = True
+    tense_bgm_started = False
     for character_block in scene:
         scene_objs = []
         if character_block[0]["objection"] == True:
@@ -548,9 +549,10 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
                 }
             )
             new_audio = f'music/{name_music}/{random.choice(tense_music)}'
-            if last_audio != new_audio:
+            if not tense_bgm_started:
                 last_audio = new_audio
                 change_audio = True
+                tense_bgm_started = True
 
         for obj in character_block:
             # We insert the data in the character block in the definitive scene object
