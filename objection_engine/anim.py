@@ -534,7 +534,7 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
 
     formatted_scenes = []
 
-    relaxed_music = ['cross-moderato', 'cross-allegro', 'trial']
+    relaxed_music = ['cross-moderato', 'trial']
     tense_music = ['objection', 'press']
     last_audio = f'music/{name_music}/{random.choice(relaxed_music)}'
     change_audio = True
