@@ -95,6 +95,10 @@ class DialoguePage:
             lines_of_chunks.append(chunks)
         return DialoguePage(lines_of_chunks)
 
+    def use_rtl(self):
+        best_font = get_best_font(self.get_raw_text(), FONT_ARRAY)
+        return best_font.get("rtl", False)
+
 @dataclass
 class DialogueTextContent:
     cleaned_lines: str

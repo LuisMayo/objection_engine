@@ -67,6 +67,14 @@ def create_nameplate(obj: dict):
         y = 129 - 12
     )
 
+    # If the text of the text box is RTL, then move
+    # the nameplate to the right side of the screen
+    if obj["text"].use_rtl():
+        namebox_l.x = 256 - namebox_r.w - name_width - 6
+        namebox_c.x = 256 - namebox_r.w - name_width - 3
+        namebox_r.x = 256 - namebox_r.w
+        character_name.x = namebox_l.x + 5
+
     if obj.get("action") == constants.Action.TEXT_SHAKE_EFFECT:
         namebox_l.shake_effect = True
         namebox_c.shake_effect = True
@@ -85,7 +93,7 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
     for scene in config:
         # We pick up the images to be rendered
         bg = AnimImg(constants.location_map[scene["location"]])
-        arrow = AnimImg("assets/arrow.png", x=235, y=170, w=15, h=15, key_x=5)
+        arrow = AnimImg("assets/arrow.gif", x=235, y=170, w=15, h=15)
         textbox = AnimImg("assets/textbox/mainbox.png", x=1, y=129, w=bg.w-2)
         objection = AnimImg("assets/objection.gif")
         bench = None
@@ -107,6 +115,12 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
         current_character_gender = "male"
         text = None
         for obj in scene["scene"]:
+            if "text" in obj and obj["text"].use_rtl():
+                arrow.x = 7
+                arrow.flip_x = True
+            else:
+                arrow.x = 235
+                arrow.flip_x = False
             # First we check for evidences
             if "evidence" in obj and obj['evidence'] is not None:
                 if scene["location"] == constants.Location.COURTROOM_RIGHT:

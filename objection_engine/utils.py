@@ -15,6 +15,20 @@ def ensure_assets_are_available():
         with zipfile.ZipFile('assets.zip', 'r') as zip_ref:
             zip_ref.extractall('assets')
         os.remove('assets.zip')
+    else:
+        # This is in case there are only some missing assets that have been added in updates
+        updated_assets = []
+        updated_assets.append('arrow.gif')
+        updated_assets.append('igiari/KawkabMono-Regular.ttf')
+        for asset in updated_assets:
+            full_path = './assets/' + asset
+            dl_path = 'https://dl.luismayo.com/objection_engine/' + asset
+            if not os.path.isfile(full_path):
+                print(f'Assets present. but {asset} is missing, downloading')
+                response = requests.get(dl_path)
+                with open(full_path, 'wb') as file:
+                    file.write(response.content)
+
 
 def get_characters(common: Counter, assigned_characters: dict = None):
     users_to_characters = {} if assigned_characters is None else assigned_characters.copy()

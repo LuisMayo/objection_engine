@@ -12,6 +12,8 @@ FONT_ARRAY = [
         {'path': './assets/igiari/Galmuri11.ttf'},
         # Pixel, Kanji, Hiragana, Katakana
         {'path':'./assets/igiari/jackeyfont.ttf'},
+        # Better Arabic
+        {'path':'./assets/igiari/KawkabMono-Regular.ttf', 'size': 8, 'offset': {TextType.NAME: (0, -2)}, 'rtl': True},
         # Arabic
         {'path':'./assets/igiari/arabic-1.ttf', 'size': 12, 'offset': {TextType.NAME: (0, -5)}, 'rtl': True},
         # Pixel-font, Hebrew
