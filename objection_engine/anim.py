@@ -114,7 +114,7 @@ def do_video(config: List[Dict], output_filename, resolution_scale):
         current_character_gender = "male"
         text = None
         for obj in scene["scene"]:
-            if obj["text"].use_rtl():
+            if "text" in obj and obj["text"].use_rtl():
                 arrow.x = 7
                 arrow.flip_x = True
             else:
