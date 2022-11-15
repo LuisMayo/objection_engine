@@ -9,6 +9,7 @@ import cv2
 from typing import List, Dict, Union
 import random
 import os
+import json
 import shutil
 import random as r
 from pydub import AudioSegment
@@ -533,8 +534,25 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
         scene.append(character_block)
 
     formatted_scenes = []
-    last_audio = 'music/' + name_music + '/trial'
+
+    # Get relaxed and tense music
+    base_music_path = f"music/{name_music}"
+    relaxed_path = f"{base_music_path}/trial"
+    tense_path = f"{base_music_path}/press"
+    try:
+        with open(f"assets/{base_music_path}/config.json") as f:
+            # Randomly choose one of the relaxed and one of the tense tracks to
+            # use for this video
+            config_data: dict = json.load(f)
+            relaxed_path = f"{base_music_path}/{random.choice(config_data.get('relaxed', ['trial']))}"
+            tense_path = f"{base_music_path}/{random.choice(config_data.get('tense', ['press']))}"
+    except FileNotFoundError as e:
+        # config.json doesn't exist, so just load the trial and press
+        print(f"config.json not found for music folder \"{name_music}\", so defaulting to trial.mp3 and press.mp3")
+
+    last_audio = relaxed_path
     change_audio = True
+    tense_bgm_started = False
     for character_block in scene:
         scene_objs = []
         if character_block[0]["objection"] == True:
@@ -544,10 +562,11 @@ def comments_to_scene(comments: List[CommentBridge], name_music = "PWR", **kwarg
                     "action": constants.Action.OBJECTION,
                 }
             )
-            new_audio = 'music/' + name_music + '/press'
-            if last_audio != new_audio:
+            new_audio = tense_path
+            if not tense_bgm_started:
                 last_audio = new_audio
                 change_audio = True
+                tense_bgm_started = True
 
         for obj in character_block:
             # We insert the data in the character block in the definitive scene object
