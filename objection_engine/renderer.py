@@ -10,7 +10,7 @@ from .utils import ensure_assets_are_available
 import requests
 
 
-def render_comment_list(comment_list: List[Comment], output_filename: str = 'hello.mp4', music_code: str = 'PWR', resolution_scale: int = 1, assigned_characters: dict = None):
+def render_comment_list(comment_list: List[Comment], output_filename: str = 'hello.mp4', music_code: str = 'PWR', resolution_scale: int = 1, assigned_characters: dict = None, adult_mode = False):
     """
     Given a list of Comments, writes a resulting video to disk at the
     location specified by `output_filename`.
@@ -30,6 +30,8 @@ def render_comment_list(comment_list: List[Comment], output_filename: str = 'hel
         and Character values that manually assign a given user to be portrayed \
         by a specific character. Any users who do not have a character \
         assigned to them via this dictionary will have one assigned at random.
+    :param bool adult_mode: The video may contain adult themes and the engine should
+    take this into consideration. Example: When "True" Pearl won't appear on videos since she's a kid
     """
     ensure_assets_are_available()
     try:
@@ -44,7 +46,7 @@ def render_comment_list(comment_list: List[Comment], output_filename: str = 'hel
     counter = Counter()
     for comment in comment_list:
         counter.update({comment.effective_user_id: 1})
-    characters = get_characters(counter, assigned_characters=assigned_characters)
+    characters = get_characters(counter, assigned_characters=assigned_characters, adult_mode=adult_mode)
 
     # Construct the information about the sequence of "shots" in
     # the finished video (e.g. the text spoken and which character
