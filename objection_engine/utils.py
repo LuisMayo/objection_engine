@@ -30,7 +30,7 @@ def ensure_assets_are_available():
                     file.write(response.content)
 
 
-def get_characters(common: Counter, assigned_characters: dict = None):
+def get_characters(common: Counter, assigned_characters: dict = None, adult_mode: bool = False):
     users_to_characters = {} if assigned_characters is None else assigned_characters.copy()
     most_common =  [t[0] for t in common.most_common()]
     all_rnd_characters = [
@@ -42,7 +42,6 @@ def get_characters(common: Counter, assigned_characters: dict = None):
         Character.KARMA,
         Character.PAYNE,
         Character.MAGGEY,
-        Character.PEARL,
         Character.LOTTA,
         Character.GUMSHOE,
         Character.GROSSBERG,
@@ -53,6 +52,9 @@ def get_characters(common: Counter, assigned_characters: dict = None):
         Character.OLDBAG,
         Character.REDD,
     ]
+
+    if not adult_mode:
+        all_rnd_characters.append(Character.PEARL)
 
     # Confirm that all of the assigned characters are valid.
     all_characters = all_rnd_characters + [Character.PHOENIX, Character.EDGEWORTH]
