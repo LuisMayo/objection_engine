@@ -185,7 +185,7 @@ class DialogueTextContent:
 # Group 2: Tag name
 # Group 3: Arguments to tag
 # Group 4: Optional slash at end (i.e. it's self-closing, like an action)
-tag_re = compile(r"<(/?)(.*?)(/??)>")
+tag_re = compile(r"(?<!\\)<(/?)(.+?)(/??)>")
 
 def parse_text(text: str) -> DialogueTextContent:
     tag_stack = []

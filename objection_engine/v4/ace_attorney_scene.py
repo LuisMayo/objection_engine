@@ -222,6 +222,25 @@ class ColorOverlayObject(SceneObject):
         if self.remaining > 0:
             ctx.rectangle(xy=(0, 0, img.width, img.height), fill=self.color)
 
+class ActionLinesObject(ImageObject):
+    def __init__(self, parent: 'SceneObject' = None, name: str = "", pos: tuple[int, int, int] = ..., width: int = None, height: int = None, filepath: str = None):
+        super().__init__(parent, name, pos, width, height, filepath)
+        self.move_left = True
+
+    def update(self, delta):
+        super().update(delta)
+        distance_to_move = 16
+
+        if self.move_left:
+            self.x -= distance_to_move
+            while self.x < -256:
+                self.x += 256
+        else:
+            self.x += distance_to_move
+            while self.x > -256:
+                self.x -= 256
+
+
 class AceAttorneyDirector(Director):
     def __init__(self, fps: float = 30):
         super().__init__(None, fps)
@@ -235,28 +254,90 @@ class AceAttorneyDirector(Director):
         )
         self.white_flash.color = (255, 255, 255)
 
-        self.bg_shaker = ShakerObject(
+        self.world_root = SceneObject(
             parent=self.root,
-            name="Background Shaker",
+            name="World Root",
+            pos=(0,0,0)
+        )
+
+        self.world_shaker = ShakerObject(
+            parent=self.world_root,
+            name="World Shaker",
             pos=(0, 0, 0)
         )
 
-        self.bg = ImageObject(
-            parent=self.bg_shaker,
+        self.judge_shot = ImageObject(
+            parent=self.world_shaker,
+            name="Judge Background",
+            pos=(0, 256, 0),
+            filepath="assets_v4/bg/bg_judge.png"
+        )
+
+        self.judge = ImageObject(
+            parent=self.judge_shot,
+            name="Judge",
+            pos=(0, 0, 1),
+            filepath="assets_v4/character_sprites/judge/judge-normal-idle.gif"
+        )
+
+        self.phoenix_action_lines_shot = SceneObject(
+            parent=self.world_shaker,
+            name="Phoenix Action Lines Container",
+            pos=(0, 512, 0)
+        )
+
+        self.phoenix_action_lines_animator = ActionLinesObject(
+            parent=self.phoenix_action_lines_shot,
+            name="Phoenix Action Lines",
+            pos=(0, 0, 0),
+            filepath="assets_v4/bg/bg_action.png"
+        )
+
+        self.phoenix_action_lines_character = ImageObject(
+            parent=self.phoenix_action_lines_shot,
+            name="Phoenix Action Lines Character",
+            pos=(0, 0, 1),
+            filepath="assets_v4/character_sprites/phoenix/phoenix-zoom-idle.gif"
+        )
+
+        self.edgeworth_action_lines_shot = SceneObject(
+            parent=self.world_shaker,
+            name="Edgeworth Action Lines Container",
+            pos=(0, 768, 0)
+        )
+
+        self.edgeworth_action_lines_animator = ActionLinesObject(
+            parent=self.edgeworth_action_lines_shot,
+            name="Edgeworth Action Lines",
+            pos=(0, 0, 0),
+            filepath="assets_v4/bg/bg_action.png"
+        )
+        self.edgeworth_action_lines_animator.move_left = False
+
+        self.edgeworth_action_lines_character = ImageObject(
+            parent=self.edgeworth_action_lines_shot,
+            name="Edgeworth Action Lines Character",
+            pos=(0, 0, 1),
+            filepath="assets_v4/character_sprites/edgeworth/edgeworth-zoom-idle.gif"
+        )
+
+
+        self.wide_courtroom = ImageObject(
+            parent=self.world_shaker,
             name="Background",
             pos=(0, 0, 0),
             filepath="assets_v4/bg/bg_main.png",
         )
 
         self.phoenix = ImageObject(
-            parent=self.bg,
+            parent=self.wide_courtroom,
             name="Left Character",
             pos=(0, 0, 1),
             filepath="assets_v4/character_sprites/phoenix/phoenix-normal-idle.gif",
         )
 
         self.edgeworth = ImageObject(
-            parent=self.bg,
+            parent=self.wide_courtroom,
             name="Right Character",
             pos=(1034, 0, 2),
             filepath="assets_v4/character_sprites/edgeworth/edgeworth-normal-idle.gif",
@@ -320,8 +401,6 @@ class AceAttorneyDirector(Director):
             # Wait actions need the timer to fill up before they can be marked complete
             action_split = split(current_dialogue_obj.name)
 
-            print(f"Current dialogue object is {current_dialogue_obj}")
-
             c = action_split[0]
             if c == "startblip":
                 voice_type = action_split[1]
@@ -339,6 +418,10 @@ class AceAttorneyDirector(Director):
                     self.phoenix.set_filepath(path)
                 elif position == "right":
                     self.edgeworth.set_filepath(path)
+                elif position == "judge":
+                    self.judge.set_filepath(path)
+                elif position == "phoenixzoom":
+                    self.phoenix_action_lines_character.set_filepath(path)
                 else:
                     print(f"Error in sprite command: unknown position \"{position}\"")
                 current_dialogue_obj.completed = True
@@ -346,7 +429,6 @@ class AceAttorneyDirector(Director):
             elif c == "wait":
                 duration_str = action_split[1]
                 self.cur_time_for_char += delta
-                print(f"current time={self.cur_time_for_char} out of {float(duration_str)}")
                 if self.cur_time_for_char >= float(duration_str):
                     current_dialogue_obj.completed = True
                     self.cur_time_for_char = 0.0
@@ -401,7 +483,7 @@ class AceAttorneyDirector(Director):
 
                 magnitude = float(magnitude_str)
                 duration = float(duration_str)
-                self.bg_shaker.start_shaking(magnitude, duration)
+                self.world_shaker.start_shaking(magnitude, duration)
                 self.textbox_shaker.start_shaking(magnitude, duration)
                 current_dialogue_obj.completed = True
 
@@ -429,6 +511,12 @@ class AceAttorneyDirector(Director):
                     self.cut_to_left()
                 elif position == "right":
                     self.cut_to_right()
+                elif position == "judge":
+                    self.cut_to_judge()
+                elif position == "phoenixzoom":
+                    self.cut_to_phoenix_action()
+                elif position == "edgeworthzoom":
+                    self.cut_to_edgeworth_action()
                 current_dialogue_obj.completed = True
 
             elif c == "pan":
@@ -458,7 +546,7 @@ class AceAttorneyDirector(Director):
             MoveSceneObjectAction(
                 target_value=(-1290 + 256, 0),
                 duration=1.0,
-                scene_object=self.bg,
+                scene_object=self.world_root,
                 ease_function=ease_in_out_cubic,
             )
         )
@@ -468,16 +556,31 @@ class AceAttorneyDirector(Director):
             MoveSceneObjectAction(
                 target_value=(0, 0),
                 duration=1.0,
-                scene_object=self.bg,
+                scene_object=self.world_root,
                 ease_function=ease_in_out_cubic,
             )
         )
 
     def cut_to_left(self):
-        self.bg.set_x(0)
+        self.world_root.set_x(0)
+        self.world_root.set_y(0)
 
     def cut_to_right(self):
-        self.bg.set_x(-1296 + 256)
+        self.world_root.set_x(-1296 + 256)
+        self.world_root.set_y(0)
+
+    def cut_to_judge(self):
+        print(f"Cut to judge")
+        self.world_root.set_x(0)
+        self.world_root.set_y(-256)
+
+    def cut_to_phoenix_action(self):
+        self.world_root.set_x(0)
+        self.world_root.set_y(-512)
+
+    def cut_to_edgeworth_action(self):
+        self.world_root.set_x(0)
+        self.world_root.set_y(-768)
 
     current_music_track: Optional[dict] = None
     current_voice_blips: Optional[dict] = None
