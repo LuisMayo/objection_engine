@@ -10,6 +10,8 @@ db.json
 # Ignore the assets
 assets/
 
+dist/
+
 # Etc
 outputs/*.mp4
 .wakatime-project
