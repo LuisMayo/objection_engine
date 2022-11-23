@@ -424,10 +424,14 @@ class AceAttorneyDirector(Director):
                     self.phoenix.set_filepath(path)
                 elif position == "right":
                     self.edgeworth.set_filepath(path)
+                elif position == "center":
+                    self.witness.set_filepath(path)
                 elif position == "judge":
                     self.judge.set_filepath(path)
                 elif position == "phoenixzoom":
                     self.phoenix_action_lines_character.set_filepath(path)
+                elif position == "edgeworthzoom":
+                    self.edgeworth_action_lines_character.set_filepath(path)
                 else:
                     print(f"Error in sprite command: unknown position \"{position}\"")
                 current_dialogue_obj.completed = True
@@ -517,6 +521,8 @@ class AceAttorneyDirector(Director):
                     self.cut_to_left()
                 elif position == "right":
                     self.cut_to_right()
+                elif position == "center":
+                    self.cut_to_center()
                 elif position == "judge":
                     self.cut_to_judge()
                 elif position == "phoenixzoom":
@@ -531,6 +537,8 @@ class AceAttorneyDirector(Director):
                     self.pan_to_left()
                 elif position == "right":
                     self.pan_to_right()
+                elif position == "center":
+                    self.pan_to_center()
                 current_dialogue_obj.completed = True
 
             else:
@@ -550,7 +558,7 @@ class AceAttorneyDirector(Director):
     def pan_to_right(self):
         self.sequencer.run_action(
             MoveSceneObjectAction(
-                target_value=(-1290 + 256, 0),
+                target_value=(-1296 + 256, 0),
                 duration=1.0,
                 scene_object=self.world_root,
                 ease_function=ease_in_out_cubic,
@@ -567,6 +575,16 @@ class AceAttorneyDirector(Director):
             )
         )
 
+    def pan_to_center(self):
+        self.sequencer.run_action(
+            MoveSceneObjectAction(
+                target_value=(-(1296 / 2) + (256 / 2), 0),
+                duration=1.0,
+                scene_object=self.world_root,
+                ease_function=ease_in_out_cubic,
+            )
+        )
+
     def cut_to_left(self):
         self.world_root.set_x(0)
         self.world_root.set_y(0)
@@ -575,8 +593,11 @@ class AceAttorneyDirector(Director):
         self.world_root.set_x(-1296 + 256)
         self.world_root.set_y(0)
 
+    def cut_to_center(self):
+        self.world_root.set_x(-(1296 / 2) + (256 / 2))
+        self.world_root.set_y(0)
+
     def cut_to_judge(self):
-        print(f"Cut to judge")
         self.world_root.set_x(0)
         self.world_root.set_y(-256)
 

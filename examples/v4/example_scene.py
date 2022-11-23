@@ -1,4 +1,4 @@
-from objection_engine.v4.ace_attorney_scene import AceAttorneyDirector
+from objection_engine.v4.ace_attorney_scene import AceAttorneyDirector, get_sprite_tag
 
 from objection_engine.v4.tag_macros import (
     SPR_PHX_NORMAL_T,
@@ -17,7 +17,7 @@ from objection_engine.v4.tag_macros import (
     S_SMACK,
 )
 
-from objection_engine.v4.parse_tags import DialoguePage, get_rich_boxes
+from objection_engine.v4.parse_tags import DialoguePage, DialogueAction, get_rich_boxes
 
 test_dialogue_1 = (
     f'<music start cross-moderato/><nametag "Phoenix right"/><showbox/>'
@@ -44,10 +44,82 @@ test_dialogue_3 = (
     + f"{END_BOX}"
 )
 
+def write_page(user_name: str, character: str, text: str):
+    # TODO: get character gender and use appropriate blips
+
+    character_data = {
+        "phoenix": {
+            "pos": "left",
+            "gender": "male"
+        },
+        "edgeworth": {
+            "pos": "right",
+            "gender": "male"
+        },
+        "judge": {
+            "pos": "judge",
+            "gender": "male"
+        },
+        "lotta": {
+            "pos": "center",
+            "gender": "female",
+        },
+        "gumshoe": {
+            "pos": "center",
+            "gender": "male"
+        },
+        "larry": {
+            "pos": "center",
+            "gender": "male"
+        }
+    }[character]
+
+    pos = character_data["pos"]
+    gender = character_data["gender"]
+
+    set_position = f"<cut {pos}/>"
+
+    start_blips = f"<startblip {gender}/>"
+    stop_blips = "<stopblip/>"
+
+    talk_sprite = get_sprite_tag(pos, character, "normal-talk") + start_blips
+    idle_sprite = get_sprite_tag(pos, character, "normal-idle") + stop_blips
+    return (
+        f"{set_position}"
+        + f"<nametag \"{user_name}\"/><showbox/>"
+        + f"{talk_sprite}{text}{idle_sprite}{END_BOX}"
+    )
+
+def get_boxes_with_pauses(user_name: str, character: str, text: str):
+    boxes = get_rich_boxes(write_page(user_name, character, text))
+    # for i in range(len(boxes)):
+    #     if i != len(boxes) - 1:
+    #         boxes[i].commands.append(DialogueAction("stopblip", 0))
+    #         boxes[i].commands.append(DialogueAction("wait 1", 0))
+    #         boxes[i+1].commands.append(DialogueAction("startblip male", 0))
+    return boxes
+
 pages: list[DialoguePage] = []
-pages.extend(get_rich_boxes(test_dialogue_1))
-pages.extend(get_rich_boxes(test_dialogue_2))
-pages.extend(get_rich_boxes(test_dialogue_3))
+
+pages.append(DialoguePage([DialogueAction("music start cross-moderato", 0)]))
+pages.extend(get_boxes_with_pauses(
+    user_name="Phoenix right",
+    character="phoenix",
+    text="Hello it is I, Phoenix Wright. I am saying some lines of text."
+))
+pages.extend(get_boxes_with_pauses(
+    user_name="Mr edge worth",
+    character="edgeworth",
+    text="And I am the antagonist, Edgeworth. I am also saying some lines of text. Here is a third line, because I am very serious."
+))
+pages.extend(get_boxes_with_pauses(
+    user_name="Gumshoe",
+    character="gumshoe",
+    text="Hey, pal! I'm on the witness stand! Ain't that cool? Woah ho ho look at me!"
+))
+# pages.extend(get_rich_boxes(test_dialogue_1))
+# pages.extend(get_rich_boxes(test_dialogue_2))
+# pages.extend(get_rich_boxes(test_dialogue_3))
 director = AceAttorneyDirector()
 director.set_current_pages(pages)
 director.render_movie(-15)
