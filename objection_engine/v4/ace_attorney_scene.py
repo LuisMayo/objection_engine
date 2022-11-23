@@ -321,7 +321,6 @@ class AceAttorneyDirector(Director):
             filepath="assets_v4/character_sprites/edgeworth/edgeworth-zoom-idle.gif"
         )
 
-
         self.wide_courtroom = ImageObject(
             parent=self.world_shaker,
             name="Background",
@@ -339,8 +338,15 @@ class AceAttorneyDirector(Director):
         self.edgeworth = ImageObject(
             parent=self.wide_courtroom,
             name="Right Character",
-            pos=(1034, 0, 2),
+            pos=(1034, 0, 1),
             filepath="assets_v4/character_sprites/edgeworth/edgeworth-normal-idle.gif",
+        )
+
+        self.witness = ImageObject(
+            parent=self.wide_courtroom,
+            name="Witness",
+            pos=(517, 0, 1),
+            filepath="assets_v4/character_sprites/lotta/lotta-smiling-idle.gif"
         )
 
         self.textbox_shaker = ShakerObject(

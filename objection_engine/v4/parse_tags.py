@@ -142,7 +142,7 @@ class DialoguePage:
             chunks.append(DialogueTextChunk(current_string, current_tags))
 
         d = DialoguePage(chunks)
-        print("condensed chunks:", d)
+        # print("condensed chunks:", d)
         return d
 
 @dataclass
@@ -252,4 +252,5 @@ def get_rich_boxes(text: str):
     Given input `text`, returns a list of `DialoguePage` objects. Each object
     represents a single dialogue box.
     """
-    return parse_text(text).get_text_chunks()
+    print("get rich boxes!")
+    # return parse_text(text).get_text_chunks()
