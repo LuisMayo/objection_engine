@@ -252,5 +252,4 @@ def get_rich_boxes(text: str):
     Given input `text`, returns a list of `DialoguePage` objects. Each object
     represents a single dialogue box.
     """
-    print("get rich boxes!")
-    # return parse_text(text).get_text_chunks()
+    return parse_text(text).get_text_chunks()
