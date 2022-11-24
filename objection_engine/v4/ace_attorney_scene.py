@@ -111,6 +111,7 @@ class DialogueBox(SceneObject):
                 x_offset = 220 if self.use_rtl else 0
             elif isinstance(command, DialogueTextChunk):
                 text_str = command.text[:command.position]
+                print(f"Draw text block {command} up to position {command.position}")
                 drawing_args = {
                     "xy": (
                         10 + x + x_offset,
@@ -363,6 +364,7 @@ class AceAttorneyDirector(Director):
         self.textbox = DialogueBox(parent=self.textbox_shaker, director=self)
 
         self.scene = Scene(256, 192, self.root)
+        
 
     def set_current_pages(self, pages: list[DialoguePage]):
         self.pages = pages
@@ -374,186 +376,188 @@ class AceAttorneyDirector(Director):
     max_time_for_char: float = 0.03
 
     def update(self, delta: float):
-        # If the current page index is greater than the number of pages, then we've
-        # used all the pages - in other words, we're done.
-        if self.page_index >= len(self.pages):
-            self.end_music_track()
-            self.end_voice_blips()
-            self.is_done = True
-            return
-
-        # Find which page we are on
-        self.current_page = self.pages[self.page_index]
-        self.textbox.page = self.current_page
-        self.textbox.font_data = get_best_font(self.current_page.get_raw_text(), FONT_ARRAY)
-        self.textbox.font = ImageFont.truetype(self.textbox.font_data["path"], 16)
-
         # Within that page, get the current object
-        current_dialogue_obj = self.current_page.get_current_item()
-
-        if isinstance(current_dialogue_obj, DialogueTextChunk):
-            self.cur_time_for_char += delta
-            if self.cur_time_for_char >= self.max_time_for_char:
-                # Increment the progress through the current dialogue object
-                # by one. This will make it render more characters in render()
-                current_dialogue_obj.position += 1
-                self.cur_time_for_char = 0
-                if current_dialogue_obj.position >= len(current_dialogue_obj.text):
-                    current_dialogue_obj.completed = True
-
-        elif isinstance(current_dialogue_obj, DialogueAction):
-            # Handle actions
-            # Most actions can be taken care of instantly and then marked complete
-            # Wait actions need the timer to fill up before they can be marked complete
-            action_split = split(current_dialogue_obj.name)
-
-            c = action_split[0]
-            if c == "startblip":
-                voice_type = action_split[1]
-                self.start_voice_blips(voice_type)
-                current_dialogue_obj.completed = True
-
-            elif c == "stopblip":
+        while True:
+            # If the current page index is greater than the number of pages, then we've
+            # used all the pages - in other words, we're done.
+            if self.page_index >= len(self.pages):
+                self.end_music_track()
                 self.end_voice_blips()
-                current_dialogue_obj.completed = True
+                self.is_done = True
+                return
 
-            elif c == "sprite":
-                position = action_split[1]
-                path = action_split[2]
-                if position == "left":
-                    self.phoenix.set_filepath(path)
-                elif position == "right":
-                    self.edgeworth.set_filepath(path)
-                elif position == "center":
-                    self.witness.set_filepath(path)
-                elif position == "judge":
-                    self.judge.set_filepath(path)
-                elif position == "phoenixzoom":
-                    self.phoenix_action_lines_character.set_filepath(path)
-                elif position == "edgeworthzoom":
-                    self.edgeworth_action_lines_character.set_filepath(path)
-                else:
-                    print(f"Error in sprite command: unknown position \"{position}\"")
-                current_dialogue_obj.completed = True
+            # Find which page we are on
+            self.current_page = self.pages[self.page_index]
+            self.textbox.page = self.current_page
+            self.textbox.font_data = get_best_font(self.current_page.get_raw_text(), FONT_ARRAY)
+            self.textbox.font = ImageFont.truetype(self.textbox.font_data["path"], 16)
 
-            elif c == "wait":
-                duration_str = action_split[1]
+            current_dialogue_obj = self.current_page.get_current_item()
+            if isinstance(current_dialogue_obj, DialogueTextChunk):
                 self.cur_time_for_char += delta
-                if self.cur_time_for_char >= float(duration_str):
-                    current_dialogue_obj.completed = True
-                    self.cur_time_for_char = 0.0
+                if self.cur_time_for_char > self.max_time_for_char:
+                    # Increment the progress through the current dialogue object
+                    # by one. This will make it render more characters in render()
+                    current_dialogue_obj.position += 1
+                    self.cur_time_for_char = 0
+                    if current_dialogue_obj.position >= len(current_dialogue_obj.text):
+                        current_dialogue_obj.completed = True
+                break
 
-            elif c == "bubble":
-                exclamation_type = action_split[1]
-                character = action_split[2]
-                self.exclamation.play_exclamation(exclamation_type, character)
-                current_dialogue_obj.completed = True
+            elif isinstance(current_dialogue_obj, DialogueAction):
+                # Handle actions
+                # Most actions can be taken care of instantly and then marked complete
+                # Wait actions need the timer to fill up before they can be marked complete
+                action_split = split(current_dialogue_obj.name)
 
-            elif c == "deskslam":
-                character = action_split[1]
-                if character == "phoenix":
-                    self.play_phoenix_desk_slam()
-                elif character == "edgeworth":
-                    self.play_edgeworth_desk_slam()
-                current_dialogue_obj.completed = True
-
-            elif c == "showarrow":
-                self.textbox.arrow.visible = True
-                current_dialogue_obj.completed = True
-
-            elif c == "hidearrow":
-                self.textbox.arrow.visible = False
-                current_dialogue_obj.completed = True
-
-            elif c == "showbox":
-                self.textbox.show()
-                current_dialogue_obj.completed = True
-
-            elif c == "hidebox":
-                self.textbox.hide()
-                current_dialogue_obj.completed = True
-
-            elif c == "nametag":
-                name = action_split[1]
-                self.textbox.namebox.set_text(name)
-                current_dialogue_obj.completed = True
-
-            elif c == "sound":
-                sound_path = action_split[1]
-                self.audio_commands.append({
-                    "type": "audio",
-                    "path": f"assets_v4/sound/sfx-{sound_path}.wav",
-                    "offset": self.time
-                })
-                current_dialogue_obj.completed = True
-
-            elif c == "shake":
-                magnitude_str = action_split[1]
-                duration_str = action_split[2]
-
-                magnitude = float(magnitude_str)
-                duration = float(duration_str)
-                self.world_shaker.start_shaking(magnitude, duration)
-                self.textbox_shaker.start_shaking(magnitude, duration)
-                current_dialogue_obj.completed = True
-
-            elif c == "flash":
-                duration_str = action_split[1]
-
-                duration = float(duration_str)
-                self.white_flash.start_color((255,255,255), duration)
-                current_dialogue_obj.completed = True
-
-            elif c == "music":
-                music_command = action_split[1]
-
-                if music_command == "start":
-                    track_name = action_split[2]
-                    self.start_music_track(track_name)
-                    current_dialogue_obj.completed = True
-                elif music_command == "stop":
-                    self.end_music_track()
+                c = action_split[0]
+                if c == "startblip":
+                    voice_type = action_split[1]
+                    self.start_voice_blips(voice_type)
                     current_dialogue_obj.completed = True
 
-            elif c == "cut":
-                position = action_split[1]
-                if position == "left":
-                    self.cut_to_left()
-                elif position == "right":
-                    self.cut_to_right()
-                elif position == "center":
-                    self.cut_to_center()
-                elif position == "judge":
-                    self.cut_to_judge()
-                elif position == "phoenixzoom":
-                    self.cut_to_phoenix_action()
-                elif position == "edgeworthzoom":
-                    self.cut_to_edgeworth_action()
+                elif c == "stopblip":
+                    self.end_voice_blips()
+                    current_dialogue_obj.completed = True
+
+                elif c == "sprite":
+                    position = action_split[1]
+                    path = action_split[2]
+                    if position == "left":
+                        self.phoenix.set_filepath(path)
+                    elif position == "right":
+                        self.edgeworth.set_filepath(path)
+                    elif position == "center":
+                        self.witness.set_filepath(path)
+                    elif position == "judge":
+                        self.judge.set_filepath(path)
+                    elif position == "phoenixzoom":
+                        self.phoenix_action_lines_character.set_filepath(path)
+                    elif position == "edgeworthzoom":
+                        self.edgeworth_action_lines_character.set_filepath(path)
+                    else:
+                        print(f"Error in sprite command: unknown position \"{position}\"")
+                    current_dialogue_obj.completed = True
+
+                elif c == "wait":
+                    duration_str = action_split[1]
+                    self.cur_time_for_char += delta
+                    if self.cur_time_for_char >= float(duration_str):
+                        current_dialogue_obj.completed = True
+                        self.cur_time_for_char = 0.0
+                    else:
+                        break
+
+                elif c == "bubble":
+                    exclamation_type = action_split[1]
+                    character = action_split[2]
+                    self.exclamation.play_exclamation(exclamation_type, character)
+                    current_dialogue_obj.completed = True
+
+                elif c == "deskslam":
+                    character = action_split[1]
+                    if character == "phoenix":
+                        self.play_phoenix_desk_slam()
+                    elif character == "edgeworth":
+                        self.play_edgeworth_desk_slam()
+                    current_dialogue_obj.completed = True
+
+                elif c == "showarrow":
+                    self.textbox.arrow.visible = True
+                    current_dialogue_obj.completed = True
+
+                elif c == "hidearrow":
+                    self.textbox.arrow.visible = False
+                    current_dialogue_obj.completed = True
+
+                elif c == "showbox":
+                    self.textbox.show()
+                    current_dialogue_obj.completed = True
+
+                elif c == "hidebox":
+                    self.textbox.hide()
+                    current_dialogue_obj.completed = True
+
+                elif c == "nametag":
+                    name = action_split[1]
+                    self.textbox.namebox.set_text(name)
+                    current_dialogue_obj.completed = True
+
+                elif c == "sound":
+                    sound_path = action_split[1]
+                    self.audio_commands.append({
+                        "type": "audio",
+                        "path": f"assets_v4/sound/sfx-{sound_path}.wav",
+                        "offset": self.time
+                    })
+                    current_dialogue_obj.completed = True
+
+                elif c == "shake":
+                    magnitude_str = action_split[1]
+                    duration_str = action_split[2]
+
+                    magnitude = float(magnitude_str)
+                    duration = float(duration_str)
+                    self.world_shaker.start_shaking(magnitude, duration)
+                    self.textbox_shaker.start_shaking(magnitude, duration)
+                    current_dialogue_obj.completed = True
+
+                elif c == "flash":
+                    duration_str = action_split[1]
+
+                    duration = float(duration_str)
+                    self.white_flash.start_color((255,255,255), duration)
+                    current_dialogue_obj.completed = True
+
+                elif c == "music":
+                    music_command = action_split[1]
+
+                    if music_command == "start":
+                        track_name = action_split[2]
+                        self.start_music_track(track_name)
+                        current_dialogue_obj.completed = True
+                    elif music_command == "stop":
+                        self.end_music_track()
+                        current_dialogue_obj.completed = True
+
+                elif c == "cut":
+                    position = action_split[1]
+                    if position == "left":
+                        self.cut_to_left()
+                    elif position == "right":
+                        self.cut_to_right()
+                    elif position == "center":
+                        self.cut_to_center()
+                    elif position == "judge":
+                        self.cut_to_judge()
+                    elif position == "phoenixzoom":
+                        self.cut_to_phoenix_action()
+                    elif position == "edgeworthzoom":
+                        self.cut_to_edgeworth_action()
+                    current_dialogue_obj.completed = True
+
+                elif c == "pan":
+                    position = action_split[1]
+                    if position == "left":
+                        self.pan_to_left()
+                    elif position == "right":
+                        self.pan_to_right()
+                    elif position == "center":
+                        self.pan_to_center()
+                    current_dialogue_obj.completed = True
+
+                else:
+                    print(f"ERROR - Unknown action encountered: \"{current_dialogue_obj.name}\"")
+                    current_dialogue_obj.completed = True
+                
+            elif isinstance(current_dialogue_obj, DialogueTextLineBreak):
+                # Does anything need to be done here? I think this can be handled
+                # entirely in render()
                 current_dialogue_obj.completed = True
 
-            elif c == "pan":
-                position = action_split[1]
-                if position == "left":
-                    self.pan_to_left()
-                elif position == "right":
-                    self.pan_to_right()
-                elif position == "center":
-                    self.pan_to_center()
-                current_dialogue_obj.completed = True
-
-            else:
-                print(f"ERROR - Unknown action encountered: \"{current_dialogue_obj.name}\"")
-                current_dialogue_obj.completed = True
-            
-     
-        elif isinstance(current_dialogue_obj, DialogueTextLineBreak):
-            # Does anything need to be done here? I think this can be handled
-            # entirely in render()
-            current_dialogue_obj.completed = True
-
-        elif current_dialogue_obj is None:
-            # Done with the current page - let's try to get the next page!
-            self.page_index += 1
+            elif current_dialogue_obj is None:
+                # Done with the current page - let's try to get the next page!
+                self.page_index += 1
 
     def pan_to_right(self):
         self.sequencer.run_action(

@@ -22,7 +22,7 @@ class BaseDialogueItem:
 
 class DialogueAction(BaseDialogueItem):
     name: str = ""
-    index: int = 0
+    index: int = -1
 
     def __init__(self, name: str, index: str):
         self.name = name

@@ -18,7 +18,7 @@ OBJ_PHX = B_ST + "<bubble objection phoenix/><wait 0.8/>"
 OBJ_EDW = B_ST + "<bubble objection edgeworth/><wait 0.8/>"
 HDI_PHX = B_ST + "<bubble holdit phoenix/><wait 0.8/>"
 
-END_BOX = "<showarrow/><wait 2/><hidearrow/><sound pichoop/>"
+END_BOX = "<showarrow/><wait 2/><hidearrow/><sound pichoop/><wait 0.3/>"
 
 SHAKE = "<shake 3 0.3/>"
 S_DRAMAPOUND = f"<sound dramapound/><flash 0.15/>{SHAKE}"
