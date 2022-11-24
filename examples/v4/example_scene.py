@@ -45,8 +45,7 @@ test_dialogue_3 = (
 )
 
 def write_page(user_name: str, character: str, text: str):
-    # TODO: get character gender and use appropriate blips
-
+    # Get character gender and use appropriate blips
     character_data = {
         "phoenix": {
             "pos": "left",
@@ -85,30 +84,25 @@ def write_page(user_name: str, character: str, text: str):
     talk_sprite = get_sprite_tag(pos, character, "normal-talk") + start_blips
     idle_sprite = get_sprite_tag(pos, character, "normal-idle") + stop_blips
     return (
-        f"{set_position}"
+        f"<wait 0.03/>{talk_sprite}{set_position}"
         + f"<nametag \"{user_name}\"/><showbox/>"
-        + f"{talk_sprite}{text}{idle_sprite}{END_BOX}"
+        + f"{text}{idle_sprite}{END_BOX}"
     )
 
 def get_boxes_with_pauses(user_name: str, character: str, text: str):
     boxes = get_rich_boxes(write_page(user_name, character, text))
-    # for i in range(len(boxes)):
-    #     if i != len(boxes) - 1:
-    #         boxes[i].commands.append(DialogueAction("stopblip", 0))
-    #         boxes[i].commands.append(DialogueAction("wait 1", 0))
-    #         boxes[i+1].commands.append(DialogueAction("startblip male", 0))
     return boxes
 
 pages: list[DialoguePage] = []
 
 pages.append(DialoguePage([DialogueAction("music start cross-moderato", 0)]))
 pages.extend(get_boxes_with_pauses(
-    user_name="Phoenix right",
+    user_name="Phoenix",
     character="phoenix",
     text="Hello it is I, Phoenix Wright. I am saying some lines of text."
 ))
 pages.extend(get_boxes_with_pauses(
-    user_name="Mr edge worth",
+    user_name="Edgeworth",
     character="edgeworth",
     text="And I am the antagonist, Edgeworth. I am also saying some lines of text. Here is a third line, because I am very serious."
 ))
@@ -117,9 +111,18 @@ pages.extend(get_boxes_with_pauses(
     character="gumshoe",
     text="Hey, pal! I'm on the witness stand! Ain't that cool? Woah ho ho look at me!"
 ))
-# pages.extend(get_rich_boxes(test_dialogue_1))
-# pages.extend(get_rich_boxes(test_dialogue_2))
-# pages.extend(get_rich_boxes(test_dialogue_3))
+pages.extend(get_boxes_with_pauses(
+    user_name="Judge",
+    character="judge",
+    text="And I'm over here, on another screen! Isn't that just the neatest thing?"
+))
+
+pages.extend(get_boxes_with_pauses(
+    user_name="Lotta",
+    character="lotta",
+    text="Don't forget about me, m'kay? I'm still here too."
+))
+
 director = AceAttorneyDirector()
 director.set_current_pages(pages)
 director.render_movie(-15)
