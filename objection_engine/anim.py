@@ -453,7 +453,7 @@ def ace_attorney_anim(config: List[Dict], output_filename: str = "output.mp4", r
         videos.sort(key=lambda item : int(item[:-4]))
         for video in videos:
             txt.write('file ' + root_filename + '/' +video + '\n')
-    textInput = ffmpeg.input(text_filename, format='concat')
+    textInput = ffmpeg.input(text_filename, safe="0", format='concat')
     audio = ffmpeg.input(audio_filename)
     if os.path.exists(output_filename):
         os.remove(output_filename)
