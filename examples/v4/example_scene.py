@@ -104,7 +104,7 @@ pages.extend(get_boxes_with_pauses(
 pages.extend(get_boxes_with_pauses(
     user_name="Edgeworth",
     character="edgeworth",
-    text="And I am the antagonist, Edgeworth. I am also saying some lines of text. Here is a third line, because I am very serious."
+    text="And I am the antagonist, Edgeworth. \<bubble objection edgeworth/>I am also saying some lines of text. <bubble objection edgeworth/>Here is a third line, because I am very serious."
 ))
 pages.extend(get_boxes_with_pauses(
     user_name="Gumshoe",

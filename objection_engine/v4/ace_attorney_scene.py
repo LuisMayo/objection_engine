@@ -111,7 +111,7 @@ class DialogueBox(SceneObject):
                 x_offset = 220 if self.use_rtl else 0
             elif isinstance(command, DialogueTextChunk):
                 text_str = command.text[:command.position]
-                print(f"Draw text block {command} up to position {command.position}")
+                # print(f"Draw text block {command} up to position {command.position}")
                 drawing_args = {
                     "xy": (
                         10 + x + x_offset,
@@ -329,6 +329,29 @@ class AceAttorneyDirector(Director):
             filepath="assets_v4/bg/bg_main.png",
         )
 
+        self.left_bench = ImageObject(
+            parent=self.wide_courtroom,
+            name="Left Bench",
+            pos=(0, 0, 2),
+            filepath="assets_v4/fg/aj_bench_left.png"
+        )
+
+        self.right_bench = ImageObject(
+            parent=self.wide_courtroom,
+            name="Right Bench",
+            pos=(1040, 0, 2),
+            filepath="assets_v4/fg/aj_bench_right.png"
+        )
+
+        self.witness_stand = ImageObject(
+            parent=self.wide_courtroom,
+            name="Witness Stand",
+            pos=(552, 0, 2),
+            width=192,
+            height=192,
+            filepath="assets_v4/fg/witness_stand.png"
+        )
+
         self.phoenix = ImageObject(
             parent=self.wide_courtroom,
             name="Left Character",
@@ -346,7 +369,7 @@ class AceAttorneyDirector(Director):
         self.witness = ImageObject(
             parent=self.wide_courtroom,
             name="Witness",
-            pos=(517, 0, 1),
+            pos=(520, 0, 1),
             filepath="assets_v4/character_sprites/lotta/lotta-smiling-idle.gif"
         )
 
