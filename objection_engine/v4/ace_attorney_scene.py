@@ -8,14 +8,33 @@ from .MovieKit import (
 )
 from .math_helpers import ease_in_out_cubic
 from PIL import Image, ImageDraw, ImageFont
-from .parse_tags import DialoguePage, DialogueTextChunk, DialogueAction, DialogueTextLineBreak
-from .font_tools import get_best_font
+from .parse_tags import (
+    DialoguePage,
+    DialogueTextChunk,
+    DialogueAction,
+    DialogueTextLineBreak,
+)
+from .font_tools import get_best_font, get_text_width
 from .font_constants import TEXT_COLORS, FONT_ARRAY
 from typing import Callable, Optional
 from os.path import exists
 from shlex import split
 from math import cos, sin, pi
 from random import random
+import spacy
+
+MAX_WIDTH = 220
+CHARACTER_DATA = {
+    "phoenix": {"pos": "left", "gender": "male"},
+    "edgeworth": {"pos": "right", "gender": "male"},
+    "judge": {"pos": "judge", "gender": "male"},
+    "lotta": {
+        "pos": "center",
+        "gender": "female",
+    },
+    "gumshoe": {"pos": "center", "gender": "male"},
+    "larry": {"pos": "center", "gender": "male"},
+}
 
 class NameBox(SceneObject):
     def __init__(self, parent: SceneObject, pos: tuple[int, int, int]):
@@ -56,6 +75,7 @@ class NameBox(SceneObject):
         length = int(self.font.getlength(self.text))
         self.namebox_c.width = length + 4
         self.namebox_r.x = 1 + length + 4
+
 
 class DialogueBox(SceneObject):
     time: float = 0
@@ -110,12 +130,12 @@ class DialogueBox(SceneObject):
                 line_no += 1
                 x_offset = 220 if self.use_rtl else 0
             elif isinstance(command, DialogueTextChunk):
-                text_str = command.text[:command.position]
+                text_str = command.text[: command.position]
                 # print(f"Draw text block {command} up to position {command.position}")
                 drawing_args = {
                     "xy": (
                         10 + x + x_offset,
-                        4 + y + (self.font_size) * line_no,
+                        5 + y + (self.font_size) * line_no,
                     ),
                     "text": text_str,
                     "fill": (255, 0, 255),
@@ -145,13 +165,10 @@ class DialogueBox(SceneObject):
 
                 x_offset += (add_to_x_offset * -1) if self.use_rtl else add_to_x_offset
 
+
 class ExclamationObject(ImageObject):
-    def __init__(self, parent: SceneObject, director: 'AceAttorneyDirector'):
-        super().__init__(
-            parent=parent,
-            name="Exclamation Image",
-            pos=(0, 0, 20)
-            )
+    def __init__(self, parent: SceneObject, director: "AceAttorneyDirector"):
+        super().__init__(parent=parent, name="Exclamation Image", pos=(0, 0, 20))
         self.director = director
 
     def get_exclamation_path(self, type: str, speaker: str):
@@ -173,22 +190,20 @@ class ExclamationObject(ImageObject):
 
     def play_exclamation(self, type: str, speaker: str):
         self.set_filepath(
-            f"assets_v4/exclamations/{type}.gif",
-            {
-                0.7: lambda: self.set_filepath(None)
-            })
+            f"assets_v4/exclamations/{type}.gif", {0.7: lambda: self.set_filepath(None)}
+        )
 
         audio_path = self.get_exclamation_path(type, speaker)
 
-        self.director.audio_commands.append({
-            "type": "audio",
-            "path": audio_path,
-            "offset": self.director.time
-        })
+        self.director.audio_commands.append(
+            {"type": "audio", "path": audio_path, "offset": self.director.time}
+        )
+
 
 class ShakerObject(SceneObject):
     magnitude: float = 0.0
     remaining: float = 0.0
+
     def start_shaking(self, magnitude, duration):
         self.magnitude = magnitude
         self.remaining = duration
@@ -207,9 +222,11 @@ class ShakerObject(SceneObject):
             self.set_x(0)
             self.set_y(0)
 
+
 class ColorOverlayObject(SceneObject):
     color: tuple[int, int, int] = (0, 0, 0)
     remaining: float = 0.0
+
     def start_color(self, color, duration):
         self.color = color
         self.remaining = duration
@@ -223,8 +240,17 @@ class ColorOverlayObject(SceneObject):
         if self.remaining > 0:
             ctx.rectangle(xy=(0, 0, img.width, img.height), fill=self.color)
 
+
 class ActionLinesObject(ImageObject):
-    def __init__(self, parent: 'SceneObject' = None, name: str = "", pos: tuple[int, int, int] = ..., width: int = None, height: int = None, filepath: str = None):
+    def __init__(
+        self,
+        parent: "SceneObject" = None,
+        name: str = "",
+        pos: tuple[int, int, int] = ...,
+        width: int = None,
+        height: int = None,
+        filepath: str = None,
+    ):
         super().__init__(parent, name, pos, width, height, filepath)
         self.move_left = True
 
@@ -249,69 +275,63 @@ class AceAttorneyDirector(Director):
         self.root = SceneObject(name="Root")
 
         self.white_flash = ColorOverlayObject(
-            parent=self.root,
-            name="White Flash Overlay",
-            pos=(0,0,30)
+            parent=self.root, name="White Flash Overlay", pos=(0, 0, 30)
         )
         self.white_flash.color = (255, 255, 255)
 
         self.world_root = SceneObject(
-            parent=self.root,
-            name="World Root",
-            pos=(0,0,0)
+            parent=self.root, name="World Root", pos=(0, 0, 0)
         )
 
         self.world_shaker = ShakerObject(
-            parent=self.world_root,
-            name="World Shaker",
-            pos=(0, 0, 0)
+            parent=self.world_root, name="World Shaker", pos=(0, 0, 0)
         )
 
         self.judge_shot = ImageObject(
             parent=self.world_shaker,
             name="Judge Background",
             pos=(0, 256, 0),
-            filepath="assets_v4/bg/bg_judge.png"
+            filepath="assets_v4/bg/bg_judge.png",
         )
 
         self.judge = ImageObject(
             parent=self.judge_shot,
             name="Judge",
             pos=(0, 0, 1),
-            filepath="assets_v4/character_sprites/judge/judge-normal-idle.gif"
+            filepath="assets_v4/character_sprites/judge/judge-normal-idle.gif",
         )
 
         self.phoenix_action_lines_shot = SceneObject(
             parent=self.world_shaker,
             name="Phoenix Action Lines Container",
-            pos=(0, 512, 0)
+            pos=(0, 512, 0),
         )
 
         self.phoenix_action_lines_animator = ActionLinesObject(
             parent=self.phoenix_action_lines_shot,
             name="Phoenix Action Lines",
             pos=(0, 0, 0),
-            filepath="assets_v4/bg/bg_action.png"
+            filepath="assets_v4/bg/bg_action.png",
         )
 
         self.phoenix_action_lines_character = ImageObject(
             parent=self.phoenix_action_lines_shot,
             name="Phoenix Action Lines Character",
             pos=(0, 0, 1),
-            filepath="assets_v4/character_sprites/phoenix/phoenix-zoom-idle.gif"
+            filepath="assets_v4/character_sprites/phoenix/phoenix-zoom-idle.gif",
         )
 
         self.edgeworth_action_lines_shot = SceneObject(
             parent=self.world_shaker,
             name="Edgeworth Action Lines Container",
-            pos=(0, 768, 0)
+            pos=(0, 768, 0),
         )
 
         self.edgeworth_action_lines_animator = ActionLinesObject(
             parent=self.edgeworth_action_lines_shot,
             name="Edgeworth Action Lines",
             pos=(0, 0, 0),
-            filepath="assets_v4/bg/bg_action.png"
+            filepath="assets_v4/bg/bg_action.png",
         )
         self.edgeworth_action_lines_animator.move_left = False
 
@@ -319,7 +339,7 @@ class AceAttorneyDirector(Director):
             parent=self.edgeworth_action_lines_shot,
             name="Edgeworth Action Lines Character",
             pos=(0, 0, 1),
-            filepath="assets_v4/character_sprites/edgeworth/edgeworth-zoom-idle.gif"
+            filepath="assets_v4/character_sprites/edgeworth/edgeworth-zoom-idle.gif",
         )
 
         self.wide_courtroom = ImageObject(
@@ -333,14 +353,14 @@ class AceAttorneyDirector(Director):
             parent=self.wide_courtroom,
             name="Left Bench",
             pos=(0, 0, 2),
-            filepath="assets_v4/fg/aj_bench_left.png"
+            filepath="assets_v4/fg/aj_bench_left.png",
         )
 
         self.right_bench = ImageObject(
             parent=self.wide_courtroom,
             name="Right Bench",
             pos=(1040, 0, 2),
-            filepath="assets_v4/fg/aj_bench_right.png"
+            filepath="assets_v4/fg/aj_bench_right.png",
         )
 
         self.witness_stand = ImageObject(
@@ -349,7 +369,7 @@ class AceAttorneyDirector(Director):
             pos=(552, 0, 2),
             width=192,
             height=192,
-            filepath="assets_v4/fg/witness_stand.png"
+            filepath="assets_v4/fg/witness_stand.png",
         )
 
         self.phoenix = ImageObject(
@@ -370,24 +390,18 @@ class AceAttorneyDirector(Director):
             parent=self.wide_courtroom,
             name="Witness",
             pos=(520, 0, 1),
-            filepath="assets_v4/character_sprites/lotta/lotta-smiling-idle.gif"
+            filepath="assets_v4/character_sprites/lotta/lotta-smiling-idle.gif",
         )
 
         self.textbox_shaker = ShakerObject(
-            parent=self.root,
-            name="Text Box Shaker",
-            pos=(0,0,0)
+            parent=self.root, name="Text Box Shaker", pos=(0, 0, 0)
         )
 
-        self.exclamation = ExclamationObject(
-            parent=self.root,
-            director=self
-        )
+        self.exclamation = ExclamationObject(parent=self.root, director=self)
 
         self.textbox = DialogueBox(parent=self.textbox_shaker, director=self)
 
         self.scene = Scene(256, 192, self.root)
-        
 
     def set_current_pages(self, pages: list[DialoguePage]):
         self.pages = pages
@@ -412,7 +426,9 @@ class AceAttorneyDirector(Director):
             # Find which page we are on
             self.current_page = self.pages[self.page_index]
             self.textbox.page = self.current_page
-            self.textbox.font_data = get_best_font(self.current_page.get_raw_text(), FONT_ARRAY)
+            self.textbox.font_data = get_best_font(
+                self.current_page.get_raw_text(), FONT_ARRAY
+            )
             self.textbox.font = ImageFont.truetype(self.textbox.font_data["path"], 16)
 
             current_dialogue_obj = self.current_page.get_current_item()
@@ -459,7 +475,7 @@ class AceAttorneyDirector(Director):
                     elif position == "edgeworthzoom":
                         self.edgeworth_action_lines_character.set_filepath(path)
                     else:
-                        print(f"Error in sprite command: unknown position \"{position}\"")
+                        print(f'Error in sprite command: unknown position "{position}"')
                     current_dialogue_obj.completed = True
 
                 elif c == "wait":
@@ -508,11 +524,13 @@ class AceAttorneyDirector(Director):
 
                 elif c == "sound":
                     sound_path = action_split[1]
-                    self.audio_commands.append({
-                        "type": "audio",
-                        "path": f"assets_v4/sound/sfx-{sound_path}.wav",
-                        "offset": self.time
-                    })
+                    self.audio_commands.append(
+                        {
+                            "type": "audio",
+                            "path": f"assets_v4/sound/sfx-{sound_path}.wav",
+                            "offset": self.time,
+                        }
+                    )
                     current_dialogue_obj.completed = True
 
                 elif c == "shake":
@@ -529,7 +547,7 @@ class AceAttorneyDirector(Director):
                     duration_str = action_split[1]
 
                     duration = float(duration_str)
-                    self.white_flash.start_color((255,255,255), duration)
+                    self.white_flash.start_color((255, 255, 255), duration)
                     current_dialogue_obj.completed = True
 
                 elif c == "music":
@@ -570,9 +588,11 @@ class AceAttorneyDirector(Director):
                     current_dialogue_obj.completed = True
 
                 else:
-                    print(f"ERROR - Unknown action encountered: \"{current_dialogue_obj.name}\"")
+                    print(
+                        f'ERROR - Unknown action encountered: "{current_dialogue_obj.name}"'
+                    )
                     current_dialogue_obj.completed = True
-                
+
             elif isinstance(current_dialogue_obj, DialogueTextLineBreak):
                 # Does anything need to be done here? I think this can be handled
                 # entirely in render()
@@ -645,7 +665,7 @@ class AceAttorneyDirector(Director):
             "type": "audio",
             "path": f"assets_v4/music/{name}.mp3",
             "offset": self.time,
-            "loop_type": "loop_until_truncated"
+            "loop_type": "loop_until_truncated",
         }
         self.audio_commands.append(self.current_music_track)
 
@@ -671,42 +691,183 @@ class AceAttorneyDirector(Director):
             self.current_voice_blips = None
 
     def next_dialogue_sound(self):
-        self.audio_commands.append({
-            "type": "audio",
-            "path": "assets_v4/sound/sfx-pichoop.wav",
-            "offset": self.time
-        })
+        self.audio_commands.append(
+            {
+                "type": "audio",
+                "path": "assets_v4/sound/sfx-pichoop.wav",
+                "offset": self.time,
+            }
+        )
 
     def play_phoenix_desk_slam(self):
         fp_before = self.phoenix.filepath
         cb_before = self.phoenix.callbacks
         self.phoenix.set_filepath(
             get_sprite_location("phoenix", "deskslam"),
+            {0.8: lambda: self.phoenix.set_filepath(fp_before, cb_before)},
+        )
+        self.audio_commands.append(
             {
-                0.8: lambda: self.phoenix.set_filepath(fp_before, cb_before)
-            })
-        self.audio_commands.append({
-            "type": "audio",
-            "path": "assets_v4/sound/sfx-deskslam.wav",
-            "offset": self.time + 0.15
-        })
+                "type": "audio",
+                "path": "assets_v4/sound/sfx-deskslam.wav",
+                "offset": self.time + 0.15,
+            }
+        )
 
     def play_edgeworth_desk_slam(self):
         fp_before = self.edgeworth.filepath
         cb_before = self.edgeworth.callbacks
         self.edgeworth.set_filepath(
             get_sprite_location("edgeworth", "deskslam"),
+            {0.8: lambda: self.edgeworth.set_filepath(fp_before, cb_before)},
+        )
+        self.audio_commands.append(
             {
-                0.8: lambda: self.edgeworth.set_filepath(fp_before, cb_before)
-            })
-        self.audio_commands.append({
-            "type": "audio",
-            "path": "assets_v4/sound/sfx-deskslam.wav",
-            "offset": self.time + 0.25
-        })
+                "type": "audio",
+                "path": "assets_v4/sound/sfx-deskslam.wav",
+                "offset": self.time + 0.25,
+            }
+        )
+
 
 def get_sprite_location(character: str, emotion: str):
     return f"assets_v4/character_sprites/{character}/{character}-{emotion}.gif"
 
+
 def get_sprite_tag(location: str, character: str, emotion: str):
     return f"<sprite {location} {get_sprite_location(character, emotion)}/>"
+
+
+def initialize_box(user_name: str, character: str) -> DialoguePage:
+    this_char_data = CHARACTER_DATA[character]
+    pos = this_char_data["pos"]
+    gender = this_char_data["gender"]
+
+    return DialoguePage(
+        [
+            DialogueAction("wait 0.03", 0),
+            DialogueAction(
+                f"sprite {pos} {get_sprite_location(character, 'normal-talk')}", 0
+            ),
+            DialogueAction(f"cut {pos}", 0),
+            DialogueAction(f'nametag "{user_name}"', 0),
+            DialogueAction("showbox", 0),
+            DialogueAction(f"startblip {gender}", 0),
+        ]
+    )
+
+
+def finish_box(page: DialoguePage, character: str):
+    this_char_data = CHARACTER_DATA[character]
+    pos = this_char_data["pos"]
+
+    page.commands.extend(
+        [
+            DialogueAction(
+                f"sprite {pos} {get_sprite_location(character, 'normal-idle')}", 0
+            ),
+            DialogueAction(f"stopblip", 0),
+            DialogueAction("showarrow", 0),
+            DialogueAction("wait 2", 0),
+            DialogueAction("hidearrow", 0),
+            DialogueAction("sound pichoop", 0),
+            DialogueAction("wait 0.3", 0),
+        ]
+    )
+
+
+def get_boxes_with_pauses(user_name: str, character: str, text: str):
+    this_char_data = CHARACTER_DATA[character]
+    pos = this_char_data["pos"]
+    gender = this_char_data["gender"]
+
+    # Stuff at beginning of text box
+    all_pages: list[DialoguePage] = []
+    current_page = initialize_box(user_name, character)
+
+    # Add actual content of text box
+    current_line = 0
+    current_width = 0
+
+    # Split text into sentences
+    split_into_sentences = spacy.blank("xx")
+    split_into_sentences.add_pipe("sentencizer")
+    sentences = [s.text.strip().split() for s in split_into_sentences(text).sents]
+
+    sentence_index = 0
+    word_index = 0
+
+    # Get the font for this text
+    best_font = get_best_font(text, FONT_ARRAY)
+
+    # TODO: Currently we fill up each box as much as possible - we may want
+    # to modify this so that it has a max of two or three sentences? Try to
+    # avoid splitting a sentence across boxes, and instead just have it start
+    # the next box?
+    while True:
+        current_sentence = sentences[sentence_index]
+        current_word = current_sentence[word_index] + " "
+
+        # Calculate length of current word!
+        length_of_current_word = get_text_width(current_word, font=best_font)
+
+        # This word is too long for the current line
+        if current_width + length_of_current_word > MAX_WIDTH:
+            current_width = 0
+            if current_line < 2:
+                current_page.commands.append(DialogueTextLineBreak())
+                current_line += 1
+            else:
+                # This page is full - we need to end this page
+                # then go to the next page!
+                finish_box(current_page, character)
+                all_pages.append(current_page)
+                current_page = initialize_box(user_name, character)
+                current_line = 0
+
+        # Add this word to the current line
+        current_page.commands.append(DialogueTextChunk(current_word, []))
+        current_width += length_of_current_word
+
+        # Move to the next word (or sentence, if necessary)
+        word_index += 1
+        if word_index == len(current_sentence):
+            word_index = 0
+            sentence_index += 1
+
+            # Wait an extra moment in between sentences
+            # NOTE: If we wanted to change character expressions in between
+            # sentences, this is where we'd do it!
+            if sentence_index != len(sentences):
+                current_page.commands.extend(
+                    [
+                        DialogueAction(f"stopblip", 0),
+                        DialogueAction(
+                            f"sprite {pos} {get_sprite_location(character, 'normal-idle')}",
+                            0,
+                        ),
+                    ]
+                )
+
+                current_page.commands.append(
+                    DialogueAction("wait 0.3", 0),
+                )
+
+                current_page.commands.extend(
+                    [
+                        DialogueAction(f"startblip {gender}", 0),
+                        DialogueAction(
+                            f"sprite {pos} {get_sprite_location(character, 'normal-talk')}",
+                            0,
+                        ),
+                    ]
+                )
+            # If done with all of the sentences, then we're done!
+            else:
+                break
+
+    # Add stuff at end of text box
+    finish_box(current_page, character)
+    all_pages.append(current_page)
+
+    return all_pages
