@@ -17,3 +17,4 @@ outputs/*.mp4
 .wakatime-project
 polyglot_data
 docker-entrypoint.py
+assets_v4
