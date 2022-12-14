@@ -3,13 +3,19 @@ from tomllib import load
 from os import walk, scandir
 from os.path import join
 from random import choice
-from objection_engine.v4.ace_attorney_scene import AceAttorneyDirector, get_boxes_with_pauses
+from objection_engine.v4.ace_attorney_scene import (
+    AceAttorneyDirector,
+    get_boxes_with_pauses,
+)
 
 from objection_engine.v4.parse_tags import DialogueAction, DialoguePage
 from ..beans.comment import Comment
 
-try: from rich import print
-except: pass
+try:
+    from rich import print
+except:
+    pass
+
 
 def load_character_data():
     # Find all of the characters
@@ -20,7 +26,7 @@ def load_character_data():
             with open(join(f.path, "config.toml"), "rb") as config_file:
                 characters[f.name] = load(config_file)
         except FileNotFoundError:
-            print(f"ERROR - Character folder \"{f.name}\" has no config.json")
+            print(f'ERROR - Character folder "{f.name}" has no config.toml')
             continue
 
     # Config file in character_sprites gives high priority characters
@@ -40,8 +46,24 @@ def load_character_data():
     return {
         "characters": characters,
         "high_priority": high_priority_characters,
-        "omit_for_adult_mode": omit_for_adult_mode
+        "omit_for_adult_mode": omit_for_adult_mode,
     }
+
+
+def load_music_data():
+    # Find all of the music packs
+    music_packs = {}
+    folders = [f for f in scandir("assets_v4/music") if f.is_dir()]
+    for f in folders:
+        try:
+            with open(join(f.path, "config.toml"), "rb") as config_file:
+                music_packs[f.name] = load(config_file)
+        except FileNotFoundError:
+            print(f'ERROR - Music folder "{f.name}" has no config.toml')
+            continue
+
+    return music_packs
+
 
 def get_characters(
     common: Counter, assigned_characters: dict = None, adult_mode: bool = False
@@ -55,22 +77,33 @@ def get_characters(
     character_data = load_character_data()
 
     high_priority_character_names = character_data["high_priority"]
-    character_names = [name for name in character_data["characters"] if not adult_mode or (adult_mode and name not in character_data["omit_for_adult_mode"])]
-    rnd_character_names = [name for name in character_names if name not in high_priority_character_names]
-    
+    character_names = [
+        name
+        for name in character_data["characters"]
+        if not adult_mode
+        or (adult_mode and name not in character_data["omit_for_adult_mode"])
+    ]
+    rnd_character_names = [
+        name for name in character_names if name not in high_priority_character_names
+    ]
 
     # Assign high priority characters first
     i: int = 0
     for name in high_priority_character_names:
         try:
-            if name not in users_to_characters.values() and most_common[i] not in users_to_characters:
+            if (
+                name not in users_to_characters.values()
+                and most_common[i] not in users_to_characters
+            ):
                 users_to_characters[most_common[i]] = name
         except IndexError:
             pass
         i += 1
 
     # Everyone else is chosen at random
-    rnd_characters = [c for c in rnd_character_names if c not in users_to_characters.values()]
+    rnd_characters = [
+        c for c in rnd_character_names if c not in users_to_characters.values()
+    ]
     for user_id in most_common:
         # Skip users who were manually assigned characters
         if user_id in users_to_characters:
@@ -89,11 +122,10 @@ def get_characters(
     return users_to_characters
 
 
-
 def render_comment_list(
-    comment_list: list['Comment'],
+    comment_list: list["Comment"],
     output_filename: str = "hello.mp4",
-    music_code: str = "PWR",
+    music_code: str = "pwr",
     resolution_scale: int = 1,
     assigned_characters: dict = None,
     adult_mode: bool = False,
@@ -106,12 +138,21 @@ def render_comment_list(
         counter, assigned_characters=assigned_characters, adult_mode=adult_mode
     )
 
-
-    # TODO: get music
+    # Get music
+    all_music_data = load_music_data()
+    if music_code in all_music_data:
+        music_pack = all_music_data[music_code]
+    else:
+        raise KeyError(
+            f'Music code "{music_code}" not found. Ensure that a folder for it exists in the "music" folder, and that it has a "config.toml" file.'
+        )
+    print("Chose music pack:", music_code, music_pack)
 
     pages: list[DialoguePage] = []
 
-    pages.append(DialoguePage([DialogueAction("music start cross-moderato", 0)]))
+    # Start the relaxed music
+    relaxed_track = choice(music_pack["relaxed"])
+    pages.append(DialoguePage([DialogueAction(f"music start {join(music_code, relaxed_track)}", 0)]))
 
     # Add all of the comments
     for comment in comment_list:
@@ -119,7 +160,7 @@ def render_comment_list(
             get_boxes_with_pauses(
                 user_name=comment.user_name,
                 character=characters[comment.effective_user_id],
-                text=comment.text_content
+                text=comment.text_content,
             )
         )
 
