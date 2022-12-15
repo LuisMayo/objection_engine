@@ -1,3 +1,4 @@
+from string import punctuation
 from .MovieKit import (
     Scene,
     SceneObject,
@@ -22,6 +23,7 @@ from shlex import split
 from math import cos, sin, pi
 from random import random
 import spacy
+from polyglot.text import Text, Sentence, WordList, Word
 
 MAX_WIDTH = 220
 CHARACTER_DATA = {
@@ -35,6 +37,7 @@ CHARACTER_DATA = {
     "gumshoe": {"pos": "center", "gender": "male"},
     "larry": {"pos": "center", "gender": "male"},
 }
+
 
 class NameBox(SceneObject):
     def __init__(self, parent: SceneObject, pos: tuple[int, int, int]):
@@ -790,9 +793,9 @@ def get_boxes_with_pauses(user_name: str, character: str, text: str):
     current_width = 0
 
     # Split text into sentences
-    split_into_sentences = spacy.blank("xx")
-    split_into_sentences.add_pipe("sentencizer")
-    sentences = [s.text.strip().split() for s in split_into_sentences(text).sents]
+    pg_text = Text(text)
+
+    sentences: list[Sentence] = pg_text.sentences
 
     sentence_index = 0
     word_index = 0
@@ -806,32 +809,43 @@ def get_boxes_with_pauses(user_name: str, character: str, text: str):
     # the next box?
     while True:
         current_sentence = sentences[sentence_index]
-        current_word = current_sentence[word_index] + " "
+        current_word: Word = current_sentence.words[word_index]
 
-        # Calculate length of current word!
-        length_of_current_word = get_text_width(current_word, font=best_font)
+        if current_word not in punctuation:
+            try:
+                next_word: Word = current_sentence.words[word_index + 1]
+                if next_word not in punctuation:
+                    current_word += " "
+                else:
+                    current_word += next_word + " "
+            except IndexError:
+                current_word += " "
 
-        # This word is too long for the current line
-        if current_width + length_of_current_word > MAX_WIDTH:
-            current_width = 0
-            if current_line < 2:
-                current_page.commands.append(DialogueTextLineBreak())
-                current_line += 1
-            else:
-                # This page is full - we need to end this page
-                # then go to the next page!
-                finish_box(current_page, character)
-                all_pages.append(current_page)
-                current_page = initialize_box(user_name, character)
-                current_line = 0
+            # Calculate length of current word!
+            length_of_current_word = get_text_width(current_word, font=best_font)
 
-        # Add this word to the current line
-        current_page.commands.append(DialogueTextChunk(current_word, []))
-        current_width += length_of_current_word
+            # This word is too long for the current line
+            if current_width + length_of_current_word > MAX_WIDTH:
+                current_width = 0
+                if current_line < 2:
+                    current_page.commands.append(DialogueTextLineBreak())
+                    current_line += 1
+                else:
+                    # This page is full - we need to end this page
+                    # then go to the next page!
+                    finish_box(current_page, character)
+                    all_pages.append(current_page)
+                    current_page = initialize_box(user_name, character)
+                    current_line = 0
 
+            # Add this word to the current line
+            current_page.commands.append(DialogueTextChunk(current_word, []))
+            current_width += length_of_current_word
+
+        # This word is done being processed!
         # Move to the next word (or sentence, if necessary)
         word_index += 1
-        if word_index == len(current_sentence):
+        if word_index == len(current_sentence.words):
             word_index = 0
             sentence_index += 1
 
@@ -865,6 +879,24 @@ def get_boxes_with_pauses(user_name: str, character: str, text: str):
             # If done with all of the sentences, then we're done!
             else:
                 break
+
+        elif current_word == ',':
+            # Slight pause after commas
+            current_page.commands.extend(
+                [
+                    DialogueAction(f"stopblip", 0),
+                    DialogueAction(
+                        f"sprite {pos} {get_sprite_location(character, 'normal-idle')}",
+                        0,
+                    ),
+                    DialogueAction("wait 0.15", 0),
+                    DialogueAction(f"startblip {gender}", 0),
+                    DialogueAction(
+                        f"sprite {pos} {get_sprite_location(character, 'normal-talk')}",
+                        0,
+                    ),
+                ]
+            )
 
     # Add stuff at end of text box
     finish_box(current_page, character)
