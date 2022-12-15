@@ -1,4 +1,10 @@
 from string import punctuation
+from collections import Counter
+from random import choice
+
+from objection_engine.v4.loading import load_character_data, load_music_data
+from objection_engine.beans.comment import Comment
+
 from .MovieKit import (
     Scene,
     SceneObject,
@@ -18,25 +24,19 @@ from .parse_tags import (
 from .font_tools import get_best_font, get_text_width
 from .font_constants import TEXT_COLORS, FONT_ARRAY
 from typing import Callable, Optional
-from os.path import exists
+from os.path import exists, join
 from shlex import split
 from math import cos, sin, pi
 from random import random
 import spacy
 from polyglot.text import Text, Sentence, WordList, Word
 
+try:
+    from rich import print
+except:
+    pass
+
 MAX_WIDTH = 220
-CHARACTER_DATA = {
-    "phoenix": {"pos": "left", "gender": "male"},
-    "edgeworth": {"pos": "right", "gender": "male"},
-    "judge": {"pos": "judge", "gender": "male"},
-    "lotta": {
-        "pos": "center",
-        "gender": "female",
-    },
-    "gumshoe": {"pos": "center", "gender": "male"},
-    "larry": {"pos": "center", "gender": "male"},
-}
 
 
 class NameBox(SceneObject):
@@ -741,165 +741,291 @@ def get_sprite_tag(location: str, character: str, emotion: str):
     return f"<sprite {location} {get_sprite_location(character, emotion)}/>"
 
 
-def initialize_box(user_name: str, character: str) -> DialoguePage:
-    this_char_data = CHARACTER_DATA[character]
-    pos = this_char_data["pos"]
-    gender = this_char_data["gender"]
+class DialogueBoxBuilder:
+    def __init__(self) -> None:
+        self.character_data = load_character_data()
+        self.music_data = load_music_data()
+        self.current_character_name: str = None
+        self.current_character_animation: str = None
 
-    return DialoguePage(
-        [
-            DialogueAction("wait 0.03", 0),
-            DialogueAction(
-                f"sprite {pos} {get_sprite_location(character, 'normal-talk')}", 0
-            ),
-            DialogueAction(f"cut {pos}", 0),
-            DialogueAction(f'nametag "{user_name}"', 0),
-            DialogueAction("showbox", 0),
-            DialogueAction(f"startblip {gender}", 0),
+    def initialize_box(self, user_name: str) -> DialoguePage:
+        this_char_data = self.character_data["characters"][self.current_character_name]
+        pos = this_char_data["location"]
+        gender = this_char_data["gender"]
+
+        return DialoguePage(
+            [
+                DialogueAction("wait 0.03", 0),
+                # DialogueAction(
+                #     f"sprite {pos} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-talk')}", 0
+                # ),
+                DialogueAction(f"cut {pos}", 0),
+                DialogueAction(f'nametag "{user_name}"', 0),
+                DialogueAction("showbox", 0),
+                # DialogueAction(f"startblip {gender}", 0),
+            ]
+        )
+
+    def finish_box(self, page: DialoguePage):
+        this_char_data = self.character_data["characters"][self.current_character_name]
+        pos = this_char_data["location"]
+
+        page.commands.extend(
+            [
+                DialogueAction(
+                    f"sprite {pos} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
+                    0,
+                ),
+                DialogueAction(f"stopblip", 0),
+                DialogueAction("showarrow", 0),
+                DialogueAction("wait 2", 0),
+                DialogueAction("hidearrow", 0),
+                DialogueAction("sound pichoop", 0),
+                DialogueAction("wait 0.3", 0),
+            ]
+        )
+
+    def get_characters_for_users(
+        self,
+        common: Counter,
+        assigned_characters: dict = None,
+        adult_mode: bool = False,
+    ):
+        users_to_characters = (
+            {} if assigned_characters is None else assigned_characters.copy()
+        )
+        most_common = [t[0] for t in common.most_common()]
+
+        high_priority_character_names = self.character_data["high_priority"]
+        character_names = [
+            name
+            for name in self.character_data["characters"]
+            if not adult_mode
+            or (adult_mode and name not in self.character_data["omit_for_adult_mode"])
         ]
-    )
-
-
-def finish_box(page: DialoguePage, character: str):
-    this_char_data = CHARACTER_DATA[character]
-    pos = this_char_data["pos"]
-
-    page.commands.extend(
-        [
-            DialogueAction(
-                f"sprite {pos} {get_sprite_location(character, 'normal-idle')}", 0
-            ),
-            DialogueAction(f"stopblip", 0),
-            DialogueAction("showarrow", 0),
-            DialogueAction("wait 2", 0),
-            DialogueAction("hidearrow", 0),
-            DialogueAction("sound pichoop", 0),
-            DialogueAction("wait 0.3", 0),
+        rnd_character_names = [
+            name
+            for name in character_names
+            if name not in high_priority_character_names
         ]
-    )
 
-
-def get_boxes_with_pauses(user_name: str, character: str, text: str):
-    this_char_data = CHARACTER_DATA[character]
-    pos = this_char_data["pos"]
-    gender = this_char_data["gender"]
-
-    # Stuff at beginning of text box
-    all_pages: list[DialoguePage] = []
-    current_page = initialize_box(user_name, character)
-
-    # Add actual content of text box
-    current_line = 0
-    current_width = 0
-
-    # Split text into sentences
-    pg_text = Text(text)
-
-    sentences: list[Sentence] = pg_text.sentences
-
-    sentence_index = 0
-    word_index = 0
-
-    # Get the font for this text
-    best_font = get_best_font(text, FONT_ARRAY)
-
-    # TODO: Currently we fill up each box as much as possible - we may want
-    # to modify this so that it has a max of two or three sentences? Try to
-    # avoid splitting a sentence across boxes, and instead just have it start
-    # the next box?
-    while True:
-        current_sentence = sentences[sentence_index]
-        current_word: Word = current_sentence.words[word_index]
-
-        if current_word not in punctuation:
+        # Assign high priority characters first
+        i: int = 0
+        for name in high_priority_character_names:
             try:
-                next_word: Word = current_sentence.words[word_index + 1]
-                if next_word not in punctuation:
-                    current_word += " "
-                else:
-                    current_word += next_word + " "
+                if (
+                    name not in users_to_characters.values()
+                    and most_common[i] not in users_to_characters
+                ):
+                    users_to_characters[most_common[i]] = name
             except IndexError:
-                current_word += " "
+                pass
+            i += 1
 
-            # Calculate length of current word!
-            length_of_current_word = get_text_width(current_word, font=best_font)
+        # Everyone else is chosen at random
+        rnd_characters = [
+            c for c in rnd_character_names if c not in users_to_characters.values()
+        ]
+        for user_id in most_common:
+            # Skip users who were manually assigned characters
+            if user_id in users_to_characters:
+                continue
 
-            # This word is too long for the current line
-            if current_width + length_of_current_word > MAX_WIDTH:
-                current_width = 0
-                if current_line < 2:
-                    current_page.commands.append(DialogueTextLineBreak())
-                    current_line += 1
-                else:
-                    # This page is full - we need to end this page
-                    # then go to the next page!
-                    finish_box(current_page, character)
-                    all_pages.append(current_page)
-                    current_page = initialize_box(user_name, character)
-                    current_line = 0
+            # Reload choosable characters if we ran out
+            if len(rnd_characters) == 0:
+                rnd_characters = rnd_character_names.copy()
 
-            # Add this word to the current line
-            current_page.commands.append(DialogueTextChunk(current_word, []))
-            current_width += length_of_current_word
+            # Assign a character randomly chosen from the list to this user,
+            # and remove them from the pool
+            rnd_character = choice(rnd_characters)
+            rnd_characters.remove(rnd_character)
+            users_to_characters[user_id] = rnd_character
 
-        # This word is done being processed!
-        # Move to the next word (or sentence, if necessary)
-        word_index += 1
-        if word_index == len(current_sentence.words):
-            word_index = 0
-            sentence_index += 1
+        return users_to_characters
 
-            # Wait an extra moment in between sentences
-            # NOTE: If we wanted to change character expressions in between
-            # sentences, this is where we'd do it!
-            if sentence_index != len(sentences):
-                current_page.commands.extend(
-                    [
-                        DialogueAction(f"stopblip", 0),
-                        DialogueAction(
-                            f"sprite {pos} {get_sprite_location(character, 'normal-idle')}",
-                            0,
-                        ),
-                    ]
+    def build_from_comments(
+        self,
+        comments: list[Comment],
+        music_code: str = "pwr",
+        assigned_characters: dict = None,
+        adult_mode: bool = False,
+    ):
+        # Do character check
+        counter = Counter()
+        for comment in comments:
+            counter.update({comment.effective_user_id: 1})
+        users_to_characters = self.get_characters_for_users(
+            counter, assigned_characters=assigned_characters, adult_mode=adult_mode
+        )
+
+        # Get music
+        if music_code in self.music_data:
+            music_pack = self.music_data[music_code]
+        else:
+            raise KeyError(
+                f'Music code "{music_code}" not found. Ensure that a folder for it exists in the "music" folder, and that it has a "config.toml" file.'
+            )
+        print("Chose music pack:", music_code, music_pack)
+
+        self.pages: list[DialoguePage] = []
+
+        # Start relaxed music
+        self.relaxed_track = join(music_code, choice(music_pack["relaxed"]))
+        self.tense_track = join(music_code, choice(music_pack["tense"]))
+        self.pages.append(
+            DialoguePage(
+                [DialogueAction(f"music start {self.relaxed_track}", 0)]
+            )
+        )
+
+        # Add boxes for the dialogue
+        for comment in comments:
+            self.pages.extend(
+                self.get_boxes_with_pauses(
+                    user_name=comment.user_name,
+                    character=users_to_characters[comment.effective_user_id],
+                    text=comment.text_content,
                 )
+            )
 
-                current_page.commands.append(
-                    DialogueAction("wait 0.3", 0),
-                )
+    def get_boxes_with_pauses(self, user_name: str, character: str, text: str):
+        self.current_character_name = character
+        this_char_data = self.character_data["characters"][character]
+        pos = this_char_data["location"]
+        gender = this_char_data["gender"]
+        sprites = this_char_data["sprites"]
 
-                current_page.commands.extend(
-                    [
-                        DialogueAction(f"startblip {gender}", 0),
-                        DialogueAction(
-                            f"sprite {pos} {get_sprite_location(character, 'normal-talk')}",
-                            0,
-                        ),
-                    ]
-                )
-            # If done with all of the sentences, then we're done!
-            else:
-                break
+        # Stuff at beginning of text box
+        all_pages: list[DialoguePage] = []
+        current_page = self.initialize_box(user_name)
 
-        elif current_word == ',':
-            # Slight pause after commas
+        # Add actual content of text box
+        current_line_index = 0
+        current_line_width = 0
+
+        # Split text into sentences
+        pg_text = Text(text)
+
+        sentences: list[Sentence] = pg_text.sentences
+
+        sentence_index = 0
+        word_index = 0
+
+        # Get the font for this text
+        best_font = get_best_font(text, FONT_ARRAY)
+
+        space_width = get_text_width(" ", font=best_font)
+
+        for sentence_index, sentence in enumerate(sentences):
+            # Get the sentence sentiment here
+            try:
+                sentence_sentiment = sentence.polarity
+            except ZeroDivisionError:
+                sentence_sentiment = 0
+
+            # Select a random pose
+            sprite_cat = "neutral"
+            if sentence_sentiment > 0:
+                sprite_cat = "positive"
+            elif sentence_sentiment < 0:
+                sprite_cat = "negative"
+
+            self.current_character_animation = choice(sprites[sprite_cat])
+
+            # Start animating the speaking and blips
             current_page.commands.extend(
                 [
-                    DialogueAction(f"stopblip", 0),
-                    DialogueAction(
-                        f"sprite {pos} {get_sprite_location(character, 'normal-idle')}",
-                        0,
-                    ),
-                    DialogueAction("wait 0.15", 0),
                     DialogueAction(f"startblip {gender}", 0),
                     DialogueAction(
-                        f"sprite {pos} {get_sprite_location(character, 'normal-talk')}",
+                        f"sprite {pos} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-talk')}",
                         0,
                     ),
                 ]
             )
 
-    # Add stuff at end of text box
-    finish_box(current_page, character)
-    all_pages.append(current_page)
+            print("Sentence", sentence)
+            print("Polarity", sentence_sentiment)
 
-    return all_pages
+            for word_index, word in enumerate(sentence.words):
+                word_width = get_text_width(word, font=best_font)
+
+                # Line break if this word is too wide to fit
+                if current_line_width + word_width > MAX_WIDTH:
+                    current_line_width = 0
+                    if current_line_index < 2:
+                        # Go to next line down
+                        current_page.commands.append(DialogueTextLineBreak())
+                        current_line_index += 1
+
+                    else:
+                        # This page is full, so create a new page
+                        self.finish_box(current_page)
+                        all_pages.append(current_page)
+                        current_page = self.initialize_box(user_name)
+                        current_page.commands.extend(
+                            [
+                                DialogueAction(f"startblip {gender}", 0),
+                                DialogueAction(
+                                    f"sprite {pos} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-talk')}",
+                                    0,
+                                ),
+                            ]
+                        )
+                        current_line_index = 0
+
+                # Should this be highlighted?
+                # Add this word to current line
+                current_page.commands.append(DialogueTextChunk(word, []))
+                current_line_width += word_width
+
+                # If the current word is punctuation, then add a very short pause
+                if word in ",-":
+                    current_page.commands.extend(
+                        [
+                            DialogueAction(f"stopblip", 0),
+                            DialogueAction(
+                                f"sprite {pos} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
+                                0,
+                            ),
+                            DialogueAction("wait 0.3", 0),
+                            DialogueAction(f"startblip {gender}", 0),
+                            DialogueAction(
+                                f"sprite {pos} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-talk')}",
+                                0,
+                            ),
+                        ]
+                    )
+
+                # If the next word is not punctuation, then add a space
+                try:
+                    next_word = sentence.words[word_index + 1]
+                    if next_word not in punctuation:
+                        current_page.commands.append(DialogueTextChunk(" ", []))
+                        current_line_width += space_width
+                except IndexError:
+                    pass
+
+            # In between each sentence, pause and change the sprite
+            current_page.commands.extend(
+                [
+                    DialogueAction(f"stopblip", 0),
+                    DialogueTextChunk(" ", []),
+                    DialogueAction(
+                        f"sprite {pos} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
+                        0,
+                    ),
+                ]
+            )
+            current_line_width += space_width
+
+            # We only want to have a delay if this isn't the last sentence
+            # in the box (otherwise there'll be a weird delay between the text
+            # showing up and the "next page" arrow showing up.)
+            if sentence_index != len(sentences) - 1:
+                current_page.commands.append(
+                    DialogueAction("wait 0.6", 0),
+                )
+
+        self.finish_box(current_page)
+        all_pages.append(current_page)
+        return all_pages
