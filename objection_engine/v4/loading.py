@@ -13,6 +13,10 @@ def load_character_data() -> dict:
     characters = {}
     folders = [f for f in scandir("assets_v4/character_sprites") if f.is_dir()]
     for f in folders:
+        # Allow us to skip characters by prefixing their name with
+        # an underscore
+        if f.name.startswith("_"):
+            continue
         try:
             with open(join(f.path, "config.toml"), "rb") as config_file:
                 characters[f.name] = load(config_file)

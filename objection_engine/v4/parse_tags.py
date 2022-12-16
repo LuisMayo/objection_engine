@@ -62,7 +62,7 @@ class DialoguePage:
 
     def get_current_item(self):
         for command in self.commands:
-            if not command.completed:
+            if (command is not None) and (not command.completed):
                 return command
         return None
 

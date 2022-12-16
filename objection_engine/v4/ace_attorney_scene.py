@@ -16,6 +16,7 @@ from .MovieKit import (
 from .math_helpers import ease_in_out_cubic
 from PIL import Image, ImageDraw, ImageFont
 from .parse_tags import (
+    BaseDialogueItem,
     DialoguePage,
     DialogueTextChunk,
     DialogueAction,
@@ -478,7 +479,9 @@ class AceAttorneyDirector(Director):
                     elif position == "edgeworthzoom":
                         self.edgeworth_action_lines_character.set_filepath(path)
                     else:
-                        print(f'Error in sprite command: unknown position "{position}"')
+                        print(
+                            f'Error in sprite command "{action_split}": unknown position "{position}"'
+                        )
                     current_dialogue_obj.completed = True
 
                 elif c == "wait":
@@ -747,24 +750,50 @@ class DialogueBoxBuilder:
         self.music_data = load_music_data()
         self.current_character_name: str = None
         self.current_character_animation: str = None
+        self.blah = 0
+        self.has_gone_to_tense_music: bool = False
 
-    def initialize_box(self, user_name: str) -> DialoguePage:
+    def initialize_box(
+        self,
+        user_name: str,
+        do_objection: bool = False,
+        go_to_tense_music: bool = False,
+    ) -> DialoguePage:
         this_char_data = self.character_data["characters"][self.current_character_name]
-        pos = this_char_data["location"]
+        location = this_char_data["location"]
         gender = this_char_data["gender"]
 
-        return DialoguePage(
+        actions: list[BaseDialogueItem] = []
+
+        if do_objection:
+            actions.extend(
+                [
+                    DialogueAction("hidebox", 0),
+                    DialogueAction(
+                        f"bubble objection {self.current_character_name}", 0
+                    ),
+                    DialogueAction(f"wait 0.1", 0),
+                    DialogueAction("music stop", 0) if go_to_tense_music else None,
+                    DialogueAction(f"wait 1.2", 0),
+                    DialogueAction(f"music start {self.tense_track}", 0)
+                    if go_to_tense_music
+                    else None,
+                ]
+            )
+
+        if go_to_tense_music:
+            self.has_gone_to_tense_music = True
+
+        actions.extend(
             [
                 DialogueAction("wait 0.03", 0),
-                # DialogueAction(
-                #     f"sprite {pos} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-talk')}", 0
-                # ),
-                DialogueAction(f"cut {pos}", 0),
+                DialogueAction(f"cut {location}", 0),
                 DialogueAction(f'nametag "{user_name}"', 0),
                 DialogueAction("showbox", 0),
-                # DialogueAction(f"startblip {gender}", 0),
             ]
         )
+
+        return DialoguePage(actions)
 
     def finish_box(self, page: DialoguePage):
         this_char_data = self.character_data["characters"][self.current_character_name]
@@ -873,10 +902,10 @@ class DialogueBoxBuilder:
         self.relaxed_track = join(music_code, choice(music_pack["relaxed"]))
         self.tense_track = join(music_code, choice(music_pack["tense"]))
         self.pages.append(
-            DialoguePage(
-                [DialogueAction(f"music start {self.relaxed_track}", 0)]
-            )
+            DialoguePage([DialogueAction(f"music start {self.relaxed_track}", 0)])
         )
+
+        self.has_done_objection = False
 
         # Add boxes for the dialogue
         for comment in comments:
@@ -891,22 +920,29 @@ class DialogueBoxBuilder:
     def get_boxes_with_pauses(self, user_name: str, character: str, text: str):
         self.current_character_name = character
         this_char_data = self.character_data["characters"][character]
-        pos = this_char_data["location"]
+        location = this_char_data["location"]
         gender = this_char_data["gender"]
         sprites = this_char_data["sprites"]
 
+        # Split text into sentences
+        pg_text = Text(text, hint_language_code="en")
+        sentences: list[Sentence] = pg_text.sentences
+
+        # Determine if this should have an objection
+        try:
+            text_polarity = pg_text.polarity
+        except ZeroDivisionError:
+            text_polarity = 0
+
+        do_objection = (abs(text_polarity) > 0.5) and not self.has_done_objection
+        go_to_tense_music = do_objection and not self.has_gone_to_tense_music
         # Stuff at beginning of text box
         all_pages: list[DialoguePage] = []
-        current_page = self.initialize_box(user_name)
+        current_page = self.initialize_box(user_name, do_objection, go_to_tense_music)
 
         # Add actual content of text box
         current_line_index = 0
         current_line_width = 0
-
-        # Split text into sentences
-        pg_text = Text(text)
-
-        sentences: list[Sentence] = pg_text.sentences
 
         sentence_index = 0
         word_index = 0
@@ -920,7 +956,7 @@ class DialogueBoxBuilder:
             # Get the sentence sentiment here
             try:
                 sentence_sentiment = sentence.polarity
-            except ZeroDivisionError:
+            except (ZeroDivisionError, ValueError):
                 sentence_sentiment = 0
 
             # Select a random pose
@@ -937,7 +973,7 @@ class DialogueBoxBuilder:
                 [
                     DialogueAction(f"startblip {gender}", 0),
                     DialogueAction(
-                        f"sprite {pos} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-talk')}",
+                        f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-talk')}",
                         0,
                     ),
                 ]
@@ -946,7 +982,12 @@ class DialogueBoxBuilder:
             print("Sentence", sentence)
             print("Polarity", sentence_sentiment)
 
-            for word_index, word in enumerate(sentence.words):
+            try:
+                pos_tags = sentence.pos_tags
+            except ValueError:
+                pos_tags = [(word, None) for word in sentence.words]
+
+            for word_index, (word, pos) in enumerate(pos_tags):
                 word_width = get_text_width(word, font=best_font)
 
                 # Line break if this word is too wide to fit
@@ -966,7 +1007,7 @@ class DialogueBoxBuilder:
                             [
                                 DialogueAction(f"startblip {gender}", 0),
                                 DialogueAction(
-                                    f"sprite {pos} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-talk')}",
+                                    f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-talk')}",
                                     0,
                                 ),
                             ]
@@ -984,13 +1025,13 @@ class DialogueBoxBuilder:
                         [
                             DialogueAction(f"stopblip", 0),
                             DialogueAction(
-                                f"sprite {pos} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
+                                f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
                                 0,
                             ),
                             DialogueAction("wait 0.3", 0),
                             DialogueAction(f"startblip {gender}", 0),
                             DialogueAction(
-                                f"sprite {pos} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-talk')}",
+                                f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-talk')}",
                                 0,
                             ),
                         ]
@@ -1011,7 +1052,7 @@ class DialogueBoxBuilder:
                     DialogueAction(f"stopblip", 0),
                     DialogueTextChunk(" ", []),
                     DialogueAction(
-                        f"sprite {pos} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
+                        f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
                         0,
                     ),
                 ]
