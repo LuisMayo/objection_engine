@@ -388,14 +388,15 @@ class AceAttorneyDirector(Director):
             parent=self.wide_courtroom,
             name="Left Bench",
             pos=(0, 0, 2),
-            filepath="assets_v4/fg/aj_bench_left.png",
+            filepath="assets_v4/fg/pr_bench.png",
         )
 
         self.right_bench = ImageObject(
             parent=self.wide_courtroom,
             name="Right Bench",
             pos=(1040, 0, 2),
-            filepath="assets_v4/fg/aj_bench_right.png",
+            flip_x=True,
+            filepath="assets_v4/fg/pr_bench.png",
         )
 
         self.witness_stand = ImageObject(
@@ -1046,7 +1047,10 @@ class DialogueBoxBuilder:
 
                 # Should this be highlighted?
                 # Add this word to current line
-                current_page.commands.append(DialogueTextChunk(word, []))
+                tags: list[str] = []
+                if pos == "PROPN" and random() > 0.5:
+                    tags.append("red")
+                current_page.commands.append(DialogueTextChunk(word, tags))
                 current_line_width += word_width
 
                 # If the current word is punctuation, then add a very short pause
