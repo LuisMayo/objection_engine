@@ -1,6 +1,7 @@
 from string import punctuation
 from collections import Counter
 from random import choice
+from objection_engine.beans.font_constants import NAMETAG_FONT_ARRAY, TextType
 
 from objection_engine.v4.loading import load_character_data, load_music_data
 from objection_engine.beans.comment import Comment
@@ -64,21 +65,36 @@ class NameBox(SceneObject):
         self.namebox_text = SimpleTextObject(
             parent=self, name="Name Box Text", pos=(4, 0, 12)
         )
-
-        self.font = ImageFont.truetype(
-            "assets_v4/textbox/font/ace-name/ace-name.ttf", size=8
-        )
-        self.namebox_text.font = self.font
-        self.set_text("Phoenix")
+        self.set_text("")
+        self.use_rtl = False
 
     def set_text(self, text: str):
         self.text = text
         self.namebox_text.text = self.text
+        font_stuff = get_best_font(text, NAMETAG_FONT_ARRAY)
+        self.font = ImageFont.truetype(
+            font_stuff["path"], size=font_stuff["size"]
+        )
+
+        text_offset = font_stuff.get("offset", {}).get(TextType.NAME, (0, 0))
+        self.namebox_text.x = 4 + text_offset[0]
+        self.namebox_text.y = text_offset[1]
+        self.use_rtl = font_stuff.get("rtl", False)
+        self.namebox_text.font = self.font
 
     def update(self, delta):
         length = int(self.font.getlength(self.text))
         self.namebox_c.width = length + 4
         self.namebox_r.x = 1 + length + 4
+
+        # For RTL, move the box to the right side
+        # 2 for left side of textbox
+        # Width of the namebox
+        # 2 for right side of namebox
+        if self.use_rtl:
+            self.x = 256 - (2 + self.namebox_c.width + 2)
+        else:
+            self.x = 0
 
 
 class DialogueBox(SceneObject):
@@ -111,7 +127,7 @@ class DialogueBox(SceneObject):
 
         self.page: DialoguePage = None
 
-        self.font_data = {}
+        self._font_data = {}
         self.font: ImageFont.ImageFont = None
         self.use_rtl = False
         self.font_size = 16
@@ -121,21 +137,36 @@ class DialogueBox(SceneObject):
 
         self.on_complete: Callable[[], None] = None
 
+    @property
+    def font_data(self) -> dict:
+        return self._font_data
+
+    @font_data.setter
+    def font_data(self, value: dict):
+        self._font_data = value
+        self.font = ImageFont.truetype(self._font_data["path"], 16)
+        self.use_rtl = self._font_data.get("rtl", False)
+
+        if self.use_rtl:
+            self.arrow.x = 7
+            self.arrow.flip_x = True
+        else:
+            self.arrow.x = 236
+            self.arrow.flip_x = False
+
     def render(self, img: Image.Image, ctx: ImageDraw.ImageDraw):
         if self.page is None:
             return
 
-        # x, y, _ = self.get_absolute_position()
         x, y = self.x, self.y
         line_no = 0
-        x_offset = 220 if self.use_rtl else 0
+        x_offset = 234 if self.use_rtl else 0
         for command in self.page.commands:
             if isinstance(command, DialogueTextLineBreak):
                 line_no += 1
-                x_offset = 220 if self.use_rtl else 0
+                x_offset = 234 if self.use_rtl else 0
             elif isinstance(command, DialogueTextChunk):
                 text_str = command.text[: command.position]
-                # print(f"Draw text block {command} up to position {command.position}")
                 drawing_args = {
                     "xy": (
                         10 + x + x_offset,
@@ -433,7 +464,6 @@ class AceAttorneyDirector(Director):
             self.textbox.font_data = get_best_font(
                 self.current_page.get_raw_text(), FONT_ARRAY
             )
-            self.textbox.font = ImageFont.truetype(self.textbox.font_data["path"], 16)
 
             current_dialogue_obj = self.current_page.get_current_item()
             if isinstance(current_dialogue_obj, DialogueTextChunk):

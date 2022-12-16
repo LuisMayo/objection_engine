@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 import ffmpeg
 from .math_helpers import lerp
 from typing import Callable, Union
@@ -166,10 +166,14 @@ class ImageObject(SceneObject):
     def __init__(self, parent: 'SceneObject' = None, name: str = "", pos: tuple[int, int, int] = (0, 0, 0), \
         width: int = None,
         height: int = None,
+        flip_x: bool = False,
+        flip_y: bool = False,
         filepath: str = None):
         super().__init__(parent, name, pos)
         self.width = width
         self.height = height
+        self.flip_x = flip_x
+        self.flip_y = flip_y
         self.current_frame = None
         self.set_filepath(filepath)
 
@@ -215,6 +219,8 @@ class ImageObject(SceneObject):
             return
         x, y, _ = self.get_absolute_position()
         box = (x, y)
+
+        # Resize image to expected bounds
         if isinstance(self.image_data, Image.Image):
             w = self.image_data.width if self.width is None else self.width
             h = self.image_data.height if self.height is None else self.height
@@ -224,6 +230,13 @@ class ImageObject(SceneObject):
             w = current_frame.width if self.width is None else self.width
             h = current_frame.height if self.height is None else self.height
             resized = current_frame.resize((w, h))
+
+        # Flip images if necessary
+        if self.flip_x:
+            resized = ImageOps.mirror(resized)
+        if self.flip_y:
+            resized = ImageOps.flip(resized)
+        
         img.paste(resized, box, mask=resized)
 
 class SimpleTextObject(SceneObject):
