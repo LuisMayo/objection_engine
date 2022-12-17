@@ -106,6 +106,15 @@ class SceneObject:
             new_child.__parent.__children.remove(new_child)
         new_child.__parent = self
 
+    def get_scene(self) -> Scene:
+        p = self
+        while True:
+            p = p.__parent
+            if isinstance(p, Scene):
+                return p
+            elif p is None:
+                return None
+
     def get_absolute_position(self) -> tuple[int, int, int]:
         p = self
         x_out = 0
@@ -213,7 +222,7 @@ class ImageObject(SceneObject):
                 self.image_data = my_img.convert('RGBA')
                 self.image_duration = None
 
-    def get_current_frame(self):
+    def get_current_frame(self) -> Image.Image:
         t = self.t % self.image_duration
         for image, max_time in self.image_data:
             if max_time > t:
@@ -237,11 +246,27 @@ class ImageObject(SceneObject):
             h = current_frame.height if self.height is None else self.height
             resized = current_frame.resize((w, h))
 
+        # If this image is entirely off-screen we don't need to render it! 
+        left = x
+        right = x + w
+        top = y
+        bottom = y + h
+
+        scene_left = 0
+        scene_right = self.get_scene().w
+        scene_top = 0
+        scene_bottom = self.get_scene().h
+        
+        if (right < scene_left) or (left > scene_right) or (bottom < scene_top) or (top > scene_bottom):
+            return
+
         # Flip images if necessary
         if self.flip_x:
             resized = ImageOps.mirror(resized)
         if self.flip_y:
             resized = ImageOps.flip(resized)
+
+
         
         img.alpha_composite(resized, box)
         # img.paste(resized, box, mask=resized)
