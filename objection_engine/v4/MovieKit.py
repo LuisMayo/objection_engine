@@ -192,7 +192,13 @@ class ImageObject(SceneObject):
             self.image_data = None
             return
         with Image.open(self.filepath) as my_img:
-            if my_img.is_animated:
+            
+            try:
+                is_animated = my_img.is_animated
+            except AttributeError:
+                is_animated = False
+
+            if is_animated:
                 self.image_data = []
                 time_so_far = 0.0
                 for frame_no in range(my_img.n_frames):
@@ -237,7 +243,8 @@ class ImageObject(SceneObject):
         if self.flip_y:
             resized = ImageOps.flip(resized)
         
-        img.paste(resized, box, mask=resized)
+        img.alpha_composite(resized, box)
+        # img.paste(resized, box, mask=resized)
 
 class SimpleTextObject(SceneObject):
     def __init__(self, parent: 'SceneObject' = None, name: str = "", pos: tuple[int, int, int] = (0,0,0), \

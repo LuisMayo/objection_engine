@@ -24,6 +24,9 @@ def render_comment_list(
         comment_list, music_code, assigned_characters, adult_mode
     )
 
+    print("Comments built")
+    print("Now rendering movie")
+
     director = AceAttorneyDirector()
     director.set_current_pages(builder.pages)
     director.render_movie(-15)

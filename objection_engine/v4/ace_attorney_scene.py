@@ -72,9 +72,7 @@ class NameBox(SceneObject):
         self.text = text
         self.namebox_text.text = self.text
         font_stuff = get_best_font(text, NAMETAG_FONT_ARRAY)
-        self.font = ImageFont.truetype(
-            font_stuff["path"], size=font_stuff["size"]
-        )
+        self.font = ImageFont.truetype(font_stuff["path"], size=font_stuff["size"])
 
         text_offset = font_stuff.get("offset", {}).get(TextType.NAME, (0, 0))
         self.namebox_text.x = 4 + text_offset[0]
@@ -232,6 +230,57 @@ class ExclamationObject(ImageObject):
 
         self.director.audio_commands.append(
             {"type": "audio", "path": audio_path, "offset": self.director.time}
+        )
+
+class EvidenceObject(ImageObject):
+    EVIDENCE_POS_R = 173 # X coord of evidence box on the right
+    EVIDENCE_POS_L = 13 # X coord of evidence box on the left
+
+    def __init__(self, parent: SceneObject, director: "AceAttorneyDirector"):
+        super().__init__(parent=parent, name="Evidence Image", pos=(0, 0, 18))
+        self.director = director
+        self.evidence_bg = ImageObject(
+            parent=self,
+            name="Evidence BG",
+            pos=(self.EVIDENCE_POS_R, 13, 18),
+            filepath="assets_v4/evidence/evidence-bg.png"
+        )
+        self.evidence_bg.visible = False
+
+        self.evidence_container = ImageObject(
+            parent=self.evidence_bg,
+            name="Evidence BG",
+            pos=(3, 3, 19),
+            width=64,
+            height=64
+        )
+
+    def make_media_visible(self, side: str, media_path: str):
+        if side == "right":
+            self.evidence_bg.x = self.EVIDENCE_POS_R
+        elif side == "left":
+            self.evidence_bg.x = self.EVIDENCE_POS_L
+
+        self.evidence_bg.visible = True
+        self.evidence_container.set_filepath(media_path)
+        self.set_filepath(None)
+
+    def hide_evidence(self):
+        self.evidence_bg.visible = False
+
+    def display_evidence(self, side: str, media_path: str):
+        self.evidence_bg.visible = False
+        self.set_filepath(
+            f"assets_v4/evidence/evidence-in-{side}.gif",
+            {0.3: lambda: self.make_media_visible(side, media_path)},
+        )
+
+        self.director.audio_commands.append(
+            {
+                "type": "audio",
+                "path": "assets_v4/sound/sfx-evidenceshoop.wav",
+                "offset": self.director.time,
+            }
         )
 
 
@@ -437,6 +486,8 @@ class AceAttorneyDirector(Director):
 
         self.textbox = DialogueBox(parent=self.textbox_shaker, director=self)
 
+        self.evidence = EvidenceObject(parent=self.textbox_shaker, director=self)
+
         self.scene = Scene(256, 192, self.root)
 
     def set_current_pages(self, pages: list[DialoguePage]):
@@ -557,6 +608,15 @@ class AceAttorneyDirector(Director):
                 elif c == "nametag":
                     name = action_split[1]
                     self.textbox.namebox.set_text(name)
+                    current_dialogue_obj.completed = True
+
+                elif c == "evidence":
+                    side = action_split[1] # left or right or clear
+                    if side == "clear":
+                        self.evidence.hide_evidence()
+                    else:
+                        media_path = action_split[2]
+                        self.evidence.display_evidence(side, media_path)
                     current_dialogue_obj.completed = True
 
                 elif c == "sound":
@@ -945,10 +1005,11 @@ class DialogueBoxBuilder:
                     user_name=comment.user_name,
                     character=users_to_characters[comment.effective_user_id],
                     text=comment.text_content,
+                    evidence_path=comment.evidence_path
                 )
             )
 
-    def get_boxes_with_pauses(self, user_name: str, character: str, text: str):
+    def get_boxes_with_pauses(self, user_name: str, character: str, text: str, evidence_path: str = None):
         self.current_character_name = character
         this_char_data = self.character_data["characters"][character]
         location = this_char_data["location"]
@@ -970,6 +1031,10 @@ class DialogueBoxBuilder:
         # Stuff at beginning of text box
         all_pages: list[DialoguePage] = []
         current_page = self.initialize_box(user_name, do_objection, go_to_tense_music)
+
+        current_page.commands.append(DialogueAction("evidence clear", 0))
+        if evidence_path is not None:
+            current_page.commands.append(DialogueAction(f"evidence {'left' if location == 'right' else 'right'} \"{evidence_path}\"", 0))
 
         # Add actual content of text box
         current_line_index = 0
@@ -1009,9 +1074,6 @@ class DialogueBoxBuilder:
                     ),
                 ]
             )
-
-            print("Sentence", sentence)
-            print("Polarity", sentence_sentiment)
 
             try:
                 pos_tags = sentence.pos_tags
