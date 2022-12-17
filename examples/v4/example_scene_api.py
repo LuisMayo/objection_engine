@@ -9,7 +9,7 @@ comments = [
     Comment(
         user_name="first guy",
         text_content="I am going to say a few more sentences. This is a lot of fun.",
-        evidence_path="puppies.jpeg",
+        evidence_path="examples/puppies.jpeg",
     ),
     Comment(
         user_name="فينيكس",
@@ -22,7 +22,7 @@ comments = [
     Comment(
         user_name="second guy",
         text_content="I have the second most comments, so I must be Edgeworth.",
-        evidence_path="puppies.jpeg",
+        evidence_path="examples/cats.jpeg",
     ),
     Comment(
         user_name="second guy", text_content="Why don't I do a little talking as well?"
