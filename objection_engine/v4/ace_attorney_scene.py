@@ -1087,6 +1087,7 @@ class DialogueBoxBuilder:
 
         space_width = get_text_width(" ", font=best_font)
 
+        sentences_in_this_box = 0
         for sentence_index, sentence in enumerate(sentences):
             # Get the sentence sentiment here
             try:
@@ -1145,6 +1146,7 @@ class DialogueBoxBuilder:
                             ]
                         )
                         current_line_index = 0
+                        sentences_in_this_box = 0
 
                 # Should this be highlighted?
                 # Add this word to current line
@@ -1181,26 +1183,39 @@ class DialogueBoxBuilder:
                 except IndexError:
                     pass
 
-            # In between each sentence, pause and change the sprite
-            current_page.commands.extend(
-                [
-                    DialogueAction(f"stopblip", 0),
-                    DialogueTextChunk(" ", []),
-                    DialogueAction(
-                        f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
-                        0,
-                    ),
-                ]
-            )
-            current_line_width += space_width
-
-            # We only want to have a delay if this isn't the last sentence
-            # in the box (otherwise there'll be a weird delay between the text
-            # showing up and the "next page" arrow showing up.)
-            if sentence_index != len(sentences) - 1:
-                current_page.commands.append(
-                    DialogueAction("wait 0.6", 0),
+            sentences_in_this_box += 1
+            if sentences_in_this_box < 2:
+                # In between each sentence, pause and change the sprite
+                current_page.commands.extend(
+                    [
+                        DialogueAction(f"stopblip", 0),
+                        DialogueTextChunk(" ", []),
+                        DialogueAction(
+                            f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
+                            0,
+                        ),
+                    ]
                 )
+                current_line_width += space_width
+
+                # We only want to have a delay if this isn't the last sentence
+                # in the box (otherwise there'll be a weird delay between the text
+                # showing up and the "next page" arrow showing up.)
+                if sentence_index != len(sentences) - 1:
+                    current_page.commands.append(
+                        DialogueAction("wait 0.6", 0),
+                    )
+            
+            elif sentence_index != len(sentences) - 1:
+                # There are two sentences in this box, so end this box and
+                # start a new one
+                self.finish_box(current_page)
+                all_pages.append(current_page)
+                current_page = self.initialize_box(user_name)
+                current_line_index = 0
+                current_line_width = 0
+                sentences_in_this_box = 0
+
 
         self.finish_box(current_page)
         all_pages.append(current_page)
