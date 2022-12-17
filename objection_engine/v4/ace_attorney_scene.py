@@ -503,32 +503,20 @@ class AceAttorneyDirector(Director):
         self.local_time = 0
         self.cur_time_for_char = 0.0
 
+        self.current_page = self.pages[self.page_index]
+        self.textbox.page = self.current_page
+        self.textbox.font_data = get_best_font(
+            self.current_page.get_raw_text(), FONT_ARRAY
+        )
+
     cur_time_for_char: float = 0.0
     max_time_for_char: float = 0.03
 
     def update(self, delta: float):
         # Within that page, get the current object
         self.time_on_this_page += delta
+        
         while True:
-            # If the current page index is greater than the number of pages, then we've
-            # used all the pages - in other words, we're done.
-            if self.page_index >= len(self.pages):
-                self.end_music_track()
-                self.end_voice_blips()
-                self.is_done = True
-
-                if "on_all_pages_completed" in self.callbacks:
-                    self.callbacks["on_all_pages_completed"]()
-
-                return
-
-            # Find which page we are on
-            self.current_page = self.pages[self.page_index]
-            self.textbox.page = self.current_page
-            self.textbox.font_data = get_best_font(
-                self.current_page.get_raw_text(), FONT_ARRAY
-            )
-
             current_dialogue_obj = self.current_page.get_current_item()
             if isinstance(current_dialogue_obj, DialogueTextChunk):
                 self.cur_time_for_char += delta
@@ -715,6 +703,25 @@ class AceAttorneyDirector(Director):
                     self.callbacks["on_page_completed"](self.page_index, len(self.pages), self.current_page, page_duration, self.time_on_this_page)
 
                 self.page_index += 1
+
+                # If the current page index is greater than the number of pages, then we've
+                # used all the pages - in other words, we're done.
+                if self.page_index >= len(self.pages):
+                    self.end_music_track()
+                    self.end_voice_blips()
+                    self.is_done = True
+
+                    if "on_all_pages_completed" in self.callbacks:
+                        self.callbacks["on_all_pages_completed"]()
+
+                    return
+
+                # Update to the next page
+                self.current_page = self.pages[self.page_index]
+                self.textbox.page = self.current_page
+                self.textbox.font_data = get_best_font(
+                    self.current_page.get_raw_text(), FONT_ARRAY
+                )
                 self.page_start_time = timer()
                 self.time_on_this_page = 0
 
