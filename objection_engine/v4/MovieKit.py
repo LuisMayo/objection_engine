@@ -336,12 +336,13 @@ class MoveSceneObjectAction(SequenceAction):
                 self.on_complete()
 
 class Director:
-    def __init__(self, scene: Scene = None, fps: float = 30):
+    def __init__(self, scene: Scene = None, fps: float = 30, callbacks: dict = None):
         self.sequencer = Sequencer()
         self.scene = scene
         self.fps = fps
         self.audio_commands: list[dict] = []
         self.time = 0.0
+        self.callbacks = {} if callbacks is None else callbacks
 
     def update(self, delta: float):
         ...
@@ -350,7 +351,7 @@ class Director:
         duration_ms = int(overall_duration * 1000)
         base_track = AudioSegment.silent(duration=duration_ms)
 
-        for audio in self.audio_commands:
+        for i, audio in enumerate(self.audio_commands):
             path = audio["path"]
             offset = int(audio.get("offset", 0.0) * 1000)
             loop_type = audio.get("loop_type", "no_loop")
@@ -378,6 +379,9 @@ class Director:
                 looped_segment = looped_segment.overlay(new_segment, loop=True)
                 base_track = base_track.overlay(looped_segment, offset)
 
+            if "on_audio_composite_progress" in self.callbacks:
+                self.callbacks["on_audio_composite_progress"](i, len(self.audio_commands), audio)
+
         base_track += volume_adjustment
         base_track.export(f"{output_location}.mp3", bitrate="312k")
 
@@ -403,7 +407,14 @@ class Director:
         stream = ffmpeg.concat(video_stream, audio_stream, v=1, a=1)
         stream = ffmpeg.output(stream, f"{temp_folder_name}.mp4", vcodec='h264', acodec='aac', pix_fmt='yuv420p')
         stream = ffmpeg.overwrite_output(stream)
-        ffmpeg.run(stream)
+
+        if "on_ffmpeg_started" in self.callbacks:
+            self.callbacks["on_ffmpeg_started"]()
+
+        ffmpeg.run(stream, quiet=True)
+
+        if "on_ffmpeg_finished" in self.callbacks:
+            self.callbacks["on_ffmpeg_finished"]()
 
         # Delete frames folder and audio track
         remove(f"{temp_folder_name}.mp3")

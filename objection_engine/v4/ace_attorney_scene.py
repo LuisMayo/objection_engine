@@ -1,6 +1,7 @@
 from string import punctuation
 from collections import Counter
 from random import choice
+from timeit import default_timer as timer
 from objection_engine.beans.font_constants import NAMETAG_FONT_ARRAY, TextType
 
 from objection_engine.v4.loading import load_character_data, load_music_data
@@ -30,8 +31,7 @@ from os.path import exists, join
 from shlex import split
 from math import cos, sin, pi
 from random import random
-import spacy
-from polyglot.text import Text, Sentence, WordList, Word
+from polyglot.text import Text, Sentence
 
 try:
     from rich import print
@@ -232,9 +232,10 @@ class ExclamationObject(ImageObject):
             {"type": "audio", "path": audio_path, "offset": self.director.time}
         )
 
+
 class EvidenceObject(ImageObject):
-    EVIDENCE_POS_R = 173 # X coord of evidence box on the right
-    EVIDENCE_POS_L = 13 # X coord of evidence box on the left
+    EVIDENCE_POS_R = 173  # X coord of evidence box on the right
+    EVIDENCE_POS_L = 13  # X coord of evidence box on the left
 
     def __init__(self, parent: SceneObject, director: "AceAttorneyDirector"):
         super().__init__(parent=parent, name="Evidence Image", pos=(0, 0, 18))
@@ -243,7 +244,7 @@ class EvidenceObject(ImageObject):
             parent=self,
             name="Evidence BG",
             pos=(self.EVIDENCE_POS_R, 13, 18),
-            filepath="assets_v4/evidence/evidence-bg.png"
+            filepath="assets_v4/evidence/evidence-bg.png",
         )
         self.evidence_bg.visible = False
 
@@ -252,7 +253,7 @@ class EvidenceObject(ImageObject):
             name="Evidence BG",
             pos=(3, 3, 19),
             width=64,
-            height=64
+            height=64,
         )
 
     def make_media_visible(self, side: str, media_path: str):
@@ -353,8 +354,9 @@ class ActionLinesObject(ImageObject):
 
 
 class AceAttorneyDirector(Director):
-    def __init__(self, fps: float = 30):
+    def __init__(self, callbacks: dict = None, fps: float = 30):
         super().__init__(None, fps)
+        self.callbacks = {} if callbacks is None else callbacks
 
         self.root = SceneObject(name="Root")
 
@@ -490,9 +492,14 @@ class AceAttorneyDirector(Director):
 
         self.scene = Scene(256, 192, self.root)
 
+        if "on_director_initialized" in self.callbacks:
+            self.callbacks["on_director_initialized"]()
+
     def set_current_pages(self, pages: list[DialoguePage]):
         self.pages = pages
         self.page_index = 0
+        self.page_start_time = timer()
+        self.time_on_this_page = 0
         self.local_time = 0
         self.cur_time_for_char = 0.0
 
@@ -501,6 +508,7 @@ class AceAttorneyDirector(Director):
 
     def update(self, delta: float):
         # Within that page, get the current object
+        self.time_on_this_page += delta
         while True:
             # If the current page index is greater than the number of pages, then we've
             # used all the pages - in other words, we're done.
@@ -508,6 +516,10 @@ class AceAttorneyDirector(Director):
                 self.end_music_track()
                 self.end_voice_blips()
                 self.is_done = True
+
+                if "on_all_pages_completed" in self.callbacks:
+                    self.callbacks["on_all_pages_completed"]()
+
                 return
 
             # Find which page we are on
@@ -611,7 +623,7 @@ class AceAttorneyDirector(Director):
                     current_dialogue_obj.completed = True
 
                 elif c == "evidence":
-                    side = action_split[1] # left or right or clear
+                    side = action_split[1]  # left or right or clear
                     if side == "clear":
                         self.evidence.hide_evidence()
                     else:
@@ -697,7 +709,14 @@ class AceAttorneyDirector(Director):
 
             elif current_dialogue_obj is None:
                 # Done with the current page - let's try to get the next page!
+                page_end_time = timer()
+                page_duration = page_end_time - self.page_start_time
+                if "on_page_completed" in self.callbacks:
+                    self.callbacks["on_page_completed"](self.page_index, len(self.pages), self.current_page, page_duration, self.time_on_this_page)
+
                 self.page_index += 1
+                self.page_start_time = timer()
+                self.time_on_this_page = 0
 
     def pan_to_right(self):
         self.sequencer.run_action(
@@ -836,13 +855,14 @@ def get_sprite_tag(location: str, character: str, emotion: str):
 
 
 class DialogueBoxBuilder:
-    def __init__(self) -> None:
+    def __init__(self, callbacks: dict = None) -> None:
         self.character_data = load_character_data()
         self.music_data = load_music_data()
         self.current_character_name: str = None
         self.current_character_animation: str = None
         self.blah = 0
         self.has_gone_to_tense_music: bool = False
+        self.callbacks = {} if callbacks is None else callbacks
 
     def initialize_box(
         self,
@@ -978,6 +998,9 @@ class DialogueBoxBuilder:
             counter, assigned_characters=assigned_characters, adult_mode=adult_mode
         )
 
+        if "on_characters_cast" in self.callbacks:
+            self.callbacks["on_characters_cast"](users_to_characters)
+
         # Get music
         if music_code in self.music_data:
             music_pack = self.music_data[music_code]
@@ -985,7 +1008,6 @@ class DialogueBoxBuilder:
             raise KeyError(
                 f'Music code "{music_code}" not found. Ensure that a folder for it exists in the "music" folder, and that it has a "config.toml" file.'
             )
-        print("Chose music pack:", music_code, music_pack)
 
         self.pages: list[DialoguePage] = []
 
@@ -999,17 +1021,22 @@ class DialogueBoxBuilder:
         self.has_done_objection = False
 
         # Add boxes for the dialogue
-        for comment in comments:
+        for i, comment in enumerate(comments):
             self.pages.extend(
                 self.get_boxes_with_pauses(
                     user_name=comment.user_name,
                     character=users_to_characters[comment.effective_user_id],
                     text=comment.text_content,
-                    evidence_path=comment.evidence_path
+                    evidence_path=comment.evidence_path,
                 )
             )
 
-    def get_boxes_with_pauses(self, user_name: str, character: str, text: str, evidence_path: str = None):
+            if "on_comment_processed" in self.callbacks:
+                self.callbacks["on_comment_processed"](i, len(comments), comment)
+
+    def get_boxes_with_pauses(
+        self, user_name: str, character: str, text: str, evidence_path: str = None
+    ):
         self.current_character_name = character
         this_char_data = self.character_data["characters"][character]
         location = this_char_data["location"]
@@ -1034,7 +1061,12 @@ class DialogueBoxBuilder:
 
         current_page.commands.append(DialogueAction("evidence clear", 0))
         if evidence_path is not None:
-            current_page.commands.append(DialogueAction(f"evidence {'left' if location == 'right' else 'right'} \"{evidence_path}\"", 0))
+            current_page.commands.append(
+                DialogueAction(
+                    f"evidence {'left' if location == 'right' else 'right'} \"{evidence_path}\"",
+                    0,
+                )
+            )
 
         # Add actual content of text box
         current_line_index = 0
@@ -1166,3 +1198,16 @@ class DialogueBoxBuilder:
         self.finish_box(current_page)
         all_pages.append(current_page)
         return all_pages
+
+    def render(
+        self,
+        comments: list[Comment],
+        music_code: str = "pwr",
+        assigned_characters: dict = None,
+        adult_mode: bool = False,
+        volume: int = -15
+    ):
+        self.build_from_comments(comments, music_code, assigned_characters, adult_mode)
+        director = AceAttorneyDirector(callbacks=self.callbacks)
+        director.set_current_pages(self.pages)
+        director.render_movie(volume)

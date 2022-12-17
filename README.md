@@ -42,8 +42,14 @@ poetry install
 (if on windows check faq.md)
 
 ```bash
-pip install pyICU pycld2 morfessor polyglot
-python -m polyglot download TASK:sentiment2
+python3 -m pip install pyICU pycld2 morfessor polyglot
+```
+
+Polyglot dependencies:
+```
+python3 -m polyglot download TASK:sentiment2
+python3 -m polyglot download TASK:embeddings2
+python3 -m polyglot download TASK:pos2
 ```
 
 Check the exmaple
