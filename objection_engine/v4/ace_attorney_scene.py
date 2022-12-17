@@ -1,3 +1,4 @@
+from email.utils import localtime
 from string import punctuation
 from collections import Counter
 from random import choice
@@ -15,7 +16,7 @@ from .MovieKit import (
     SimpleTextObject,
     Director,
 )
-from .math_helpers import ease_in_out_cubic
+from .math_helpers import ease_in_out_cubic, ease_in_out_sine
 from PIL import Image, ImageDraw, ImageFont
 from .parse_tags import (
     BaseDialogueItem,
@@ -729,9 +730,9 @@ class AceAttorneyDirector(Director):
         self.sequencer.run_action(
             MoveSceneObjectAction(
                 target_value=(-1296 + 256, 0),
-                duration=1.0,
+                duration=0.5,
                 scene_object=self.world_root,
-                ease_function=ease_in_out_cubic,
+                ease_function=ease_in_out_sine,
             )
         )
 
@@ -739,9 +740,9 @@ class AceAttorneyDirector(Director):
         self.sequencer.run_action(
             MoveSceneObjectAction(
                 target_value=(0, 0),
-                duration=1.0,
+                duration=0.5,
                 scene_object=self.world_root,
-                ease_function=ease_in_out_cubic,
+                ease_function=ease_in_out_sine,
             )
         )
 
@@ -749,9 +750,9 @@ class AceAttorneyDirector(Director):
         self.sequencer.run_action(
             MoveSceneObjectAction(
                 target_value=(-(1296 / 2) + (256 / 2), 0),
-                duration=1.0,
+                duration=0.5,
                 scene_object=self.world_root,
-                ease_function=ease_in_out_cubic,
+                ease_function=ease_in_out_sine,
             )
         )
 
@@ -867,7 +868,8 @@ class DialogueBoxBuilder:
         self.music_data = load_music_data()
         self.current_character_name: str = None
         self.current_character_animation: str = None
-        self.blah = 0
+        self.previous_character_name: str = None
+
         self.has_gone_to_tense_music: bool = False
         self.callbacks = {} if callbacks is None else callbacks
 
@@ -876,6 +878,7 @@ class DialogueBoxBuilder:
         user_name: str,
         do_objection: bool = False,
         go_to_tense_music: bool = False,
+        text: str = None,
     ) -> DialoguePage:
         this_char_data = self.character_data["characters"][self.current_character_name]
         location = this_char_data["location"]
@@ -902,14 +905,44 @@ class DialogueBoxBuilder:
         if go_to_tense_music:
             self.has_gone_to_tense_music = True
 
+        actions.extend([
+            DialogueAction("wait 0.03", 0),
+        ])
+
+        previous_location = self.character_data["characters"].get(self.previous_character_name, {}).get("location", None)
+        pannable_locations = ["left", "center", "right"]
+
+        move_cam_actions = []
+        if (location in pannable_locations) and (previous_location in pannable_locations) and (location != previous_location):
+            print(f"Text {text}, Do a pan from {previous_location} to {location} - that involves hiding the box")
+            move_cam_actions.extend([
+                DialogueAction("hidebox", 0),
+                DialogueAction(f"pan {location}", 0),
+                DialogueAction(
+                    f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
+                    0,
+                ),
+                DialogueAction(f"wait 1.0", 0)
+            ])
+
+        else:
+            move_cam_actions.extend([
+                DialogueAction(
+                    f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
+                    0,
+                ),
+                DialogueAction(f"cut {location}", 0)
+            ])
+
+        actions.extend(move_cam_actions)
         actions.extend(
             [
-                DialogueAction("wait 0.03", 0),
-                DialogueAction(f"cut {location}", 0),
                 DialogueAction(f'nametag "{user_name}"', 0),
                 DialogueAction("showbox", 0),
             ]
         )
+
+        self.previous_character_name = self.current_character_name
 
         return DialoguePage(actions)
 
@@ -1041,6 +1074,21 @@ class DialogueBoxBuilder:
             if "on_comment_processed" in self.callbacks:
                 self.callbacks["on_comment_processed"](i, len(comments), comment)
 
+    def update_pose_for_sentence(self, sentence: Sentence, sprites: list[str]):
+        try:
+            sentence_sentiment = sentence.polarity
+        except (ZeroDivisionError, ValueError):
+            sentence_sentiment = 0
+
+        # Select a random pose
+        sprite_cat = "neutral"
+        if sentence_sentiment > 0:
+            sprite_cat = "positive"
+        elif sentence_sentiment < 0:
+            sprite_cat = "negative"
+
+        self.current_character_animation = choice(sprites[sprite_cat])
+
     def get_boxes_with_pauses(
         self, user_name: str, character: str, text: str, evidence_path: str = None
     ):
@@ -1064,7 +1112,9 @@ class DialogueBoxBuilder:
         go_to_tense_music = do_objection and not self.has_gone_to_tense_music
         # Stuff at beginning of text box
         all_pages: list[DialoguePage] = []
-        current_page = self.initialize_box(user_name, do_objection, go_to_tense_music)
+
+        self.update_pose_for_sentence(sentences[0], sprites)
+        current_page = self.initialize_box(user_name, do_objection, go_to_tense_music, text=text)
 
         current_page.commands.append(DialogueAction("evidence clear", 0))
         if evidence_path is not None:
@@ -1090,19 +1140,10 @@ class DialogueBoxBuilder:
         sentences_in_this_box = 0
         for sentence_index, sentence in enumerate(sentences):
             # Get the sentence sentiment here
-            try:
-                sentence_sentiment = sentence.polarity
-            except (ZeroDivisionError, ValueError):
-                sentence_sentiment = 0
 
-            # Select a random pose
-            sprite_cat = "neutral"
-            if sentence_sentiment > 0:
-                sprite_cat = "positive"
-            elif sentence_sentiment < 0:
-                sprite_cat = "negative"
-
-            self.current_character_animation = choice(sprites[sprite_cat])
+            # We don't want to 
+            if sentence_index > 0:
+                self.update_pose_for_sentence(sentence, sprites)
 
             # Start animating the speaking and blips
             current_page.commands.extend(
@@ -1135,7 +1176,7 @@ class DialogueBoxBuilder:
                         # This page is full, so create a new page
                         self.finish_box(current_page)
                         all_pages.append(current_page)
-                        current_page = self.initialize_box(user_name)
+                        current_page = self.initialize_box(user_name, text=text)
                         current_page.commands.extend(
                             [
                                 DialogueAction(f"startblip {gender}", 0),
@@ -1211,7 +1252,7 @@ class DialogueBoxBuilder:
                 # start a new one
                 self.finish_box(current_page)
                 all_pages.append(current_page)
-                current_page = self.initialize_box(user_name)
+                current_page = self.initialize_box(user_name, text=text)
                 current_line_index = 0
                 current_line_width = 0
                 sentences_in_this_box = 0
@@ -1219,6 +1260,7 @@ class DialogueBoxBuilder:
 
         self.finish_box(current_page)
         all_pages.append(current_page)
+        
         return all_pages
 
     def render(
