@@ -16,7 +16,7 @@ from .MovieKit import (
     SimpleTextObject,
     Director,
 )
-from .math_helpers import ease_in_out_cubic, ease_in_out_sine
+from .math_helpers import ease_in_out_cubic, ease_in_out_sine, lerp, remap
 from PIL import Image, ImageDraw, ImageFont
 from .parse_tags import (
     BaseDialogueItem,
@@ -40,6 +40,41 @@ except:
     pass
 
 MAX_WIDTH = 220
+
+# Thanks so much to Smash Highlights on Discord for generating this LUT!
+# I gave it a good few tries, but the results kept being weird...
+# This one looks like it fits footage from the game perfectly, though!
+PAN_LUT = [
+    (0.0, 0),
+    (0.06666666666666667, 0.01546750087),
+    (0.13333333333333333, 0.03049086626),
+    (0.2, 0.04597767736),
+    (0.26666666666666666, 0.1001428958),
+    (0.3333333333333333, 0.1920789403),
+    (0.4, 0.2840149847),
+    (0.4666666666666667, 0.3841578805),
+    (0.5333333333333333, 0.4843007763),
+    (0.6, 0.5839802263),
+    (0.6666666666666666, 0.6841231221),
+    (0.7333333333333333, 0.7842467076),
+    (0.8, 0.8766461978),
+    (0.8666666666666667, 0.9686015525),
+    (0.9333333333333333, 0.9840690534),
+    (1.0, 1),
+]
+
+def courtroom_pan_lut_ease(t: float) -> float:
+    v = 0
+    if t < 0:
+        return 0
+    elif t >= 1:
+        return 1
+    else:
+        for i in range(0, len(PAN_LUT) - 1):
+            if PAN_LUT[i][0] <= t <= PAN_LUT[i + 1][0]:
+                a, b = PAN_LUT[i][1], PAN_LUT[i + 1][1]
+                v = remap(PAN_LUT[i][0], PAN_LUT[i + 1][0], a, b, t)
+    return v
 
 
 class NameBox(SceneObject):
@@ -516,7 +551,7 @@ class AceAttorneyDirector(Director):
     def update(self, delta: float):
         # Within that page, get the current object
         self.time_on_this_page += delta
-        
+
         while True:
             current_dialogue_obj = self.current_page.get_current_item()
             if isinstance(current_dialogue_obj, DialogueTextChunk):
@@ -701,7 +736,13 @@ class AceAttorneyDirector(Director):
                 page_end_time = timer()
                 page_duration = page_end_time - self.page_start_time
                 if "on_page_completed" in self.callbacks:
-                    self.callbacks["on_page_completed"](self.page_index, len(self.pages), self.current_page, page_duration, self.time_on_this_page)
+                    self.callbacks["on_page_completed"](
+                        self.page_index,
+                        len(self.pages),
+                        self.current_page,
+                        page_duration,
+                        self.time_on_this_page,
+                    )
 
                 self.page_index += 1
 
@@ -732,7 +773,7 @@ class AceAttorneyDirector(Director):
                 target_value=(-1296 + 256, 0),
                 duration=0.5,
                 scene_object=self.world_root,
-                ease_function=ease_in_out_sine,
+                ease_function=courtroom_pan_lut_ease,
             )
         )
 
@@ -742,7 +783,7 @@ class AceAttorneyDirector(Director):
                 target_value=(0, 0),
                 duration=0.5,
                 scene_object=self.world_root,
-                ease_function=ease_in_out_sine,
+                ease_function=courtroom_pan_lut_ease,
             )
         )
 
@@ -752,7 +793,7 @@ class AceAttorneyDirector(Director):
                 target_value=(-(1296 / 2) + (256 / 2), 0),
                 duration=0.5,
                 scene_object=self.world_root,
-                ease_function=ease_in_out_sine,
+                ease_function=courtroom_pan_lut_ease,
             )
         )
 
@@ -905,34 +946,51 @@ class DialogueBoxBuilder:
         if go_to_tense_music:
             self.has_gone_to_tense_music = True
 
-        actions.extend([
-            DialogueAction("wait 0.03", 0),
-        ])
+        actions.extend(
+            [
+                DialogueAction("wait 0.03", 0),
+            ]
+        )
 
-        previous_location = self.character_data["characters"].get(self.previous_character_name, {}).get("location", None)
+        previous_location = (
+            self.character_data["characters"]
+            .get(self.previous_character_name, {})
+            .get("location", None)
+        )
         pannable_locations = ["left", "center", "right"]
 
         move_cam_actions = []
-        if (location in pannable_locations) and (previous_location in pannable_locations) and (location != previous_location):
-            print(f"Text {text}, Do a pan from {previous_location} to {location} - that involves hiding the box")
-            move_cam_actions.extend([
-                DialogueAction("hidebox", 0),
-                DialogueAction(f"pan {location}", 0),
-                DialogueAction(
-                    f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
-                    0,
-                ),
-                DialogueAction(f"wait 1.0", 0)
-            ])
+        if (
+            (location in pannable_locations)
+            and (previous_location in pannable_locations)
+            and (location != previous_location)
+        ):
+            print(
+                f"Text {text}, Do a pan from {previous_location} to {location} - that involves hiding the box"
+            )
+            move_cam_actions.extend(
+                [
+                    DialogueAction("hidebox", 0),
+                    DialogueAction("wait 0.5", 0),
+                    DialogueAction(f"pan {location}", 0),
+                    DialogueAction(
+                        f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
+                        0,
+                    ),
+                    DialogueAction(f"wait 1.0", 0),
+                ]
+            )
 
         else:
-            move_cam_actions.extend([
-                DialogueAction(
-                    f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
-                    0,
-                ),
-                DialogueAction(f"cut {location}", 0)
-            ])
+            move_cam_actions.extend(
+                [
+                    DialogueAction(
+                        f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
+                        0,
+                    ),
+                    DialogueAction(f"cut {location}", 0),
+                ]
+            )
 
         actions.extend(move_cam_actions)
         actions.extend(
@@ -1114,7 +1172,9 @@ class DialogueBoxBuilder:
         all_pages: list[DialoguePage] = []
 
         self.update_pose_for_sentence(sentences[0], sprites)
-        current_page = self.initialize_box(user_name, do_objection, go_to_tense_music, text=text)
+        current_page = self.initialize_box(
+            user_name, do_objection, go_to_tense_music, text=text
+        )
 
         current_page.commands.append(DialogueAction("evidence clear", 0))
         if evidence_path is not None:
@@ -1141,7 +1201,7 @@ class DialogueBoxBuilder:
         for sentence_index, sentence in enumerate(sentences):
             # Get the sentence sentiment here
 
-            # We don't want to 
+            # We don't want to
             if sentence_index > 0:
                 self.update_pose_for_sentence(sentence, sprites)
 
@@ -1246,7 +1306,7 @@ class DialogueBoxBuilder:
                     current_page.commands.append(
                         DialogueAction("wait 0.6", 0),
                     )
-            
+
             elif sentence_index != len(sentences) - 1:
                 # There are two sentences in this box, so end this box and
                 # start a new one
@@ -1257,10 +1317,9 @@ class DialogueBoxBuilder:
                 current_line_width = 0
                 sentences_in_this_box = 0
 
-
         self.finish_box(current_page)
         all_pages.append(current_page)
-        
+
         return all_pages
 
     def render(
@@ -1269,7 +1328,7 @@ class DialogueBoxBuilder:
         music_code: str = "pwr",
         assigned_characters: dict = None,
         adult_mode: bool = False,
-        volume: int = -15
+        volume: int = -15,
     ):
         self.build_from_comments(comments, music_code, assigned_characters, adult_mode)
         director = AceAttorneyDirector(callbacks=self.callbacks)
