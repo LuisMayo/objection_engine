@@ -3,6 +3,9 @@ from string import punctuation
 from collections import Counter
 from random import choice
 from timeit import default_timer as timer
+from os.path import join
+
+from objection_engine.v4.loading import ASSETS_FOLDER, CHARACTERS_FOLDER
 from objection_engine.beans.font_constants import NAMETAG_FONT_ARRAY, TextType
 
 from objection_engine.v4.loading import load_character_data, load_music_data
@@ -84,19 +87,19 @@ class NameBox(SceneObject):
             parent=self,
             name="Name Box Left",
             pos=(0, 0, 11),
-            filepath="assets_v4/textbox/nametag_left.png",
+            filepath=join(ASSETS_FOLDER, "textbox", "nametag_left.png"),
         )
         self.namebox_c = ImageObject(
             parent=self,
             name="Name Box Center",
             pos=(1, 0, 11),
-            filepath="assets_v4/textbox/nametag_center.png",
+            filepath=join(ASSETS_FOLDER, "textbox", "nametag_center.png"),
         )
         self.namebox_r = ImageObject(
             parent=self,
             name="Name Box Right",
             pos=(2, 0, 11),
-            filepath="assets_v4/textbox/nametag_right.png",
+            filepath=join(ASSETS_FOLDER, "textbox", "nametag_right.png"),
         )
         self.namebox_text = SimpleTextObject(
             parent=self, name="Name Box Text", pos=(4, 0, 12)
@@ -148,14 +151,14 @@ class DialogueBox(SceneObject):
             parent=self,
             name="Dialogue Box Background",
             pos=(0, 0, 10),
-            filepath="assets_v4/textbox/mainbox.png",
+            filepath=join(ASSETS_FOLDER, "textbox", "mainbox.png"),
         )
         self.namebox = NameBox(parent=self, pos=(1, -11, 0))
         self.arrow = ImageObject(
             parent=self,
             name="Dialogue Box Arrow",
             pos=(256 - 15 - 5, 64 - 15 - 5, 11),
-            filepath="assets_v4/textbox/arrow.gif",
+            filepath=join(ASSETS_FOLDER, "textbox", "arrow.gif"),
         )
         self.arrow.visible = False
 
@@ -241,12 +244,12 @@ class ExclamationObject(ImageObject):
         self.director = director
 
     def get_exclamation_path(self, type: str, speaker: str):
-        base_name = f"assets_v4/exclamations/{type}-{speaker}"
+        base_name = join(ASSETS_FOLDER, CHARACTERS_FOLDER, speaker, type)
         if exists(f"{base_name}.mp3"):
             return f"{base_name}.mp3"
         elif exists(f"{base_name}.wav"):
             return f"{base_name}.wav"
-        return f"assets_v4/exclamations/objection-generic.wav"
+        return join(ASSETS_FOLDER, "sound", "objection-generic.wav")
 
     def play_objection(self, speaker: str):
         self.play_exclamation("objection", speaker)
@@ -280,7 +283,7 @@ class EvidenceObject(ImageObject):
             parent=self,
             name="Evidence BG",
             pos=(self.EVIDENCE_POS_R, 13, 18),
-            filepath="assets_v4/evidence/evidence-bg.png",
+            filepath=join(ASSETS_FOLDER, "evidence", "evidence-bg.png"),
         )
         self.evidence_bg.visible = False
 
@@ -308,14 +311,14 @@ class EvidenceObject(ImageObject):
     def display_evidence(self, side: str, media_path: str):
         self.evidence_bg.visible = False
         self.set_filepath(
-            f"assets_v4/evidence/evidence-in-{side}.gif",
+            join(ASSETS_FOLDER, "evidence",f"evidence-in-{side}.gif"),
             {0.3: lambda: self.make_media_visible(side, media_path)},
         )
 
         self.director.audio_commands.append(
             {
                 "type": "audio",
-                "path": "assets_v4/sound/sfx-evidenceshoop.wav",
+                "path": join(ASSETS_FOLDER, "sound", "sfx-evidenceshoop.wav"),
                 "offset": self.director.time,
             }
         )
@@ -413,14 +416,13 @@ class AceAttorneyDirector(Director):
             parent=self.world_shaker,
             name="Judge Background",
             pos=(0, 256, 0),
-            filepath="assets_v4/bg/bg_judge.png",
+            filepath=join(ASSETS_FOLDER, "bg", "bg_judge.png"),
         )
 
         self.judge = ImageObject(
             parent=self.judge_shot,
             name="Judge",
             pos=(0, 0, 1),
-            filepath="assets_v4/character_sprites/judge/judge-normal-idle.gif",
         )
 
         self.phoenix_action_lines_shot = SceneObject(
@@ -433,14 +435,13 @@ class AceAttorneyDirector(Director):
             parent=self.phoenix_action_lines_shot,
             name="Phoenix Action Lines",
             pos=(0, 0, 0),
-            filepath="assets_v4/bg/bg_action.png",
+            filepath=join(ASSETS_FOLDER, "bg", "bg_action.png"),
         )
 
         self.phoenix_action_lines_character = ImageObject(
             parent=self.phoenix_action_lines_shot,
             name="Phoenix Action Lines Character",
             pos=(0, 0, 1),
-            filepath="assets_v4/character_sprites/phoenix/phoenix-zoom-idle.gif",
         )
 
         self.edgeworth_action_lines_shot = SceneObject(
@@ -453,7 +454,7 @@ class AceAttorneyDirector(Director):
             parent=self.edgeworth_action_lines_shot,
             name="Edgeworth Action Lines",
             pos=(0, 0, 0),
-            filepath="assets_v4/bg/bg_action.png",
+            filepath=join(ASSETS_FOLDER, "bg", "bg_action.png"),
         )
         self.edgeworth_action_lines_animator.move_left = False
 
@@ -461,21 +462,20 @@ class AceAttorneyDirector(Director):
             parent=self.edgeworth_action_lines_shot,
             name="Edgeworth Action Lines Character",
             pos=(0, 0, 1),
-            filepath="assets_v4/character_sprites/edgeworth/edgeworth-zoom-idle.gif",
         )
 
         self.wide_courtroom = ImageObject(
             parent=self.world_shaker,
             name="Background",
             pos=(0, 0, 0),
-            filepath="assets_v4/bg/bg_main.png",
+            filepath=join(ASSETS_FOLDER, "bg", "bg_main.png"),
         )
 
         self.left_bench = ImageObject(
             parent=self.wide_courtroom,
             name="Left Bench",
             pos=(0, 0, 2),
-            filepath="assets_v4/fg/pr_bench.png",
+            filepath=join(ASSETS_FOLDER, "fg", "pr_bench.png"),
         )
 
         self.right_bench = ImageObject(
@@ -483,7 +483,7 @@ class AceAttorneyDirector(Director):
             name="Right Bench",
             pos=(1040, 0, 2),
             flip_x=True,
-            filepath="assets_v4/fg/pr_bench.png",
+            filepath=join(ASSETS_FOLDER, "fg", "pr_bench.png"),
         )
 
         self.witness_stand = ImageObject(
@@ -492,28 +492,25 @@ class AceAttorneyDirector(Director):
             pos=(552, 0, 2),
             width=192,
             height=192,
-            filepath="assets_v4/fg/witness_stand.png",
+            filepath=join(ASSETS_FOLDER, "fg", "witness_stand.png"),
         )
 
         self.phoenix = ImageObject(
             parent=self.wide_courtroom,
             name="Left Character",
             pos=(0, 0, 1),
-            filepath="assets_v4/character_sprites/phoenix/phoenix-normal-idle.gif",
         )
 
         self.edgeworth = ImageObject(
             parent=self.wide_courtroom,
             name="Right Character",
             pos=(1034, 0, 1),
-            filepath="assets_v4/character_sprites/edgeworth/edgeworth-normal-idle.gif",
         )
 
         self.witness = ImageObject(
             parent=self.wide_courtroom,
             name="Witness",
             pos=(520, 0, 1),
-            filepath="assets_v4/character_sprites/lotta/lotta-smiling-idle.gif",
         )
 
         self.textbox_shaker = ShakerObject(
@@ -660,7 +657,7 @@ class AceAttorneyDirector(Director):
                     self.audio_commands.append(
                         {
                             "type": "audio",
-                            "path": f"assets_v4/sound/sfx-{sound_path}.wav",
+                            "path": join(ASSETS_FOLDER, "sound", f"sfx-{sound_path}.wav"),
                             "offset": self.time,
                         }
                     )
@@ -828,7 +825,7 @@ class AceAttorneyDirector(Director):
         self.end_music_track()
         self.current_music_track = {
             "type": "audio",
-            "path": f"assets_v4/music/{name}.mp3",
+            "path": join(ASSETS_FOLDER, "music", f"{name}.mp3"),
             "offset": self.time,
             "loop_type": "loop_until_truncated",
         }
@@ -843,7 +840,7 @@ class AceAttorneyDirector(Director):
         self.end_voice_blips()
         self.current_voice_blips = {
             "type": "audio",
-            "path": f"assets_v4/sound/sfx-blip{gender}.wav",
+            "path": join(ASSETS_FOLDER, "sound", f"sfx-blip{gender}.wav"),
             "offset": self.time,
             "loop_delay": 0.06,
             "loop_type": "loop_complete_only",
@@ -859,7 +856,7 @@ class AceAttorneyDirector(Director):
         self.audio_commands.append(
             {
                 "type": "audio",
-                "path": "assets_v4/sound/sfx-pichoop.wav",
+                "path": join(ASSETS_FOLDER, "sound", "sfx-pichoop.wav"),
                 "offset": self.time,
             }
         )
@@ -874,7 +871,7 @@ class AceAttorneyDirector(Director):
         self.audio_commands.append(
             {
                 "type": "audio",
-                "path": "assets_v4/sound/sfx-deskslam.wav",
+                "path": join(ASSETS_FOLDER, "sound", "sfx-deskslam.wav"),
                 "offset": self.time + 0.15,
             }
         )
@@ -889,19 +886,17 @@ class AceAttorneyDirector(Director):
         self.audio_commands.append(
             {
                 "type": "audio",
-                "path": "assets_v4/sound/sfx-deskslam.wav",
+                "path": join(ASSETS_FOLDER, "sound", "sfx-deskslam.wav"),
                 "offset": self.time + 0.25,
             }
         )
 
 
 def get_sprite_location(character: str, emotion: str):
-    return f"assets_v4/character_sprites/{character}/{character}-{emotion}.gif"
-
+    return join(ASSETS_FOLDER, CHARACTERS_FOLDER, character, f"{character}-{emotion}.gif")
 
 def get_sprite_tag(location: str, character: str, emotion: str):
     return f"<sprite {location} {get_sprite_location(character, emotion)}/>"
-
 
 class DialogueBoxBuilder:
     def __init__(self, callbacks: dict = None) -> None:
@@ -965,9 +960,6 @@ class DialogueBoxBuilder:
             and (previous_location in pannable_locations)
             and (location != previous_location)
         ):
-            print(
-                f"Text {text}, Do a pan from {previous_location} to {location} - that involves hiding the box"
-            )
             move_cam_actions.extend(
                 [
                     DialogueAction("hidebox", 0),

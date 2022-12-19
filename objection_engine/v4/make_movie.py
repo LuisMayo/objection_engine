@@ -59,7 +59,7 @@ def render_comment_list(
             )
 
         def on_page_completed(page_index, num_pages: int, page: DialoguePage, time_to_render: float, time_onscreen: float):
-            print(f"\"{page.get_raw_text():10.10s}\"\tRender {time_to_render:3.2f} sec\tVisible {time_onscreen:3.2f} sec\t{time_to_render / time_onscreen:3.2f} SPS")
+            print(f"\"{page.get_raw_text():30.30s}\"\t\tRender {time_to_render:3.2f} sec\t\tVisible {time_onscreen:3.2f} sec\t\t{time_to_render / time_onscreen:3.2f} SPS")
             progress.start_task(complete_pages_task)
             progress.update(
                 complete_pages_task,
