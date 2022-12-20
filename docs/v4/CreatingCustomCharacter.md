@@ -24,7 +24,9 @@ This is probably the hardest part. Sprites will need to be **animated GIFs**
 with a size of **256x192**. See http://www.court-records.net/sprites1.htm
 (the source of the sprites that *Objection* uses by default) as a reference.
 
-I'll use the set of amazing Athena Cykes sprites created by Rajin, SuperAj3, ShiroForever, Hesseldahl, and SilverGlas, which can be found here: https://imgur.com/a/tyUEF
+I'll use the set of amazing Athena Cykes sprites created by Rajin, SuperAj3,
+ShiroForever, Hesseldahl, and SilverGlas, which can be found here:
+https://imgur.com/a/tyUEF
 
 First, copy the GIFs that you want to use as character sprites into the
 character folder. A complete character animation should consist of at least
@@ -88,7 +90,7 @@ negative = ["defeated", "deskslam", "objection", "shaking"]
 ```
 
 ## The final product
-After everything is done, the `athena` folder looks like this:
+After everything is done, my `athena` folder looks like this:
 ```
 athena
 ├ athena-confident-idle.gif
@@ -125,15 +127,19 @@ from objection_engine.beans.comment import Comment
 comments = [
     Comment(
         user_name="Athena",
-        text_content="Hey, it's me, Athena Cykes! How are you doing?",
+        text_content="Hi, I'm Athena. How are you doing?",
     ),
     Comment(
         user_name="Athena",
-        text_content="I'm totally ready to say a whole lot of text!" \
-                     " Bad sad uh oh bad sentence so now I am sad.",
+        text_content="I'm doing awful terrible bad bad sad."
     ),
+
+    Comment(
+        user_name="Athena",
+        text_content="Happy good yay good happy time smile!",
+    )
 ]
 render_comment_list(comments, assigned_characters={"Athena": "athena"})
 ```
 
-![](img/athena_example.mp4)
+<iframe width="560" height="315" src="https://www.youtube.com/embed/t5pSToHBmrg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
