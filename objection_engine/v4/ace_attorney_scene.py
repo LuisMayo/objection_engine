@@ -589,9 +589,9 @@ class AceAttorneyDirector(Director):
                         self.witness.set_filepath(path)
                     elif position == "judge":
                         self.judge.set_filepath(path)
-                    elif position == "phoenixzoom":
+                    elif position == "leftzoom":
                         self.phoenix_action_lines_character.set_filepath(path)
-                    elif position == "edgeworthzoom":
+                    elif position == "rightzoom":
                         self.edgeworth_action_lines_character.set_filepath(path)
                     else:
                         print(
@@ -701,9 +701,9 @@ class AceAttorneyDirector(Director):
                         self.cut_to_center()
                     elif position == "judge":
                         self.cut_to_judge()
-                    elif position == "phoenixzoom":
+                    elif position == "leftzoom":
                         self.cut_to_phoenix_action()
-                    elif position == "edgeworthzoom":
+                    elif position == "rightzoom":
                         self.cut_to_edgeworth_action()
                     current_dialogue_obj.completed = True
 
