@@ -18,3 +18,6 @@ outputs/*.mp4
 polyglot_data
 docker-entrypoint.py
 assets_v4
+.DS_Store
+.idea
+test_outputs
