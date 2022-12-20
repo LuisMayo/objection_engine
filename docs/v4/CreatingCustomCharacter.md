@@ -2,7 +2,7 @@
 *Objection 4* makes it very easy to add your own characters to the character
 pool! In this tutorial, I'll go through the steps of adding Athena Cykes.
 
-**NOTE:** You'll need access to the `assets` folder of *Objection* in order to
+**NOTE:** You'll need access to the `assets_v4` folder of *Objection* in order to
 add custom characters. If you're using the public social media bots, this won't
 work.
 
@@ -17,7 +17,7 @@ For this example, I'll name the folder `athena`, giving the character that ID.
 
 The folder will also need a `config.toml` file. Copy the file named
 `config_template.toml` from the `characters` folder into your new folder, and
-rename it to `config.toml`. For now, we'll leave it be at that.
+rename it to `config.toml`. For now, we'll leave it be.
 
 ## Getting the sprites
 This is probably the hardest part. Sprites will need to be **animated GIFs**
@@ -133,7 +133,6 @@ comments = [
         user_name="Athena",
         text_content="I'm doing awful terrible bad bad sad."
     ),
-
     Comment(
         user_name="Athena",
         text_content="Happy good yay good happy time smile!",
