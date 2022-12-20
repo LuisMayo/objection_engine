@@ -1,5 +1,5 @@
 # DialogueAction Commands
-Objection 4 allows for fine control of the way that dialogue plays out. This
+*Objection 4* allows for fine control of the way that dialogue plays out. This
 document describes all of the currently-supported `DialogueAction` commands.
 
 ## Character control

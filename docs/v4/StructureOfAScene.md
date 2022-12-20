@@ -1,6 +1,6 @@
 # Structure of a Scene
-The Objection 4 engine introduces a more transparent, editable structure
-for scenes than was present in Objection 3.
+*Objection 4* introduces a more transparent, editable structure
+for scenes than was present in *Objection 3*.
 
 In short:
 - A scene is made up of a list of `DialoguePage` objects.
