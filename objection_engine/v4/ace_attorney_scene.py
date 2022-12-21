@@ -4,6 +4,10 @@ from collections import Counter
 from random import choice
 from timeit import default_timer as timer
 from os.path import join
+from os import environ
+environ["TOKENIZERS_PARALLELISM"] = "false" # to make HF Transformers happy
+
+from transformers import pipeline
 
 from objection_engine.v4.loading import ASSETS_FOLDER, CHARACTERS_FOLDER
 from objection_engine.beans.font_constants import NAMETAG_FONT_ARRAY, TextType
@@ -41,6 +45,8 @@ try:
     from rich import print
 except:
     pass
+
+SENTIMENT_MODEL_PATH = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
 
 MAX_WIDTH = 220
 
@@ -909,6 +915,10 @@ class DialogueBoxBuilder:
         self.has_gone_to_tense_music: bool = False
         self.callbacks = {} if callbacks is None else callbacks
 
+        # Hugging Face sentiment analyzer
+        self.get_sentiment = pipeline("sentiment-analysis", model=SENTIMENT_MODEL_PATH, tokenizer=SENTIMENT_MODEL_PATH)
+
+
     def initialize_box(
         self,
         user_name: str,
@@ -1125,18 +1135,12 @@ class DialogueBoxBuilder:
                 self.callbacks["on_comment_processed"](i, len(comments), comment)
 
     def update_pose_for_sentence(self, sentence: Sentence, sprites: list[str]):
+        sentiment: dict = self.get_sentiment(sentence.raw)[0]
+        print("Sentiment for", sentence, sentiment)
         try:
-            sentence_sentiment = sentence.polarity
-        except (ZeroDivisionError, ValueError):
-            sentence_sentiment = 0
-
-        # Select a random pose
-        sprite_cat = "neutral"
-        if sentence_sentiment > 0:
-            sprite_cat = "positive"
-        elif sentence_sentiment < 0:
-            sprite_cat = "negative"
-
+            sprite_cat = sentiment.get("label", "neutral")
+        except IndexError:
+            sprite_cat = "neutral"
         self.current_character_animation = choice(sprites[sprite_cat])
 
     def get_boxes_with_pauses(
@@ -1153,12 +1157,11 @@ class DialogueBoxBuilder:
         sentences: list[Sentence] = pg_text.sentences
 
         # Determine if this should have an objection
-        try:
-            text_polarity = pg_text.polarity
-        except ZeroDivisionError:
-            text_polarity = 0
+        text_polarity_data = self.get_sentiment(pg_text.raw)[0]
+        polarity_type = text_polarity_data["label"]
+        polarity_confidence = text_polarity_data["score"]
 
-        do_objection = (abs(text_polarity) > 0.5) and not self.has_done_objection
+        do_objection = polarity_type == "negative" and polarity_confidence > 0.5 and not self.has_done_objection
         go_to_tense_music = do_objection and not self.has_gone_to_tense_music
         # Stuff at beginning of text box
         all_pages: list[DialoguePage] = []

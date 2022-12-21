@@ -1,5 +1,5 @@
 from difflib import get_close_matches
-from tomllib import load
+from toml import load
 from os import scandir
 from os.path import join
 
@@ -32,7 +32,7 @@ def load_character_data() -> dict:
         if f.name.startswith("_"):
             continue
         try:
-            with open(join(f.path, "config.toml"), "rb") as config_file:
+            with open(join(f.path, "config.toml")) as config_file:
                 characters[f.name] = load(config_file)
         except FileNotFoundError:
             print(f'ERROR - Character folder "{f.name}" has no config.toml')
@@ -59,7 +59,7 @@ def load_character_data() -> dict:
 
     # Config file in characters folder gives high priority characters
     try:
-        with open(join(ASSETS_FOLDER, CHARACTERS_FOLDER, "config.toml"), "rb") as config_file:
+        with open(join(ASSETS_FOLDER, CHARACTERS_FOLDER, "config.toml")) as config_file:
             data = load(config_file)
             high_priority_characters = data.get("high_priority", [])
     except FileNotFoundError:
@@ -87,7 +87,7 @@ def load_music_data() -> dict:
     folders = [f for f in scandir(join(ASSETS_FOLDER, MUSIC_FOLDER)) if f.is_dir()]
     for f in folders:
         try:
-            with open(join(f.path, "config.toml"), "rb") as config_file:
+            with open(join(f.path, "config.toml")) as config_file:
                 music_packs[f.name] = load(config_file)
         except FileNotFoundError:
             print(f'ERROR - Music folder "{f.name}" has no config.toml')
