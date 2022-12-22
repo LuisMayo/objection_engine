@@ -5,7 +5,9 @@ from random import choice
 from timeit import default_timer as timer
 from os.path import join
 from os import environ
-environ["TOKENIZERS_PARALLELISM"] = "false" # to make HF Transformers happy
+from turtle import pos
+
+environ["TOKENIZERS_PARALLELISM"] = "false"  # to make HF Transformers happy
 
 from transformers import pipeline
 
@@ -71,6 +73,7 @@ PAN_LUT = [
     (0.9333333333333333, 0.9840690534),
     (1.0, 1),
 ]
+
 
 def courtroom_pan_lut_ease(t: float) -> float:
     v = 0
@@ -317,7 +320,7 @@ class EvidenceObject(ImageObject):
     def display_evidence(self, side: str, media_path: str):
         self.evidence_bg.visible = False
         self.set_filepath(
-            join(ASSETS_FOLDER, "evidence",f"evidence-in-{side}.gif"),
+            join(ASSETS_FOLDER, "evidence", f"evidence-in-{side}.gif"),
             {0.3: lambda: self.make_media_visible(side, media_path)},
         )
 
@@ -477,46 +480,51 @@ class AceAttorneyDirector(Director):
             filepath=join(ASSETS_FOLDER, "bg", "bg_main.png"),
         )
 
+        self.foreground = SceneObject(
+            parent=self.world_shaker,
+            name="Foreground Elements",
+        )
+
         self.left_bench = ImageObject(
-            parent=self.wide_courtroom,
+            parent=self.foreground,
             name="Left Bench",
             pos=(0, 0, 2),
             filepath=join(ASSETS_FOLDER, "fg", "pr_bench.png"),
         )
 
         self.right_bench = ImageObject(
-            parent=self.wide_courtroom,
+            parent=self.foreground,
             name="Right Bench",
-            pos=(1040, 0, 2),
+            pos=(644, 0, 2),
             flip_x=True,
             filepath=join(ASSETS_FOLDER, "fg", "pr_bench.png"),
         )
 
         self.witness_stand = ImageObject(
-            parent=self.wide_courtroom,
+            parent=self.foreground,
             name="Witness Stand",
-            pos=(552, 0, 2),
+            pos=(353, 0, 2),
             width=192,
             height=192,
             filepath=join(ASSETS_FOLDER, "fg", "witness_stand.png"),
         )
 
         self.phoenix = ImageObject(
-            parent=self.wide_courtroom,
+            parent=self.left_bench,
             name="Left Character",
             pos=(0, 0, 1),
         )
 
         self.edgeworth = ImageObject(
-            parent=self.wide_courtroom,
+            parent=self.right_bench,
             name="Right Character",
-            pos=(1034, 0, 1),
+            pos=(0, 0, 1),
         )
 
         self.witness = ImageObject(
-            parent=self.wide_courtroom,
+            parent=self.witness_stand,
             name="Witness",
-            pos=(520, 0, 1),
+            pos=(-31, 0, 1),
         )
 
         self.textbox_shaker = ShakerObject(
@@ -663,7 +671,9 @@ class AceAttorneyDirector(Director):
                     self.audio_commands.append(
                         {
                             "type": "audio",
-                            "path": join(ASSETS_FOLDER, "sound", f"sfx-{sound_path}.wav"),
+                            "path": join(
+                                ASSETS_FOLDER, "sound", f"sfx-{sound_path}.wav"
+                            ),
                             "offset": self.time,
                         }
                     )
@@ -723,6 +733,29 @@ class AceAttorneyDirector(Director):
                         self.pan_to_center()
                     current_dialogue_obj.completed = True
 
+                elif c == "show":
+                    position = action_split[1]
+                    if position == "left":
+                        self.left_bench.visible = True
+                    elif position == "right":
+                        self.right_bench.visible = True
+                    elif position == "center":
+                        self.witness_stand.visible = True
+                    current_dialogue_obj.completed = True
+
+                elif c == "hide":
+                    position = action_split[1]
+                    if position == "left":
+                        self.left_bench.visible = False
+                    elif position == "right":
+                        self.right_bench.visible = False
+                    elif position == "center":
+                        self.witness_stand.visible = False
+                    current_dialogue_obj.completed = True
+
+                elif c == "nop":
+                    current_dialogue_obj.completed = True
+
                 else:
                     print(
                         f'ERROR - Unknown action encountered: "{current_dialogue_obj.name}"'
@@ -780,12 +813,30 @@ class AceAttorneyDirector(Director):
             )
         )
 
+        self.sequencer.run_action(
+            MoveSceneObjectAction(
+                target_value=(396, 0),
+                duration=0.5,
+                scene_object=self.foreground,
+                ease_function=courtroom_pan_lut_ease,
+            )
+        )
+
     def pan_to_left(self):
         self.sequencer.run_action(
             MoveSceneObjectAction(
                 target_value=(0, 0),
                 duration=0.5,
                 scene_object=self.world_root,
+                ease_function=courtroom_pan_lut_ease,
+            )
+        )
+
+        self.sequencer.run_action(
+            MoveSceneObjectAction(
+                target_value=(0, 0),
+                duration=0.5,
+                scene_object=self.foreground,
                 ease_function=courtroom_pan_lut_ease,
             )
         )
@@ -800,17 +851,29 @@ class AceAttorneyDirector(Director):
             )
         )
 
+        self.sequencer.run_action(
+            MoveSceneObjectAction(
+                target_value=(198, 0),
+                duration=0.5,
+                scene_object=self.foreground,
+                ease_function=courtroom_pan_lut_ease,
+            )
+        )
+
     def cut_to_left(self):
         self.world_root.set_x(0)
         self.world_root.set_y(0)
+        self.foreground.set_x(0)
 
     def cut_to_right(self):
         self.world_root.set_x(-1296 + 256)
         self.world_root.set_y(0)
+        self.foreground.set_x(396)
 
     def cut_to_center(self):
         self.world_root.set_x(-(1296 / 2) + (256 / 2))
         self.world_root.set_y(0)
+        self.foreground.set_x(198)
 
     def cut_to_judge(self):
         self.world_root.set_x(0)
@@ -899,10 +962,14 @@ class AceAttorneyDirector(Director):
 
 
 def get_sprite_location(character: str, emotion: str):
-    return join(ASSETS_FOLDER, CHARACTERS_FOLDER, character, f"{character}-{emotion}.gif")
+    return join(
+        ASSETS_FOLDER, CHARACTERS_FOLDER, character, f"{character}-{emotion}.gif"
+    )
+
 
 def get_sprite_tag(location: str, character: str, emotion: str):
     return f"<sprite {location} {get_sprite_location(character, emotion)}/>"
+
 
 class DialogueBoxBuilder:
     def __init__(self, callbacks: dict = None) -> None:
@@ -916,8 +983,11 @@ class DialogueBoxBuilder:
         self.callbacks = {} if callbacks is None else callbacks
 
         # Hugging Face sentiment analyzer
-        self.get_sentiment = pipeline("sentiment-analysis", model=SENTIMENT_MODEL_PATH, tokenizer=SENTIMENT_MODEL_PATH)
-
+        self.get_sentiment = pipeline(
+            "sentiment-analysis",
+            model=SENTIMENT_MODEL_PATH,
+            tokenizer=SENTIMENT_MODEL_PATH,
+        )
 
     def initialize_box(
         self,
@@ -964,24 +1034,82 @@ class DialogueBoxBuilder:
         )
         pannable_locations = ["left", "center", "right"]
 
+        PAN_TIME = 0.5
+        SWITCH_SPRITE_TIME = 0.18
         move_cam_actions = []
         if (
             (location in pannable_locations)
             and (previous_location in pannable_locations)
             and (location != previous_location)
         ):
-            move_cam_actions.extend(
-                [
-                    DialogueAction("hidebox", 0),
-                    DialogueAction("wait 0.5", 0),
-                    DialogueAction(f"pan {location}", 0),
-                    DialogueAction(
-                        f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
-                        0,
-                    ),
-                    DialogueAction(f"wait 1.0", 0),
-                ]
-            )
+            panning_across_whole_courtroom = (location == "left" and previous_location == "right") or (location == "right" and previous_location == "left")
+
+            if panning_across_whole_courtroom:
+                move_cam_actions.extend(
+                    [
+                        DialogueAction("hidebox", 0),
+                        DialogueAction("wait 0.5", 0),
+                        DialogueAction("hide center", 0) ,
+                        DialogueAction(f"pan {location}", 0),
+                        DialogueAction(
+                            f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
+                            0,
+                        ),
+                        DialogueAction(f"wait 0.14", 0),
+                        DialogueAction("hide left", 0),
+                        DialogueAction("hide right", 0),
+                        DialogueAction(f"wait 0.26", 0),
+                        DialogueAction("show left", 0),
+                        DialogueAction("show right", 0),
+                        DialogueAction("wait 0.1", 0),
+
+                        DialogueAction(f"wait 0.1", 0),
+                        DialogueAction("show center", 0),
+                    ]
+                )
+
+            # Panning to the witness
+            elif location == "center":
+                move_cam_actions.extend(
+                    [
+                        DialogueAction("hidebox", 0),
+                        DialogueAction("wait 0.5", 0),
+                        DialogueAction(f"pan {location}", 0),
+                        DialogueAction(
+                            f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
+                            0,
+                        ),
+                        DialogueAction(f"wait {SWITCH_SPRITE_TIME}", 0),
+                        DialogueAction("hide left", 0),
+                        DialogueAction("hide right", 0),
+                        DialogueAction("show center", 0),
+                        DialogueAction(f"wait {PAN_TIME - SWITCH_SPRITE_TIME}", 0),
+                        DialogueAction("show left", 0),
+                        DialogueAction("show right", 0),
+                        DialogueAction(f"wait 0.1", 0),
+                    ]
+                )
+
+            # Panning to the defense or prosecution from the witness
+            else:
+                move_cam_actions.extend(
+                    [
+                        DialogueAction("hidebox", 0),
+                        DialogueAction("wait 0.5", 0),
+                        DialogueAction(f"pan {location}", 0),
+                        DialogueAction(
+                            f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
+                            0,
+                        ),
+                        DialogueAction(f"wait {SWITCH_SPRITE_TIME}", 0),
+                        DialogueAction("show left", 0),
+                        DialogueAction("show right", 0),
+                        DialogueAction("hide center", 0),
+                        DialogueAction(f"wait {1 - SWITCH_SPRITE_TIME}", 0),
+                        DialogueAction("show center", 0),
+                        DialogueAction(f"wait 0.1", 0),
+                    ]
+                )
 
         else:
             move_cam_actions.extend(
@@ -1161,7 +1289,11 @@ class DialogueBoxBuilder:
         polarity_type = text_polarity_data["label"]
         polarity_confidence = text_polarity_data["score"]
 
-        do_objection = polarity_type == "negative" and polarity_confidence > 0.5 and not self.has_done_objection
+        do_objection = (
+            polarity_type == "negative"
+            and polarity_confidence > 0.5
+            and not self.has_done_objection
+        )
         go_to_tense_music = do_objection and not self.has_gone_to_tense_music
         # Stuff at beginning of text box
         all_pages: list[DialoguePage] = []
