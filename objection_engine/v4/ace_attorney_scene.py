@@ -48,8 +48,26 @@ try:
 except:
     pass
 
+
+# Distance between the benches and witness stand
+FG_PARALLAX = 155
+
+# Width of the foreground determined by the parallax amount
+FG_WIDTH = 256 + FG_PARALLAX + 192 + FG_PARALLAX + 256
+
+# Left anchored, so left X should always just be zero
+FG_LEFT_X = 0
+
+# For right bench, the X should be offset by the width (so that the right-hand
+# side is aligned to the right of the background)
+FG_RIGHT_X = 1296 - (FG_WIDTH)
+
+# For center, start at the middle then move half the width of the foreground
+FG_CENTER_X = (1296 / 2) - (FG_WIDTH / 2)
+
 SENTIMENT_MODEL_PATH = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
 
+# Maximum allowed width of a line of text
 MAX_WIDTH = 220
 
 # Thanks so much to Smash Highlights on Discord for generating this LUT!
@@ -492,21 +510,21 @@ class AceAttorneyDirector(Director):
             filepath=join(ASSETS_FOLDER, "fg", "pr_bench.png"),
         )
 
-        self.right_bench = ImageObject(
-            parent=self.foreground,
-            name="Right Bench",
-            pos=(644, 0, 2),
-            flip_x=True,
-            filepath=join(ASSETS_FOLDER, "fg", "pr_bench.png"),
-        )
-
         self.witness_stand = ImageObject(
             parent=self.foreground,
             name="Witness Stand",
-            pos=(353, 0, 2),
+            pos=(256 + FG_PARALLAX, 0, 2),
             width=192,
             height=192,
             filepath=join(ASSETS_FOLDER, "fg", "witness_stand.png"),
+        )
+
+        self.right_bench = ImageObject(
+            parent=self.foreground,
+            name="Right Bench",
+            pos=(256 + FG_PARALLAX + 192 + FG_PARALLAX, 0, 2),
+            flip_x=True,
+            filepath=join(ASSETS_FOLDER, "fg", "pr_bench.png"),
         )
 
         self.phoenix = ImageObject(
@@ -815,7 +833,7 @@ class AceAttorneyDirector(Director):
 
         self.sequencer.run_action(
             MoveSceneObjectAction(
-                target_value=(396, 0),
+                target_value=(FG_RIGHT_X, 0),
                 duration=0.5,
                 scene_object=self.foreground,
                 ease_function=courtroom_pan_lut_ease,
@@ -834,7 +852,7 @@ class AceAttorneyDirector(Director):
 
         self.sequencer.run_action(
             MoveSceneObjectAction(
-                target_value=(0, 0),
+                target_value=(FG_LEFT_X, 0),
                 duration=0.5,
                 scene_object=self.foreground,
                 ease_function=courtroom_pan_lut_ease,
@@ -853,7 +871,7 @@ class AceAttorneyDirector(Director):
 
         self.sequencer.run_action(
             MoveSceneObjectAction(
-                target_value=(198, 0),
+                target_value=(FG_CENTER_X, 0),
                 duration=0.5,
                 scene_object=self.foreground,
                 ease_function=courtroom_pan_lut_ease,
@@ -863,17 +881,17 @@ class AceAttorneyDirector(Director):
     def cut_to_left(self):
         self.world_root.set_x(0)
         self.world_root.set_y(0)
-        self.foreground.set_x(0)
+        self.foreground.set_x(FG_LEFT_X)
 
     def cut_to_right(self):
         self.world_root.set_x(-1296 + 256)
         self.world_root.set_y(0)
-        self.foreground.set_x(396)
+        self.foreground.set_x(FG_RIGHT_X)
 
     def cut_to_center(self):
         self.world_root.set_x(-(1296 / 2) + (256 / 2))
         self.world_root.set_y(0)
-        self.foreground.set_x(198)
+        self.foreground.set_x(FG_CENTER_X)
 
     def cut_to_judge(self):
         self.world_root.set_x(0)
