@@ -90,6 +90,7 @@ def load_character_data() -> dict:
         neutral_sprites = raw_sprites.get("neutral", [])
         positive_sprites = raw_sprites.get("positive", [])
         negative_sprites = raw_sprites.get("negative", [])
+        spoiler_sprites = raw_sprites.get("spoiler", [])
 
         all_expected_sprites = []
         all_expected_sprites.extend(s for s in neutral_sprites)
@@ -154,6 +155,8 @@ def load_character_data() -> dict:
                 positive_sprites.remove(sprite_to_remove)
             while sprite_to_remove in negative_sprites:
                 negative_sprites.remove(sprite_to_remove)
+            while sprite_to_remove in spoiler_sprites:
+                spoiler_sprites.remove(sprite_to_remove)
 
         # If the positive or negative lists are now empty, give them
         # the neutral sprites (and vice versa)

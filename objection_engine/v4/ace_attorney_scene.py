@@ -74,6 +74,7 @@ FG_CENTER_X = (1296 / 2) - (FG_WIDTH / 2)
 ### PAN PROBABILITY
 PAN_PROBABILITY_STEEPNESS = 10.0
 
+
 def pan_probability(x: float) -> float:
     return 1.0 / (
         1 + exp(-PAN_PROBABILITY_STEEPNESS * x + PAN_PROBABILITY_STEEPNESS / 2.0)
@@ -1264,13 +1265,18 @@ class DialogueBoxBuilder:
         music_code: str = "pwr",
         assigned_characters: dict = None,
         adult_mode: bool = False,
+        avoid_spoiler_sprites: bool = False,
     ):
+        self.avoid_spoiler_sprites = avoid_spoiler_sprites
+
         # Do character check
         counter = Counter()
         for comment in comments:
             counter.update({comment.effective_user_id: 1})
         users_to_characters = self.get_characters_for_users(
-            counter, assigned_characters=assigned_characters, adult_mode=adult_mode
+            counter,
+            assigned_characters=assigned_characters,
+            adult_mode=adult_mode,
         )
 
         if "on_characters_cast" in self.callbacks:
@@ -1315,7 +1321,15 @@ class DialogueBoxBuilder:
             sprite_cat = sentiment.get("label", "neutral")
         except IndexError:
             sprite_cat = "neutral"
-        self.current_character_animation = choice(sprites[sprite_cat])
+
+        self.current_character_animation = choice(
+            [
+                s
+                for s in sprites[sprite_cat]
+                if not self.avoid_spoiler_sprites
+                or (self.avoid_spoiler_sprites and s not in sprites["spoiler"])
+            ]
+        )
 
     def get_boxes_with_pauses(
         self, user_name: str, character: str, text: str, evidence_path: str = None
@@ -1500,9 +1514,16 @@ class DialogueBoxBuilder:
         music_code: str = "pwr",
         assigned_characters: dict = None,
         adult_mode: bool = False,
+        avoid_spoiler_sprites: bool = False,
         volume: int = -15,
     ):
-        self.build_from_comments(comments, music_code, assigned_characters, adult_mode)
+        self.build_from_comments(
+            comments,
+            music_code=music_code,
+            assigned_characters=assigned_characters,
+            adult_mode=adult_mode,
+            avoid_spoiler_sprites=avoid_spoiler_sprites,
+        )
         director = AceAttorneyDirector(callbacks=self.callbacks)
         director.set_current_pages(self.pages)
         director.render_movie(volume)
