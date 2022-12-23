@@ -1390,10 +1390,12 @@ class DialogueBoxBuilder:
                 ]
             )
 
-            try:
-                pos_tags = sentence.pos_tags
-            except ValueError:
-                pos_tags = [(word, None) for word in sentence.words]
+            # try:
+            #     pos_tags = sentence.pos_tags
+            # except ValueError:
+            #     pos_tags = [(word, None) for word in sentence.words]
+
+            pos_tags = [(word, None) for word in sentence.split()]
 
             for word_index, (word, pos) in enumerate(pos_tags):
                 word_width = get_text_width(word, font=best_font)
@@ -1431,8 +1433,8 @@ class DialogueBoxBuilder:
                 current_page.commands.append(DialogueTextChunk(word, tags))
                 current_line_width += word_width
 
-                # If the current word is punctuation, then add a very short pause
-                if word in ",-":
+                # If the current word is punctuation (not sentence end), then add a very short pause
+                if word[-1] in ",-":
                     current_page.commands.extend(
                         [
                             DialogueAction(f"stopblip", 0),
@@ -1449,14 +1451,11 @@ class DialogueBoxBuilder:
                         ]
                     )
 
-                # If the next word is not punctuation, then add a space
-                try:
-                    next_word = sentence.words[word_index + 1]
-                    if next_word not in punctuation:
-                        current_page.commands.append(DialogueTextChunk(" ", []))
-                        current_line_width += space_width
-                except IndexError:
-                    pass
+                # If the next word is not the last word in the sentence, then
+                # add a space after it
+                if word_index != len(sentence.words) - 1:
+                    current_page.commands.append(DialogueTextChunk(" ", []))
+                    current_line_width += space_width
 
             sentences_in_this_box += 1
             if sentences_in_this_box < 2:
@@ -1464,7 +1463,7 @@ class DialogueBoxBuilder:
                 current_page.commands.extend(
                     [
                         DialogueAction(f"stopblip", 0),
-                        DialogueTextChunk(" ", []),
+                        # DialogueTextChunk(" ", []),
                         DialogueAction(
                             f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
                             0,
