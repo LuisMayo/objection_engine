@@ -1087,7 +1087,7 @@ class DialogueBoxBuilder:
                 move_cam_actions.extend(
                     [
                         DialogueAction("hidebox", 0),
-                        DialogueAction("wait 0.5", 0),
+                        DialogueAction("wait 0.25", 0),
                         DialogueAction("hide center", 0),
                         DialogueAction(f"pan {location}", 0),
                         DialogueAction(
@@ -1111,7 +1111,7 @@ class DialogueBoxBuilder:
                 move_cam_actions.extend(
                     [
                         DialogueAction("hidebox", 0),
-                        DialogueAction("wait 0.5", 0),
+                        DialogueAction("wait 0.25", 0),
                         DialogueAction(f"pan {location}", 0),
                         DialogueAction(
                             f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
@@ -1133,7 +1133,7 @@ class DialogueBoxBuilder:
                 move_cam_actions.extend(
                     [
                         DialogueAction("hidebox", 0),
-                        DialogueAction("wait 0.5", 0),
+                        DialogueAction("wait 0.25", 0),
                         DialogueAction(f"pan {location}", 0),
                         DialogueAction(
                             f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
@@ -1311,7 +1311,6 @@ class DialogueBoxBuilder:
 
     def update_pose_for_sentence(self, sentence: Sentence, sprites: list[str]):
         sentiment: dict = self.get_sentiment(sentence.raw)[0]
-        print("Sentiment for", sentence, sentiment)
         try:
             sprite_cat = sentiment.get("label", "neutral")
         except IndexError:

@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageFile
 import ffmpeg
 from .math_helpers import lerp
 from typing import Callable, Union
@@ -7,18 +7,26 @@ from os import mkdir, remove
 from shutil import rmtree
 from pydub import AudioSegment
 
+# NOTE: This fixes a weird issue
+# (https://github.com/Meorge/objection_engine/issues/1)
+# HOWEVER according to StackOverflow it might also cause some images to
+# be black. So, if you're trying to load images and that happens, maybe that's
+# why???
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
+
 class Scene:
     w: int = 0
     h: int = 0
-    __root: 'SceneObject' = None
+    __root: "SceneObject" = None
 
-    def __init__(self, w: int = 0, h: int = 0, root: 'SceneObject' = None):
+    def __init__(self, w: int = 0, h: int = 0, root: "SceneObject" = None):
         self.w = w
         self.h = h
         self.__done = False
         self.set_root(root)
 
-    def set_root(self, root: 'SceneObject'):
+    def set_root(self, root: "SceneObject"):
         if self.__root is not None:
             self.__root.__parent = None
         self.__root = root
@@ -29,7 +37,9 @@ class Scene:
         img = Image.new("RGBA", (self.w, self.h))
         ctx = ImageDraw.ImageDraw(img)
 
-        all_objects: list[SceneObject] = sorted(self.__root.get_self_and_children_as_flat_list(), key=lambda obj: obj.z)
+        all_objects: list[SceneObject] = sorted(
+            self.__root.get_self_and_children_as_flat_list(), key=lambda obj: obj.z
+        )
 
         for object in all_objects:
             if object.get_absolute_visibility():
@@ -50,16 +60,22 @@ class Scene:
     def receive_message(self, data):
         ...
 
+
 class SceneObject:
     x: int = 0
     y: int = 0
     z: int = 0
     name: str = ""
     visible: bool = True
-    __children: list['SceneObject'] = []
-    __parent: Union['SceneObject', Scene] = None
+    __children: list["SceneObject"] = []
+    __parent: Union["SceneObject", Scene] = None
 
-    def __init__(self, parent: 'SceneObject' = None, name: str = "", pos: tuple[int, int, int] = (0,0,0)):
+    def __init__(
+        self,
+        parent: "SceneObject" = None,
+        name: str = "",
+        pos: tuple[int, int, int] = (0, 0, 0),
+    ):
         self.x, self.y, self.z = pos
         self.name = name
         self.__children = []
@@ -71,7 +87,7 @@ class SceneObject:
             parent.add_child(self)
 
     def __repr__(self) -> str:
-        return type(self).__name__ + f" \"{self.name}\" ({self.x}, {self.y}, {self.z})"
+        return type(self).__name__ + f' "{self.name}" ({self.x}, {self.y}, {self.z})'
 
     def render(self, img: Image.Image, ctx: ImageDraw.ImageDraw):
         pass
@@ -100,7 +116,7 @@ class SceneObject:
     def make_root(self, scene: Scene):
         self.__parent = scene
 
-    def add_child(self, new_child: 'SceneObject'):
+    def add_child(self, new_child: "SceneObject"):
         self.__children.append(new_child)
         if new_child.__parent is not None:
             new_child.__parent.__children.remove(new_child)
@@ -139,16 +155,18 @@ class SceneObject:
         self.__internal_print_hierarchy(0)
 
     def __internal_print_hierarchy(self, i: int = 0):
-        print(('\t' * i) + str(self))
+        print(("\t" * i) + str(self))
         for child in self.__children:
-            child.__internal_print_hierarchy(i+1)
+            child.__internal_print_hierarchy(i + 1)
 
-    def get_self_and_children_as_flat_list(self) -> list['SceneObject']:
-        nodes: list['SceneObject'] = []
+    def get_self_and_children_as_flat_list(self) -> list["SceneObject"]:
+        nodes: list["SceneObject"] = []
+
         def f(c):
             for ch in c.__children:
                 nodes.append(ch)
                 f(ch)
+
         f(self)
         return nodes
 
@@ -158,7 +176,10 @@ class SceneObject:
         elif isinstance(self.__parent, Scene):
             self.__parent.receive_message(data)
         else:
-            print(f"Error in emit_audio - parent of {self} is type {type(self.__parent)}")
+            print(
+                f"Error in emit_audio - parent of {self} is type {type(self.__parent)}"
+            )
+
 
 class ImageObject(SceneObject):
     filepath: str = ""
@@ -172,12 +193,17 @@ class ImageObject(SceneObject):
     current_frame: Image = None
     callbacks: dict = {}
 
-    def __init__(self, parent: 'SceneObject' = None, name: str = "", pos: tuple[int, int, int] = (0, 0, 0), \
+    def __init__(
+        self,
+        parent: "SceneObject" = None,
+        name: str = "",
+        pos: tuple[int, int, int] = (0, 0, 0),
         width: int = None,
         height: int = None,
         flip_x: bool = False,
         flip_y: bool = False,
-        filepath: str = None):
+        filepath: str = None,
+    ):
         super().__init__(parent, name, pos)
         self.width = width
         self.height = height
@@ -201,7 +227,6 @@ class ImageObject(SceneObject):
             self.image_data = None
             return
         with Image.open(self.filepath) as my_img:
-            
             try:
                 is_animated = my_img.is_animated
             except AttributeError:
@@ -212,14 +237,11 @@ class ImageObject(SceneObject):
                 time_so_far = 0.0
                 for frame_no in range(my_img.n_frames):
                     my_img.seek(frame_no)
-                    time_so_far += my_img.info['duration'] / 1000
-                    self.image_data.append((
-                        my_img.convert('RGBA'),
-                        time_so_far
-                    ))
+                    time_so_far += my_img.info["duration"] / 1000
+                    self.image_data.append((my_img.convert("RGBA"), time_so_far))
                 self.image_duration = time_so_far
             else:
-                self.image_data = my_img.convert('RGBA')
+                self.image_data = my_img.convert("RGBA")
                 self.image_duration = None
 
     def get_current_frame(self) -> Image.Image:
@@ -246,7 +268,7 @@ class ImageObject(SceneObject):
             h = current_frame.height if self.height is None else self.height
             resized = current_frame.resize((w, h))
 
-        # If this image is entirely off-screen we don't need to render it! 
+        # If this image is entirely off-screen we don't need to render it!
         left = x
         right = x + w
         top = y
@@ -256,8 +278,13 @@ class ImageObject(SceneObject):
         scene_right = self.get_scene().w
         scene_top = 0
         scene_bottom = self.get_scene().h
-        
-        if (right < scene_left) or (left > scene_right) or (bottom < scene_top) or (top > scene_bottom):
+
+        if (
+            (right < scene_left)
+            or (left > scene_right)
+            or (bottom < scene_top)
+            or (top > scene_bottom)
+        ):
             return
 
         # Flip images if necessary
@@ -266,14 +293,19 @@ class ImageObject(SceneObject):
         if self.flip_y:
             resized = ImageOps.flip(resized)
 
-
-        
         img.alpha_composite(resized, box)
         # img.paste(resized, box, mask=resized)
 
+
 class SimpleTextObject(SceneObject):
-    def __init__(self, parent: 'SceneObject' = None, name: str = "", pos: tuple[int, int, int] = (0,0,0), \
-        text: str = "", font: ImageFont.FreeTypeFont = None):
+    def __init__(
+        self,
+        parent: "SceneObject" = None,
+        name: str = "",
+        pos: tuple[int, int, int] = (0, 0, 0),
+        text: str = "",
+        font: ImageFont.FreeTypeFont = None,
+    ):
         super().__init__(parent, name, pos)
         self.text = text
         self.font = font
@@ -285,20 +317,17 @@ class SimpleTextObject(SceneObject):
     def render(self, img: Image.Image, ctx: ImageDraw.ImageDraw):
         x, y, _ = self.get_absolute_position()
 
-        args = {
-            "xy": (x,y),
-            "text": self.text,
-            "fill": (255,255,255)
-        }
+        args = {"xy": (x, y), "text": self.text, "fill": (255, 255, 255)}
 
         if self.font is not None:
             args["font"] = self.font
         ctx.text(**args)
 
-class Sequencer:
-    actions: list['SequenceAction'] = []
 
-    def run_action(self, action: 'SequenceAction'):
+class Sequencer:
+    actions: list["SequenceAction"] = []
+
+    def run_action(self, action: "SequenceAction"):
         self.actions.append(action)
         action.sequencer = self
 
@@ -306,7 +335,7 @@ class Sequencer:
         self.actions = [action for action in self.actions if not action.completed]
         for action in self.actions:
             action.update(delta)
-            
+
 
 class SequenceAction:
     sequencer: Sequencer
@@ -318,10 +347,11 @@ class SequenceAction:
     def update(self, delta):
         ...
 
+
 class MoveSceneObjectAction(SequenceAction):
-    target_value: tuple[int, int] = (0,0)
+    target_value: tuple[int, int] = (0, 0)
     duration: float = 0.0
-    
+
     scene_object: SceneObject = None
     ease_function = lambda _, x: x
 
@@ -330,11 +360,14 @@ class MoveSceneObjectAction(SequenceAction):
     time_passed: float = 0.0
     current_value: float = 0
 
-    def __init__(self, target_value: tuple[int, int],
+    def __init__(
+        self,
+        target_value: tuple[int, int],
         duration: float,
         scene_object: SceneObject = None,
         ease_function: Callable[[float], float] = None,
-        on_complete_function: Callable[[], None] = None):
+        on_complete_function: Callable[[], None] = None,
+    ):
         self.target_value = target_value
         self.duration = duration
         self.scene_object = scene_object
@@ -345,20 +378,25 @@ class MoveSceneObjectAction(SequenceAction):
     def update(self, delta):
         if self.time_passed == 0:
             self.initial_value = (self.scene_object.x, self.scene_object.y)
-        
+
         self.time_passed += delta
         percent_complete = self.time_passed / self.duration
 
         percent_complete_eased = self.ease_function(percent_complete)
-        new_x = lerp(self.initial_value[0], self.target_value[0], percent_complete_eased)
-        new_y = lerp(self.initial_value[1], self.target_value[1], percent_complete_eased)
+        new_x = lerp(
+            self.initial_value[0], self.target_value[0], percent_complete_eased
+        )
+        new_y = lerp(
+            self.initial_value[1], self.target_value[1], percent_complete_eased
+        )
         self.scene_object.set_x(new_x)
         self.scene_object.set_y(new_y)
-        
+
         if percent_complete_eased >= 1.0 and not self.completed:
             self.completed = True
             if self.on_complete is not None:
                 self.on_complete()
+
 
 class Director:
     def __init__(self, scene: Scene = None, fps: float = 30, callbacks: dict = None):
@@ -372,7 +410,9 @@ class Director:
     def update(self, delta: float):
         ...
 
-    def render_audio(self, overall_duration, output_location, volume_adjustment: float = 0.0):
+    def render_audio(
+        self, overall_duration, output_location, volume_adjustment: float = 0.0
+    ):
         duration_ms = int(overall_duration * 1000)
         base_track = AudioSegment.silent(duration=duration_ms)
 
@@ -384,7 +424,9 @@ class Director:
             end_time = audio.get("end", duration_ms)
 
             # Segment with silence afterwards
-            new_segment = AudioSegment.from_file(path) + AudioSegment.silent(duration=loop_delay)
+            new_segment = AudioSegment.from_file(path) + AudioSegment.silent(
+                duration=loop_delay
+            )
 
             # The segment should be this long
             duration_of_total_segment = int(end_time * 1000) - offset
@@ -405,7 +447,9 @@ class Director:
                 base_track = base_track.overlay(looped_segment, offset)
 
             if "on_audio_composite_progress" in self.callbacks:
-                self.callbacks["on_audio_composite_progress"](i, len(self.audio_commands), audio)
+                self.callbacks["on_audio_composite_progress"](
+                    i, len(self.audio_commands), audio
+                )
 
         base_track += volume_adjustment
         base_track.export(f"{output_location}.mp3", bitrate="312k")
@@ -425,12 +469,20 @@ class Director:
             frame += 1
 
         self.render_audio(frame * (1 / self.fps), temp_folder_name, volume_adjustment)
-            
-        video_stream = ffmpeg.input(f"{temp_folder_name}/*.png", pattern_type="glob", framerate=self.fps)
+
+        video_stream = ffmpeg.input(
+            f"{temp_folder_name}/*.png", pattern_type="glob", framerate=self.fps
+        )
         audio_stream = ffmpeg.input(f"{temp_folder_name}.mp3")
 
         stream = ffmpeg.concat(video_stream, audio_stream, v=1, a=1)
-        stream = ffmpeg.output(stream, f"{temp_folder_name}.mp4", vcodec='h264', acodec='aac', pix_fmt='yuv420p')
+        stream = ffmpeg.output(
+            stream,
+            f"{temp_folder_name}.mp4",
+            vcodec="h264",
+            acodec="aac",
+            pix_fmt="yuv420p",
+        )
         stream = ffmpeg.overwrite_output(stream)
 
         if "on_ffmpeg_started" in self.callbacks:
