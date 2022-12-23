@@ -1,4 +1,5 @@
 from email.utils import localtime
+from math import exp
 from string import punctuation
 from collections import Counter
 from random import choice
@@ -49,21 +50,35 @@ except:
     pass
 
 
-# Distance between the benches and witness stand
+### PARALLAX EFFECT
+# Distance between the benches and witness stand.
 FG_PARALLAX = 155
 
-# Width of the foreground determined by the parallax amount
+# Width of the foreground determined by the parallax amount.
+# DO NOT MODIFY!
 FG_WIDTH = 256 + FG_PARALLAX + 192 + FG_PARALLAX + 256
 
 # Left anchored, so left X should always just be zero
+# DO NOT MODIFY!
 FG_LEFT_X = 0
 
 # For right bench, the X should be offset by the width (so that the right-hand
 # side is aligned to the right of the background)
+# DO NOT MODIFY!
 FG_RIGHT_X = 1296 - (FG_WIDTH)
 
 # For center, start at the middle then move half the width of the foreground
+# DO NOT MODIFY!
 FG_CENTER_X = (1296 / 2) - (FG_WIDTH / 2)
+
+### PAN PROBABILITY
+PAN_PROBABILITY_STEEPNESS = 10.0
+
+def pan_probability(x: float) -> float:
+    return 1.0 / (
+        1 + exp(-PAN_PROBABILITY_STEEPNESS * x + PAN_PROBABILITY_STEEPNESS / 2.0)
+    )
+
 
 SENTIMENT_MODEL_PATH = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
 
@@ -997,6 +1012,9 @@ class DialogueBoxBuilder:
         self.current_character_animation: str = None
         self.previous_character_name: str = None
 
+        #
+        self.pan_probability_in: float = 1.0
+
         self.has_gone_to_tense_music: bool = False
         self.callbacks = {} if callbacks is None else callbacks
 
@@ -1051,23 +1069,26 @@ class DialogueBoxBuilder:
             .get("location", None)
         )
         pannable_locations = ["left", "center", "right"]
-
-        PAN_TIME = 0.5
-        SWITCH_SPRITE_TIME = 0.18
-        move_cam_actions = []
-        if (
+        can_pan = (
             (location in pannable_locations)
             and (previous_location in pannable_locations)
             and (location != previous_location)
-        ):
-            panning_across_whole_courtroom = (location == "left" and previous_location == "right") or (location == "right" and previous_location == "left")
+        )
+        PAN_TIME = 0.5
+        SWITCH_SPRITE_TIME = 0.18
+        move_cam_actions = []
+        if can_pan and random() < pan_probability(self.pan_probability_in):
+            self.pan_probability_in -= 0.5
+            panning_across_whole_courtroom = (
+                location == "left" and previous_location == "right"
+            ) or (location == "right" and previous_location == "left")
 
             if panning_across_whole_courtroom:
                 move_cam_actions.extend(
                     [
                         DialogueAction("hidebox", 0),
                         DialogueAction("wait 0.5", 0),
-                        DialogueAction("hide center", 0) ,
+                        DialogueAction("hide center", 0),
                         DialogueAction(f"pan {location}", 0),
                         DialogueAction(
                             f"sprite {location} {get_sprite_location(self.current_character_name, f'{self.current_character_animation}-idle')}",
@@ -1080,7 +1101,6 @@ class DialogueBoxBuilder:
                         DialogueAction("show left", 0),
                         DialogueAction("show right", 0),
                         DialogueAction("wait 0.1", 0),
-
                         DialogueAction(f"wait 0.1", 0),
                         DialogueAction("show center", 0),
                     ]
@@ -1130,6 +1150,11 @@ class DialogueBoxBuilder:
                 )
 
         else:
+            if location == previous_location:
+                self.pan_probability_in += 0.2
+            else:
+                self.pan_probability_in += 0.1
+
             move_cam_actions.extend(
                 [
                     DialogueAction(
