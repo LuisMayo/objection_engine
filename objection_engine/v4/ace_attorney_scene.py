@@ -1155,6 +1155,10 @@ class DialogueBoxBuilder:
             else:
                 self.pan_probability_in += 0.1
 
+            # Prevents one person talking a bunch at the beginning
+            # from making it pan constantly later on
+            self.pan_probability_in = min(self.pan_probability_in, 1.0)
+
             move_cam_actions.extend(
                 [
                     DialogueAction(
