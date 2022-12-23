@@ -31,7 +31,7 @@ You can use either pip
 ``` bash
 python -m pip install .
 ```
-Or poerty
+Or poetry
 ``` bash
 poetry install
 ```
@@ -43,13 +43,6 @@ poetry install
 
 ```bash
 python3 -m pip install pyICU pycld2 morfessor polyglot
-```
-
-Polyglot dependencies:
-```
-python3 -m polyglot download TASK:sentiment2
-python3 -m polyglot download TASK:embeddings2
-python3 -m polyglot download TASK:pos2
 ```
 
 Check the exmaple

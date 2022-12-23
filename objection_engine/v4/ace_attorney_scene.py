@@ -1341,7 +1341,7 @@ class DialogueBoxBuilder:
         sprites = this_char_data["sprites"]
 
         # Split text into sentences
-        pg_text = Text(text, hint_language_code="en")
+        pg_text = Text(text)
         sentences: list[Sentence] = pg_text.sentences
 
         # Determine if this should have an objection
