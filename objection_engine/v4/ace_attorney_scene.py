@@ -466,6 +466,8 @@ class AceAttorneyDirector(Director):
             parent=self.judge_shot,
             name="Judge",
             pos=(0, 0, 1),
+            width=256,
+            height=192,
         )
 
         self.phoenix_action_lines_shot = SceneObject(
@@ -485,6 +487,8 @@ class AceAttorneyDirector(Director):
             parent=self.phoenix_action_lines_shot,
             name="Phoenix Action Lines Character",
             pos=(0, 0, 1),
+            width=256,
+            height=192,
         )
 
         self.edgeworth_action_lines_shot = SceneObject(
@@ -505,6 +509,8 @@ class AceAttorneyDirector(Director):
             parent=self.edgeworth_action_lines_shot,
             name="Edgeworth Action Lines Character",
             pos=(0, 0, 1),
+            width=256,
+            height=192,
         )
 
         self.wide_courtroom = ImageObject(
@@ -547,18 +553,24 @@ class AceAttorneyDirector(Director):
             parent=self.left_bench,
             name="Left Character",
             pos=(0, 0, 1),
+            width=256,
+            height=192,
         )
 
         self.edgeworth = ImageObject(
             parent=self.right_bench,
             name="Right Character",
             pos=(0, 0, 1),
+            width=256,
+            height=192,
         )
 
         self.witness = ImageObject(
             parent=self.witness_stand,
             name="Witness",
             pos=(-31, 0, 1),
+            width=256,
+            height=192,
         )
 
         self.textbox_shaker = ShakerObject(
