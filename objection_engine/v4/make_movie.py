@@ -119,8 +119,10 @@ def render_comment_list(
         builder = DialogueBoxBuilder(callbacks=callbacks)
         builder.render(
             comment_list,
+            output_filename=output_filename,
             music_code=music_code,
             assigned_characters=assigned_characters,
             adult_mode=adult_mode,
             avoid_spoiler_sprites=avoid_spoiler_sprites,
+            resolution_scale=resolution_scale
         )

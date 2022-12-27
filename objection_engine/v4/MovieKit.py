@@ -16,14 +16,21 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class Scene:
-    w: int = 0
-    h: int = 0
+    width: int = 0
+    height: int = 0
     __root: "SceneObject" = None
 
-    def __init__(self, w: int = 0, h: int = 0, root: "SceneObject" = None):
-        self.w = w
-        self.h = h
+    def __init__(
+        self,
+        width: int = 0,
+        height: int = 0,
+        resolution_scale: float = 1.0,
+        root: "SceneObject" = None,
+    ):
+        self.width = width
+        self.height = height
         self.__done = False
+        self.resolution_scale = resolution_scale
         self.set_root(root)
 
     def set_root(self, root: "SceneObject"):
@@ -34,7 +41,7 @@ class Scene:
             self.__root.make_root(self)
 
     def render(self, path: str):
-        img = Image.new("RGBA", (self.w, self.h))
+        img = Image.new("RGBA", (self.width, self.height))
         ctx = ImageDraw.ImageDraw(img)
 
         all_objects: list[SceneObject] = sorted(
@@ -45,6 +52,12 @@ class Scene:
             if object.get_absolute_visibility():
                 object.render(img, ctx)
 
+        if self.resolution_scale != 1.0:
+            img = img.resize(
+                (int(img.width * self.resolution_scale), int(img.height * self.resolution_scale)),
+                resample=Image.Resampling.NEAREST,
+            )
+            
         img.save(path)
 
     def update(self, delta: float):
@@ -275,9 +288,9 @@ class ImageObject(SceneObject):
         bottom = y + h
 
         scene_left = 0
-        scene_right = self.get_scene().w
+        scene_right = self.get_scene().width
         scene_top = 0
-        scene_bottom = self.get_scene().h
+        scene_bottom = self.get_scene().height
 
         if (
             (right < scene_left)
@@ -454,12 +467,20 @@ class Director:
         base_track += volume_adjustment
         base_track.export(f"{output_location}.mp3", bitrate="312k")
 
-    def render_movie(self, volume_adjustment: float = 0.0):
+    def render_movie(
+        self,
+        output_filename: str = None,
+        volume_adjustment: float = 0.0,
+        resolution_scale: float = 1.0,
+    ):
         self.time = 0.0
         self.is_done = False
         frame: int = 0
         temp_folder_name = f"output-{int(time())}"
+        output_filename = output_filename or temp_folder_name
         mkdir(temp_folder_name)
+
+        self.scene.resolution_scale = resolution_scale
         while not self.is_done:
             self.update(1 / self.fps)
             self.sequencer.update(1 / self.fps)
@@ -473,12 +494,13 @@ class Director:
         video_stream = ffmpeg.input(
             f"{temp_folder_name}/*.png", pattern_type="glob", framerate=self.fps
         )
+
         audio_stream = ffmpeg.input(f"{temp_folder_name}.mp3")
 
         stream = ffmpeg.concat(video_stream, audio_stream, v=1, a=1)
         stream = ffmpeg.output(
             stream,
-            f"{temp_folder_name}.mp4",
+            output_filename,
             vcodec="h264",
             acodec="aac",
             pix_fmt="yuv420p",

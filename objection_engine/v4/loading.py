@@ -7,9 +7,6 @@ from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 from rich import print
-from rich.traceback import install
-
-install(show_locals=False)
 
 ASSETS_FOLDER = "assets_v4"
 CHARACTERS_FOLDER = "characters"

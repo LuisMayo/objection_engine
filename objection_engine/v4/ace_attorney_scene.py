@@ -583,7 +583,7 @@ class AceAttorneyDirector(Director):
 
         self.evidence = EvidenceObject(parent=self.textbox_shaker, director=self)
 
-        self.scene = Scene(256, 192, self.root)
+        self.scene = Scene(width=256, height=192, root=self.root)
 
         if "on_director_initialized" in self.callbacks:
             self.callbacks["on_director_initialized"]()
@@ -1523,11 +1523,13 @@ class DialogueBoxBuilder:
     def render(
         self,
         comments: list[Comment],
+        output_filename: str = None,
         music_code: str = "pwr",
         assigned_characters: dict = None,
         adult_mode: bool = False,
         avoid_spoiler_sprites: bool = False,
         volume: int = -15,
+        resolution_scale: float = 1.0,
     ):
         self.build_from_comments(
             comments,
@@ -1538,4 +1540,8 @@ class DialogueBoxBuilder:
         )
         director = AceAttorneyDirector(callbacks=self.callbacks)
         director.set_current_pages(self.pages)
-        director.render_movie(volume)
+        director.render_movie(
+            output_filename=output_filename,
+            volume_adjustment=volume,
+            resolution_scale=resolution_scale,
+        )

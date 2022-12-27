@@ -1,5 +1,6 @@
 from objection_engine.v4.make_movie import render_comment_list
 from objection_engine.beans.comment import Comment
+from time import time
 
 comments = [
     Comment(
@@ -40,4 +41,4 @@ comments = [
         text_content="And last but not least, it's Phoenix again.",
     ),
 ]
-render_comment_list(comments)
+render_comment_list(comments, output_filename=f"output-{int(time())}.mp4", resolution_scale=2.0)
