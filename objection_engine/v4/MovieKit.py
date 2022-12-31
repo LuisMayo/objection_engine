@@ -3,9 +3,11 @@ import ffmpeg
 from .math_helpers import lerp
 from typing import Callable, Union
 from time import time, sleep
-from os import mkdir, remove
+from os import mkdir, remove, getenv
 from shutil import rmtree
 from pydub import AudioSegment
+import cv2
+import numpy as np
 
 # NOTE: This fixes a weird issue
 # (https://github.com/Meorge/objection_engine/issues/1)
@@ -40,7 +42,7 @@ class Scene:
         if self.__root is not None:
             self.__root.make_root(self)
 
-    def render(self, path: str):
+    def render(self, video_writer: cv2.VideoWriter):
         img = Image.new("RGBA", (self.width, self.height))
         ctx = ImageDraw.ImageDraw(img)
 
@@ -58,7 +60,9 @@ class Scene:
                 resample=Image.Resampling.NEAREST,
             )
             
-        img.save(path)
+        cv2_frame = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+        video_writer.write(cv2_frame)
+        # img.save(path, compression_level=1)
 
     def update(self, delta: float):
         for object in self.__root.get_self_and_children_as_flat_list():
@@ -465,7 +469,7 @@ class Director:
                 )
 
         base_track += volume_adjustment
-        base_track.export(f"{output_location}.mp3", bitrate="312k")
+        base_track.export(output_location, bitrate="312k")
 
     def render_movie(
         self,
@@ -476,26 +480,35 @@ class Director:
         self.time = 0.0
         self.is_done = False
         frame: int = 0
-        temp_folder_name = f"output-{int(time())}"
-        output_filename = output_filename or temp_folder_name
-        mkdir(temp_folder_name)
+        temp_base_name = f"output-{int(time())}"
+        temp_video_name = temp_base_name + "-video.mp4"
+        temp_audio_name = temp_base_name + "-audio.mp3"
+
+        output_filename = output_filename or temp_base_name
+
+        fourcc = cv2.VideoWriter_fourcc(*"h264") if getenv('OE_DIRECT_H264_ENCODING', 'false') == 'true' else cv2.VideoWriter_fourcc(*"mp4v")
+        video_writer = cv2.VideoWriter(
+            temp_video_name,
+            fourcc,
+            int(self.fps),
+            (self.scene.width, self.scene.height)
+            )
 
         self.scene.resolution_scale = resolution_scale
         while not self.is_done:
             self.update(1 / self.fps)
             self.sequencer.update(1 / self.fps)
             self.scene.update(1 / self.fps)
-            self.scene.render(f"{temp_folder_name}/{frame:010d}.png")
+            self.scene.render(video_writer)#(f"{temp_folder_name}/{frame:010d}.png")
             self.time += 1 / self.fps
             frame += 1
 
-        self.render_audio(frame * (1 / self.fps), temp_folder_name, volume_adjustment)
+        video_writer.release()
 
-        video_stream = ffmpeg.input(
-            f"{temp_folder_name}/*.png", pattern_type="glob", framerate=self.fps
-        )
+        self.render_audio(frame * (1 / self.fps), temp_audio_name, volume_adjustment)
 
-        audio_stream = ffmpeg.input(f"{temp_folder_name}.mp3")
+        video_stream = ffmpeg.input(temp_video_name)
+        audio_stream = ffmpeg.input(temp_audio_name)
 
         stream = ffmpeg.concat(video_stream, audio_stream, v=1, a=1)
         stream = ffmpeg.output(
@@ -516,5 +529,5 @@ class Director:
             self.callbacks["on_ffmpeg_finished"]()
 
         # Delete frames folder and audio track
-        remove(f"{temp_folder_name}.mp3")
-        rmtree(temp_folder_name)
+        remove(temp_audio_name)
+        remove(temp_video_name)
