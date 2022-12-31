@@ -274,12 +274,12 @@ class ImageObject(SceneObject):
         if isinstance(self.image_data, Image.Image):
             w = self.image_data.width if self.width is None else self.width
             h = self.image_data.height if self.height is None else self.height
-            resized = self.image_data.resize((w, h))
+            resized = self.image_data if (self.width is None and self.height is None) else self.image_data.resize((w, h))
         elif isinstance(self.image_data, list):
             current_frame = self.get_current_frame()
             w = current_frame.width if self.width is None else self.width
             h = current_frame.height if self.height is None else self.height
-            resized = current_frame.resize((w, h))
+            resized = current_frame if (self.width is None and self.height is None) else current_frame.resize((w, h))
 
         # If this image is entirely off-screen we don't need to render it!
         left = x
