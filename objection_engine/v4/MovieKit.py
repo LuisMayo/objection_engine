@@ -53,16 +53,12 @@ class Scene:
         for object in all_objects:
             if object.get_absolute_visibility():
                 object.render(img, ctx)
-
-        if self.resolution_scale != 1.0:
-            img = img.resize(
-                (int(img.width * self.resolution_scale), int(img.height * self.resolution_scale)),
-                resample=Image.Resampling.NEAREST,
-            )
             
         cv2_frame = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+
+        if (self.resolution_scale != 1.0):
+            cv2_frame = cv2.resize(cv2_frame, (0, 0), fx=self.resolution_scale, fy=self.resolution_scale, interpolation=cv2.INTER_NEAREST)
         video_writer.write(cv2_frame)
-        # img.save(path, compression_level=1)
 
     def update(self, delta: float):
         for object in self.__root.get_self_and_children_as_flat_list():
@@ -479,6 +475,8 @@ class Director:
     ):
         self.time = 0.0
         self.is_done = False
+        self.scene.resolution_scale = resolution_scale
+
         frame: int = 0
         temp_base_name = f"output-{int(time())}"
         temp_video_name = temp_base_name + "-video.mp4"
@@ -490,11 +488,12 @@ class Director:
         video_writer = cv2.VideoWriter(
             temp_video_name,
             fourcc,
-            int(self.fps),
-            (self.scene.width, self.scene.height)
+            self.fps,
+            (int(self.scene.width * resolution_scale), int(self.scene.height * resolution_scale))
             )
 
-        self.scene.resolution_scale = resolution_scale
+        print(f"Writing to {temp_video_name}")
+
         while not self.is_done:
             self.update(1 / self.fps)
             self.sequencer.update(1 / self.fps)
@@ -523,7 +522,7 @@ class Director:
         if "on_ffmpeg_started" in self.callbacks:
             self.callbacks["on_ffmpeg_started"]()
 
-        ffmpeg.run(stream, quiet=True)
+        ffmpeg.run(stream, capture_stderr=True, quiet=True)
 
         if "on_ffmpeg_finished" in self.callbacks:
             self.callbacks["on_ffmpeg_finished"]()
