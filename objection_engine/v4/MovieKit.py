@@ -53,11 +53,17 @@ class Scene:
         for object in all_objects:
             if object.get_absolute_visibility():
                 object.render(img, ctx)
-            
+
         cv2_frame = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 
-        if (self.resolution_scale != 1.0):
-            cv2_frame = cv2.resize(cv2_frame, (0, 0), fx=self.resolution_scale, fy=self.resolution_scale, interpolation=cv2.INTER_NEAREST)
+        if self.resolution_scale != 1.0:
+            cv2_frame = cv2.resize(
+                cv2_frame,
+                (0, 0),
+                fx=self.resolution_scale,
+                fy=self.resolution_scale,
+                interpolation=cv2.INTER_NEAREST,
+            )
         video_writer.write(cv2_frame)
 
     def update(self, delta: float):
@@ -198,8 +204,8 @@ class ImageObject(SceneObject):
     filepath: str = ""
     t: float = 0.0
 
-    width: int = None
-    height: int = None
+    _width: int = None
+    _height: int = None
 
     image_data: Union[Image.Image, list[tuple[Image.Image, float]]] = []
 
@@ -218,12 +224,80 @@ class ImageObject(SceneObject):
         filepath: str = None,
     ):
         super().__init__(parent, name, pos)
-        self.width = width
-        self.height = height
+        self._width = width
+        self._height = height
         self.flip_x = flip_x
         self.flip_y = flip_y
         self.current_frame = None
+        self.resized_image_data = None
         self.set_filepath(filepath)
+
+    @property
+    def width(self) -> int:
+        return self._width
+
+    @width.setter
+    def width(self, value: int):
+        self._width = value
+        self.update_image()
+
+    @property
+    def height(self) -> int:
+        return self._height
+
+    @height.setter
+    def height(self, value: int):
+        self._height = value
+        self.update_image()
+
+    def update_image(self):
+        """
+        Create the newly scaled version of the currently loaded image
+        or image sequence.
+
+        Note: Currently this is called whenever either the height or width
+        is changed. As a result, it might become inefficient if for whatever
+        reason, the user is doing a bunch of height/width changes within a
+        single update call.
+        """
+        self.resized_image_data = None
+        if self.image_data is None:
+            return
+
+        if isinstance(self.image_data, Image.Image):
+            self.resized_image_data: Image.Image
+            w = self.image_data.width if self._width is None else self._width
+            h = self.image_data.height if self._height is None else self._height
+            self.resized_image_data = (
+                self.image_data
+                if (self._width is None and self._height is None)
+                or (
+                    self._width == self.image_data.width
+                    and self._height == self.image_data.height
+                )
+                else self.image_data.resize((w, h))
+            )
+
+        elif isinstance(self.image_data, list):
+            self.resized_image_data = []
+            for img, max_time in self.image_data:
+                w = img.width if self._width is None else self._width
+                h = img.height if self._height is None else self._height
+
+                self.resized_image_data.append(
+                    (
+                        (
+                            img
+                            if (self._width is None and self._height is None)
+                            or (self._width == img.width and self._height == img.height)
+                            else img.resize((w, h))
+                        ),
+                        max_time,
+                    )
+                )
+
+        else:
+            print(f"self.image_data is of type {type(self.image_data)}, which isn't expected")
 
     def update(self, delta):
         t_before = self.t
@@ -238,6 +312,7 @@ class ImageObject(SceneObject):
         self.filepath = filepath
         if self.filepath is None:
             self.image_data = None
+            self.resized_image_data = None
             return
         with Image.open(self.filepath) as my_img:
             try:
@@ -257,29 +332,31 @@ class ImageObject(SceneObject):
                 self.image_data = my_img.convert("RGBA")
                 self.image_duration = None
 
+        self.update_image()
+
     def get_current_frame(self) -> Image.Image:
         t = self.t % self.image_duration
-        for image, max_time in self.image_data:
+        for image, max_time in self.resized_image_data:
             if max_time > t:
                 return image
         return None
 
     def render(self, img: Image.Image, ctx: ImageDraw.ImageDraw):
-        if self.image_data is None:
+        if self.resized_image_data is None:
             return
         x, y, _ = self.get_absolute_position()
         box = (x, y)
 
         # Resize image to expected bounds
-        if isinstance(self.image_data, Image.Image):
-            w = self.image_data.width if self.width is None else self.width
-            h = self.image_data.height if self.height is None else self.height
-            resized = self.image_data if (self.width is None and self.height is None) or (self.width == self.image_data.width and self.height == self.image_data.height) else self.image_data.resize((w, h))
-        elif isinstance(self.image_data, list):
+        if isinstance(self.resized_image_data, Image.Image):
+            w = self.resized_image_data.width if self._width is None else self._width
+            h = self.resized_image_data.height if self._height is None else self._height
+            to_render = self.resized_image_data
+        elif isinstance(self.resized_image_data, list):
             current_frame = self.get_current_frame()
-            w = current_frame.width if self.width is None else self.width
-            h = current_frame.height if self.height is None else self.height
-            resized = current_frame if (self.width is None and self.height is None) or (self.width == current_frame.width and self.height == current_frame.height) else current_frame.resize((w, h))
+            w = current_frame.width if self._width is None else self._width
+            h = current_frame.height if self._height is None else self._height
+            to_render = current_frame
 
         # If this image is entirely off-screen we don't need to render it!
         left = x
@@ -302,11 +379,11 @@ class ImageObject(SceneObject):
 
         # Flip images if necessary
         if self.flip_x:
-            resized = ImageOps.mirror(resized)
+            to_render = ImageOps.mirror(to_render)
         if self.flip_y:
-            resized = ImageOps.flip(resized)
+            to_render = ImageOps.flip(to_render)
 
-        img.alpha_composite(resized, box)
+        img.alpha_composite(to_render, box)
         # img.paste(resized, box, mask=resized)
 
 
@@ -484,21 +561,26 @@ class Director:
 
         output_filename = output_filename or temp_base_name
 
-        fourcc = cv2.VideoWriter_fourcc(*"h264") if getenv('OE_DIRECT_H264_ENCODING', 'false') == 'true' else cv2.VideoWriter_fourcc(*"mp4v")
+        fourcc = (
+            cv2.VideoWriter_fourcc(*"h264")
+            if getenv("OE_DIRECT_H264_ENCODING", "false") == "true"
+            else cv2.VideoWriter_fourcc(*"mp4v")
+        )
         video_writer = cv2.VideoWriter(
             temp_video_name,
             fourcc,
             self.fps,
-            (int(self.scene.width * resolution_scale), int(self.scene.height * resolution_scale))
-            )
-
-        print(f"Writing to {temp_video_name}")
+            (
+                int(self.scene.width * resolution_scale),
+                int(self.scene.height * resolution_scale),
+            ),
+        )
 
         while not self.is_done:
             self.update(1 / self.fps)
             self.sequencer.update(1 / self.fps)
             self.scene.update(1 / self.fps)
-            self.scene.render(video_writer)#(f"{temp_folder_name}/{frame:010d}.png")
+            self.scene.render(video_writer)
             self.time += 1 / self.fps
             frame += 1
 
