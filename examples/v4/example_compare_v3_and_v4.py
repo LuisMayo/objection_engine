@@ -6,6 +6,7 @@ from timeit import default_timer as timer
 from time import time
 from objection_engine.beans.comment import Comment
 from rich import print
+import cProfile
 
 comments = [
     Comment(
@@ -49,7 +50,7 @@ comments = [
 
 current_time = int(time())
 
-# Test importing and rendering with v3 engine
+# # Test importing and rendering with v3 engine
 before_v3 = timer()
 from objection_engine.renderer import render_comment_list as render_comment_list_v3
 render_comment_list_v3(comment_list=comments, output_filename=f"output_3vs4_v3-{current_time}.mp4")
@@ -57,11 +58,24 @@ after_v3 = timer()
 
 print(f"v3 done, took {after_v3 - before_v3:.2f} s")
 
+# Do initialization stuff ahead of time (especially loading the sentiment
+# analysis model)
+from objection_engine.v4.ace_attorney_scene import DialogueBoxBuilder
+builder = DialogueBoxBuilder()
+
 # Test importing and rendering with v4 engine
+pr = cProfile.Profile()
 before_v4 = timer()
-from objection_engine.v4.make_movie import render_comment_list as render_comment_list_v4
-render_comment_list_v4(comment_list=comments, output_filename=f"output_3vs4_v4-{current_time}.mp4")
+pr.enable()
+builder.render(
+    comments=comments,
+    output_filename=f"output_3vs4_v4-{current_time}.mp4",
+)
+pr.disable()
 after_v4 = timer()
+pr.dump_stats(f"output_3vs4_4profile-{current_time}")
+
+
 
 print("Time for v3:", f"{after_v3 - before_v3:.2f} s")
 print("Time for v4:", f"{after_v4 - before_v4:.2f} s")
