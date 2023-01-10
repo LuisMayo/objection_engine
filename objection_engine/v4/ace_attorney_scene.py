@@ -1018,8 +1018,8 @@ def get_sprite_tag(location: str, character: str, emotion: str):
 
 
 class DialogueBoxBuilder:
-    def __init__(self, callbacks: dict = None) -> None:
-        self.character_data = load_character_data()
+    def __init__(self, callbacks: dict = None, verify_sprites: bool = False) -> None:
+        self.character_data = load_character_data(verify_sprites=verify_sprites)
         self.music_data = load_music_data()
         self.current_character_name: str = None
         self.current_character_animation: str = None
@@ -1037,6 +1037,9 @@ class DialogueBoxBuilder:
             model=SENTIMENT_MODEL_PATH,
             tokenizer=SENTIMENT_MODEL_PATH,
         )
+
+    def reload_character_data(self, verify_sprites: bool = False):
+        self.character_data = load_character_data(verify_sprites=verify_sprites)
 
     def initialize_box(
         self,
