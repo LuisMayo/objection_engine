@@ -383,8 +383,7 @@ class ImageObject(SceneObject):
         if self.flip_y:
             to_render = ImageOps.flip(to_render)
 
-        img.alpha_composite(to_render, box)
-        # img.paste(resized, box, mask=resized)
+        img.paste(to_render, box, mask=to_render)
 
 
 class SimpleTextObject(SceneObject):
