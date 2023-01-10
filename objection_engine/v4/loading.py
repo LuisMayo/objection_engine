@@ -12,6 +12,8 @@ ASSETS_FOLDER = "assets_v4"
 CHARACTERS_FOLDER = "characters"
 MUSIC_FOLDER = "music"
 
+def _print_note(note: str):
+    print('[yellow][bold]NOTE[/bold] - ' + note)
 
 def _sprite_not_found_error(
     character_name: str,
@@ -30,13 +32,18 @@ def _sprite_not_found_error(
 
 
 def _sprite_corrupt_error(sprite_name: str):
-    print(
-        f'[yellow][bold]NOTE[/bold] - Sprite "{sprite_name}" cannot be opened; this character will be removed from the possible characters'
+    _print_note(
+        f'Sprite "{sprite_name}" cannot be opened; this character will be removed from the possible characters'
     )
 
 def _no_sprites_error(character_name: str):
-    print(
-        f'[yellow][bold]NOTE[/bold] - Character "{character_name}" has no sprites; they will be removed from the possible characters'
+    _print_note(
+        f'Character "{character_name}" has no sprites; they will be removed from the possible characters'
+    )
+
+def _character_has_no_config_error(character_name: str):
+    _print_note(
+        f'Character "{character_name}" has no config.toml; they will be removed from the possible characters'
     )
 
 def _sprite_is_usable(sprite_file: DirEntry) -> bool:
@@ -55,8 +62,47 @@ def _sprite_is_usable(sprite_file: DirEntry) -> bool:
     except Exception:
         return False
 
+def load_character_data(verify_sprites: bool = False) -> dict:
+    """
+    Returns information about the available characters in a dictionary.
 
-def load_character_data() -> dict:
+    If the optional parameter `verify_sprites` is set to `True`, all sprites
+    will be opened and checked to ensure they can be properly loaded during
+    render time.
+    Note that this is an expensive operation - using all of the DS trilogy
+    character data, it takes my computer around 7-8 seconds to run when enabled,
+    versus a fraction of a second to run when disabled!
+
+    The return value is a dictionary containing the following data:
+    - `characters` is a dictionary, where the keys
+      are character IDs (i.e. directories in the "characters" directory), and
+      the values are the contents of the character's config.toml file as a
+      dictionary. They may contain the following fields:
+      - `display_name` is the name that appears for the character in an
+        actual game.
+      - `location` is the position in the scene where the character is
+        (usually `left`, `center`, or `right`).
+      - `gender` is the character's gender, used for the speech blip
+        sound effect (usually `male` or `female`).
+      - `sprites` is a dictionary that maps different sentiment levels to
+        lists of animation names.
+        - `neutral` sprites are displayed when a comment is not especially
+          positive or negative.
+        - `positive` sprites are used when a comment is determined by the
+          sentiment analysis model to be positive (happy, excited, etc).
+        - `negative` sprites are used when a comment is determined by the
+          sentiment analysis model to be negative (sad, angry, etc).
+        - `neutral` sprites are used when a comment is not found by the
+          sentiment analysis model to be especially positive or negative.
+        - The `spoiler` sprite list contains names of animations that may imply
+          spoilers to viewers (such as an especially angry or deranged version
+          of a character). If you wish, you can use this list to determine
+          which sprites to remove from the final selection pool.
+    - `high_priority` is a list of character IDs that should be used, in order,
+      before moving to random assignment of characters to users.
+    - `omit_for_adult_mode` is a list of character IDs that should be removed
+      from the selection pool immediately if adult mode is enabled.
+    """
     # Find all of the characters
     characters = {}
     folders = [f for f in scandir(join(ASSETS_FOLDER, CHARACTERS_FOLDER)) if f.is_dir()]
@@ -69,7 +115,7 @@ def load_character_data() -> dict:
             with open(join(f.path, "config.toml")) as config_file:
                 characters[f.name] = load(config_file)
         except FileNotFoundError:
-            print(f'ERROR - Character folder "{f.name}" has no config.toml')
+            _character_has_no_config_error(f.name)
             continue
 
     # Validate that all characters have the sprites they should
@@ -122,7 +168,7 @@ def load_character_data() -> dict:
                 )
                 sprites_to_remove.add(character_name)
 
-            elif not _sprite_is_usable(idle_sprite):
+            elif verify_sprites and not _sprite_is_usable(idle_sprite):
                 _sprite_corrupt_error(
                     character_name,
                     idle_sprite_filename,
@@ -137,7 +183,7 @@ def load_character_data() -> dict:
                 )
                 sprites_to_remove.add(character_name)
 
-            elif not _sprite_is_usable(talk_sprite):
+            elif verify_sprites and not _sprite_is_usable(talk_sprite):
                 _sprite_corrupt_error(
                     character_name,
                     talk_sprite_filename,
