@@ -297,7 +297,9 @@ class ImageObject(SceneObject):
                 )
 
         else:
-            print(f"self.image_data is of type {type(self.image_data)}, which isn't expected")
+            print(
+                f"self.image_data is of type {type(self.image_data)}, which isn't expected"
+            )
 
     def update(self, delta):
         t_before = self.t

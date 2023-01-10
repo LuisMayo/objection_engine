@@ -613,11 +613,11 @@ class AceAttorneyDirector(Director):
             current_dialogue_obj = self.current_page.get_current_item()
             if isinstance(current_dialogue_obj, DialogueTextChunk):
                 self.cur_time_for_char += delta
-                if self.cur_time_for_char > self.max_time_for_char:
+                while self.cur_time_for_char > self.max_time_for_char:
                     # Increment the progress through the current dialogue object
                     # by one. This will make it render more characters in render()
                     current_dialogue_obj.position += 1
-                    self.cur_time_for_char = 0
+                    self.cur_time_for_char -= self.max_time_for_char
                     if current_dialogue_obj.position >= len(current_dialogue_obj.text):
                         current_dialogue_obj.completed = True
                 break
