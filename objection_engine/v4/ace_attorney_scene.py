@@ -1342,6 +1342,7 @@ class DialogueBoxBuilder:
                 s
                 for s in sprites[sprite_cat]
                 if not self.avoid_spoiler_sprites
+                or "spoiler" not in sprites
                 or (self.avoid_spoiler_sprites and s not in sprites["spoiler"])
             ]
         )
