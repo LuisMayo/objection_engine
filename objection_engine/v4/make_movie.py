@@ -21,7 +21,7 @@ from rich.progress import (
 
 def render_comment_list(
     comment_list: list["Comment"],
-    output_filename: str = "hello.mp4",
+    output_filename: str = "output.mp4",
     music_code: str = "pwr",
     resolution_scale: int = 1,
     assigned_characters: dict = None,
