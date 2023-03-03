@@ -418,7 +418,7 @@ class ActionLinesObject(ImageObject):
         height: int = None,
         filepath: str = None,
     ):
-        super().__init__(parent, name, pos, width, height, filepath)
+        super().__init__(parent=parent, name=name, pos=pos, width=width, height=height, filepath=filepath)
         self.move_left = True
 
     def update(self, delta):
