@@ -1366,7 +1366,7 @@ class DialogueBoxBuilder:
         polarity_confidence = text_polarity_data["score"]
 
         do_objection = (
-            polarity_type == "negative"
+            (polarity_type == "negative" or (polarity_type == "positive" and random() > 0.7))
             and polarity_confidence > 0.5
             and not self.has_done_objection
         )
