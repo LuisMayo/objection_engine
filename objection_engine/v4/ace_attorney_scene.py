@@ -1364,10 +1364,9 @@ class DialogueBoxBuilder:
         text_polarity_data = self.get_sentiment(pg_text.raw)[0]
         polarity_type = text_polarity_data["label"]
         polarity_confidence = text_polarity_data["score"]
-        print(polarity_type)
 
         do_objection = (
-            (polarity_type == "negative" or (polarity_type == "positive" and random() > 0.8))
+            (polarity_type == "negative" or (polarity_type == "positive" and random() > 0.7))
             and polarity_confidence > 0.5
             and not self.has_done_objection
         )
