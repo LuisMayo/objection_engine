@@ -154,7 +154,7 @@ class NameBox(SceneObject):
         self.text = text
         self.namebox_text.text = self.text
         font_stuff = get_best_font(text, NAMETAG_FONT_ARRAY)
-        self.font = ImageFont.truetype(font_stuff["path"], size=font_stuff["size"])
+        self.font = ImageFont.truetype(font_stuff["path"], size=font_stuff.get("size", 12))
 
         text_offset = font_stuff.get("offset", {}).get(TextType.NAME, (0, 0))
         self.namebox_text.x = 4 + text_offset[0]

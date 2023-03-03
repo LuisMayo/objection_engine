@@ -7,7 +7,7 @@ class TextType(IntEnum):
 FONT_ARRAY = [
         # AA-Like > Pixel > Generic
         # AA-like, Latin, hiragana, katakana, (part of) cyrillic
-        {'path': './assets/igiari/Igiari.ttf'},
+        {'path': './assets/igiari/Igiari.ttf', 'offset': {TextType.NAME: (0, 1)}},
         # AA-like, Latin, hiragana, katakana, (part of) cyrillic
         {'path': './assets/igiari/Galmuri11.ttf'},
         # Pixel, Kanji, Hiragana, Katakana
