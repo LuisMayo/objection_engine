@@ -26,6 +26,9 @@ from .MovieKit import (
     SimpleTextObject,
     Director,
 )
+
+from .judge_verdict import JudgeVerdictTextObject
+
 from .math_helpers import ease_in_out_cubic, ease_in_out_sine, lerp, remap
 from PIL import Image, ImageDraw, ImageFont
 from .parse_tags import (
@@ -582,6 +585,8 @@ class AceAttorneyDirector(Director):
         self.textbox = DialogueBox(parent=self.textbox_shaker, director=self)
 
         self.evidence = EvidenceObject(parent=self.textbox_shaker, director=self)
+
+        self.judge_verdict = JudgeVerdictTextObject(parent=self.root, name="Judge Verdict", text="Not Guilty")
 
         self.scene = Scene(width=256, height=192, root=self.root)
 
