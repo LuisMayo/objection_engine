@@ -8,6 +8,7 @@ from PIL import Image, ImageDraw, ImageFont
 VERDICT_FONT_SIZE = 54
 VERDICT_FONT_START_SIZE_RATIO = 5 / 3
 VERDICT_STROKE_WIDTH_RATIO = 1 / 14
+VERDICT_STROKE_WIDTH = int(VERDICT_FONT_SIZE * VERDICT_STROKE_WIDTH_RATIO)
 
 VERDICT_MAX_WIDTH = 221
 
@@ -30,8 +31,8 @@ class JudgeVerdictTextObject(SceneObject):
     def get_text_bbox(self, text):
         bb = self.normal_font.getbbox(text)
         x1, y1, x2, y2 = bb
-        stroke_width = int(self.normal_font.size * VERDICT_STROKE_WIDTH_RATIO)
-        padding = stroke_width
+        
+        padding = VERDICT_STROKE_WIDTH
         x1 -= padding
         y1 -= padding
         x2 += padding
@@ -42,25 +43,13 @@ class JudgeVerdictTextObject(SceneObject):
         return (w, h)
 
     def calculate_positions(self):
-        bb = self.normal_font.getbbox(self._text)
-        x1, y1, x2, y2 = bb
-        stroke_width = int(self.normal_font.size * VERDICT_STROKE_WIDTH_RATIO)
-        padding = stroke_width * 2
-        x1 -= padding
-        y1 -= padding
-        x2 += padding
-        y2 += padding
-        h = y2 - y1
-        w = x2 - x1
+        w, _ = self.get_text_bbox(self._text)
 
         x_squish = min(1.0, VERDICT_MAX_WIDTH / w)
-        print(f"Verdict max width is {VERDICT_MAX_WIDTH} and width is {w}, so x squish will be {x_squish}")
-
         chars = []
         for i, c in enumerate(self._text):
             next_char = "" if i == len(self._text) - 1 else self._text[i + 1]
             next_char_width = self.normal_font.getlength(next_char)
-
             char_width = self.normal_font.getlength(c + next_char) - next_char_width
 
             # TODO: For each character, make an image and store it along with the character
@@ -68,13 +57,13 @@ class JudgeVerdictTextObject(SceneObject):
             char_img = Image.new("RGBA", self.get_text_bbox(c), (255, 0, 255, 128))
             char_img_ctx = ImageDraw.Draw(char_img)
             args = {
-                "xy": (0,0),#(int(char_img.width / 2), int(char_img.height / 2)),
+                "xy": (VERDICT_STROKE_WIDTH, VERDICT_STROKE_WIDTH),#(int(char_img.width / 2), int(char_img.height / 2)),
                 "text": c,
                 "fill": (0, 0, 0),
-                "stroke_width": int(VERDICT_FONT_SIZE * VERDICT_STROKE_WIDTH_RATIO),
+                "stroke_width": VERDICT_STROKE_WIDTH,
                 "stroke_fill": (255, 255, 255),
                 "font": self.normal_font,
-                "anchor": "lt",
+                "anchor": "lt"
             }
             char_img_ctx.text(**args)
 
@@ -84,7 +73,18 @@ class JudgeVerdictTextObject(SceneObject):
             )
             true_char_width = int(char_width * x_squish)
 
-            chars.append({"img": char_img, "width": true_char_width})
+            # Get bounding box stuff!
+            # From https://github.com/python-pillow/Pillow/issues/3921#issuecomment-533085656
+            bottom_1 = self.normal_font.getsize(self._text[i])[1]
+            right, bottom_2 = self.normal_font.getsize(self._text[:i+1])
+            bottom = bottom_1 if bottom_1 < bottom_2 else bottom_2
+            width, height = self.normal_font.getmask(c).size
+            top = bottom - height
+            left = right - width
+
+            rect = (left, top, right, bottom)
+
+            chars.append({"img": char_img, "width": true_char_width, "rect": rect})
 
         return chars
 
@@ -140,5 +140,5 @@ class JudgeVerdictTextObject(SceneObject):
             char_img = character["img"]
             char_width = character["width"]
 
-            img.alpha_composite(char_img, (width_so_far, 0))
+            img.alpha_composite(char_img, (width_so_far,character["rect"][1]))
             width_so_far += char_width
