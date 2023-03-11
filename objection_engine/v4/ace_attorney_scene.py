@@ -1426,7 +1426,24 @@ class DialogueBoxBuilder:
 
             pos_tags = [(word, None) for word in sentence.split()]
 
-            for word_index, (word, pos) in enumerate(pos_tags):
+            # First pass - let's find any words that are too long, and split them into characters.
+            # The tuples in this updates list will be of the format (word, pos, space_after)
+            # The space_after variable is important because for really long strings, we treat each character as a word
+            # for the purposes of wrapping, but we don't want each character to be separated by a space.
+            updated_pos_tags = []
+            for word, pos in pos_tags:
+                word_width = get_text_width(word, font=best_font)
+
+                # If this word ALONE is too wide for the box, then we need to split it into characters
+                # Each character except the last should not have a space after it, so it still looks
+                # like one word
+                if word_width > MAX_WIDTH:
+                    for i, c in enumerate(word):
+                        updated_pos_tags.append((c, pos, i == len(word) - 1))
+                else:
+                    updated_pos_tags.append((word, pos, True))
+
+            for word_index, (word, pos, space_after) in enumerate(updated_pos_tags):
                 word_width = get_text_width(word, font=best_font)
 
                 # Line break if this word is too wide to fit
@@ -1482,7 +1499,7 @@ class DialogueBoxBuilder:
 
                 # If the next word is not the last word in the sentence, then
                 # add a space after it
-                if word_index != len(sentence.words) - 1:
+                if word_index != len(sentence.words) - 1 and space_after:
                     current_page.commands.append(DialogueTextChunk(" ", []))
                     current_line_width += space_width
 
