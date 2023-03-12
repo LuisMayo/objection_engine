@@ -10,19 +10,22 @@ VERDICT_STROKE_WIDTH = int(VERDICT_FONT_SIZE * VERDICT_STROKE_WIDTH_RATIO)
 VERDICT_MAX_WIDTH = 230
 VERDICT_SLAM_SPEED = 8.0
 
+VERDICT_COLORS = {
+    "black": {"fill": (0, 0, 0), "stroke": (255, 255, 255)},
+    "white": {"fill": (255, 255, 255), "stroke": (0, 0, 0)},
+}
+
 
 class JudgeVerdictTextObject(SceneObject):
     def __init__(
-        self, parent: SceneObject = None, name: str = "", text: str = "Guilty"
+        self, parent: SceneObject = None, name: str = ""
     ):
         super().__init__(parent, name, (0, 0, 10))
-        self._text = text
-
         self.normal_font = ImageFont.truetype(
             "./assets_v4/verdict/DFMinchoStd-W12.otf", VERDICT_FONT_SIZE
         )
-
-        self.characters = self.calculate_positions()
+        self._text = ""
+        self.clear()
 
     def get_text_bbox(self, text):
         bb = self.normal_font.getbbox(text)
@@ -38,7 +41,16 @@ class JudgeVerdictTextObject(SceneObject):
 
         return (w, h)
 
-    def calculate_positions(self):
+    def clear(self):
+        self.set_text("")
+
+    def set_text(self, text: str, text_color: str = None):
+        self._text = text
+
+        # if len(self._text) == 0:
+        #     self._characters = {"chars": [], "width_sum": 0, "height": 0}
+        #     return
+        
         w, h = self.get_text_bbox(self._text)
 
         x_squish = min(1.0, VERDICT_MAX_WIDTH / w)
@@ -50,14 +62,17 @@ class JudgeVerdictTextObject(SceneObject):
 
             # For each character, make an image and store it along with the character
             # it holds and its getlength value
-            char_img = Image.new("RGBA", self.get_text_bbox(c), (255, 0, 255, 128))
+            char_img = Image.new("RGBA", self.get_text_bbox(c), (255, 0, 255, 0))
             char_img_ctx = ImageDraw.Draw(char_img)
+
+            if text_color not in VERDICT_COLORS:
+                text_color = "black"
             args = {
                 "xy": (VERDICT_STROKE_WIDTH, VERDICT_STROKE_WIDTH),
                 "text": c,
-                "fill": (0, 0, 0),
+                "fill": VERDICT_COLORS[text_color]["fill"],
                 "stroke_width": VERDICT_STROKE_WIDTH,
-                "stroke_fill": (255, 255, 255),
+                "stroke_fill": VERDICT_COLORS[text_color]["stroke"],
                 "font": self.normal_font,
                 "anchor": "lt",
             }
@@ -87,33 +102,34 @@ class JudgeVerdictTextObject(SceneObject):
                     "width": true_char_width,
                     "rect": rect,
                     "scale": VERDICT_FONT_START_SIZE_RATIO,
-                    "visible": True,
+                    "visible": False,
                 }
             )
 
         width_sum = sum([i["width"] for i in chars])
-        return {"chars": chars, "width_sum": width_sum, "height": h}
-    
+        self._characters = {"chars": chars, "width_sum": width_sum, "height": h}
+
+    def show_index(self, index: int):
+        self._characters["chars"][index]["visible"] = True
 
     def update(self, delta):
-        for character in self.characters["chars"]:
+        for character in self._characters["chars"]:
             if not character["visible"]:
                 continue
             character["scale"] = max(
                 1.0, character["scale"] - delta * VERDICT_SLAM_SPEED
             )
 
-
     def render(self, img: Image.Image, ctx: ImageDraw.ImageDraw):
-        width_so_far = -int(self.characters["width_sum"] / 2)
-        for character in self.characters["chars"]:
+        width_so_far = -int(self._characters["width_sum"] / 2) - VERDICT_STROKE_WIDTH
+        for character in self._characters["chars"]:
             if not character["visible"]:
                 continue
             char_img: Image.Image = character["img"]
             char_width = character["width"]
 
             x = width_so_far
-            y = character["rect"][1] - int(self.characters["height"] / 2)
+            y = character["rect"][1] - int(self._characters["height"] / 2) - VERDICT_STROKE_WIDTH
             w = char_img.width
             h = char_img.height
 

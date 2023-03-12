@@ -586,7 +586,7 @@ class AceAttorneyDirector(Director):
 
         self.evidence = EvidenceObject(parent=self.textbox_shaker, director=self)
 
-        self.judge_verdict = JudgeVerdictTextObject(parent=self.root, name="Judge Verdict", text="Not Guilty")
+        self.judge_verdict = JudgeVerdictTextObject(parent=self.root, name="Judge Verdict")
 
         self.scene = Scene(width=256, height=192, root=self.root)
 
@@ -802,6 +802,22 @@ class AceAttorneyDirector(Director):
                         self.right_bench.visible = False
                     elif position == "center":
                         self.witness_stand.visible = False
+                    current_dialogue_obj.completed = True
+
+                elif c == "verdict":
+                    command = action_split[1]
+                    if command == "set":
+                        new_text = action_split[2]
+                        text_color = action_split[3]
+                        self.judge_verdict.set_text(new_text, text_color)
+
+                    elif command == "show":
+                        index = int(action_split[2])
+                        self.judge_verdict.show_index(index)
+
+                    elif command == "clear":
+                        self.judge_verdict.clear()
+
                     current_dialogue_obj.completed = True
 
                 elif c == "nop":
