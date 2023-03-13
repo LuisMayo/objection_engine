@@ -121,7 +121,7 @@ athena
 
 With the following script, we can generate a video of Athena in action:
 ```python
-from objection_engine.v4.make_movie import render_comment_list
+from objection_engine.make_movie import render_comment_list
 from objection_engine.beans.comment import Comment
 
 comments = [
