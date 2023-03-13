@@ -12,10 +12,10 @@ environ["TOKENIZERS_PARALLELISM"] = "false"  # to make HF Transformers happy
 
 from transformers import pipeline
 
-from objection_engine.v4.loading import ASSETS_FOLDER, CHARACTERS_FOLDER
+from objection_engine.loading import ASSETS_FOLDER, CHARACTERS_FOLDER
 from objection_engine.beans.font_constants import NAMETAG_FONT_ARRAY, TextType
 
-from objection_engine.v4.loading import load_character_data, load_music_data
+from objection_engine.loading import load_character_data, load_music_data
 from objection_engine.beans.comment import Comment
 
 from .MovieKit import (

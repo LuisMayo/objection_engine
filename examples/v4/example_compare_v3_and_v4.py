@@ -8,6 +8,8 @@ from objection_engine.beans.comment import Comment
 from rich import print
 import cProfile
 
+print("Initial imports done")
+
 comments = [
     Comment(
         user_name="first guy",
@@ -50,17 +52,24 @@ comments = [
 
 current_time = strftime("%Y-%m-%d_%H-%M-%S")
 
+
 def v3_test():
+    print("Start v3")
     before_v3 = timer()
-    from objection_engine.renderer import render_comment_list as render_comment_list_v3
-    render_comment_list_v3(comment_list=comments, output_filename=f"output_3vs4_v3-{current_time}.mp4")
+    from objection_engine.renderer import render_comment_list
+
+    render_comment_list(
+        comment_list=comments, output_filename=f"output_3vs4_v3-{current_time}.mp4"
+    )
     after_v3 = timer()
     print("Time for v3:", f"{after_v3 - before_v3:.2f} s")
 
 
 def v4_test():
+    print("Start v4")
     before_v4 = timer()
-    from objection_engine.v4.ace_attorney_scene import DialogueBoxBuilder
+    from objection_engine.ace_attorney_scene import DialogueBoxBuilder
+
     builder = DialogueBoxBuilder()
     builder.render(
         comments=comments,
@@ -69,9 +78,11 @@ def v4_test():
     after_v4 = timer()
     print("Time for v4:", f"{after_v4 - before_v4:.2f} s")
 
+
 def test_both():
     v3_test()
     v4_test()
+
 
 # Test importing and rendering with v4 engine
 pr = cProfile.Profile()
@@ -79,8 +90,3 @@ pr.enable()
 test_both()
 pr.disable()
 pr.dump_stats(f"output_3vs4_4profile-{current_time}.prof")
-
-
-
-# 
-

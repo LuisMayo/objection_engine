@@ -1,5 +1,5 @@
-from objection_engine.v4.ace_attorney_scene import AceAttorneyDirector
-from objection_engine.v4.parse_tags import (
+from objection_engine.ace_attorney_scene import AceAttorneyDirector
+from objection_engine.parse_tags import (
     DialoguePage,
     DialogueAction,
     DialogueTextChunk,

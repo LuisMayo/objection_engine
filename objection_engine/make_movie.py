@@ -1,10 +1,10 @@
-from objection_engine.v4.ace_attorney_scene import (
+from objection_engine.ace_attorney_scene import (
     AceAttorneyDirector,
     DialogueBoxBuilder,
 )
 
 from objection_engine.beans.comment import Comment
-from objection_engine.v4.parse_tags import DialoguePage
+from objection_engine.parse_tags import DialoguePage
 
 from rich import print
 from rich.live import Live
