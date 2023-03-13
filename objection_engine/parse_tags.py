@@ -1,48 +1,83 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from re import compile
 from typing import Union
 from copy import deepcopy
-from objection_engine.beans.font_tools import get_best_font, split_str_into_newlines, split_with_joined_sentences
-from objection_engine.beans.font_constants import FONT_ARRAY
+from .font_tools import get_best_font, split_str_into_newlines, split_with_joined_sentences
+from .font_constants import FONT_ARRAY
 
 @dataclass
 class DialogueTag:
-    name: str
-    start: int
-    end: int
+    name: str = ""
+    start: int = 0
+    end: int = 0
 
     def range(self):
         return range(self.start, self.end)
 
-@dataclass
-class DialogueAction:
-    name: str
-    index: int
+class BaseDialogueItem:
+    completed: bool = False
 
-@dataclass
-class DialogueTextChunk:
-    text: str
-    tags: list[str]
+    def __repr__(self) -> str:
+        return f"BaseDialogueItem()"
+
+class DialogueAction(BaseDialogueItem):
+    name: str = ""
+    index: int = -1
+
+    def __init__(self, name: str, index: str):
+        self.name = name
+        self.index = index
+
+    def __repr__(self) -> str:
+        return f"DialogueAction(\'{self.name}\', {self.index})"
+
+class DialogueTextLineBreak(BaseDialogueItem):
+    def __repr__(self) -> str:
+        return f"DialogueTextLineBreak()"
+
+class DialogueTextChunk(BaseDialogueItem):
+    text: str = ""
+    tags: list[str] = field(default_factory=list)
+    position: int = 0
+
+    def __init__(self, text: str, tags: list[str]):
+        self.text = text
+        self.tags = tags
 
     def __len__(self) -> int:
         return len(self.text)
 
-@dataclass
+    def __repr__(self) -> str:
+        return f"DialogueTextChunk(\'{self.text}\', {self.tags}, {self.position})"
+
 class DialoguePage:
-    lines: list[list[DialogueTextChunk]]
+    commands: list[BaseDialogueItem]
+    current_item: int
+
+    def __init__(self, commands: list[BaseDialogueItem]):
+        self.commands = commands
+
+    def __repr__(self) -> str:
+        return f"DialoguePage({self.commands})"
+
+    def get_current_item(self):
+        for command in self.commands:
+            if (command is not None) and (not command.completed):
+                return command
+        return None
 
     def __len__(self) -> int:
         lens = []
-        for line in self.lines:
-            for chunk in line:
-                lens.append(len(chunk))
+        for command in self.commands:
+            if isinstance(command, DialogueTextChunk):
+                lens.append(len(command))
         return sum(lens)
 
     def get_raw_text(self) -> str:
         texts = []
-        for line in self.lines:
-            for chunk in line:
-                texts.append(chunk.text)
+        for command in self.commands:
+            if isinstance(command, DialogueTextChunk):
+                texts.append(command.text)
         return ''.join(texts)
 
     def get_visible_text(self, visible_chars: int = 10) -> 'DialoguePage':
@@ -53,9 +88,10 @@ class DialoguePage:
         The chunks we read should be added to a list, and the chunk we're reading right now
         should be cut off to its correct length before being added.
         """
+        read_everything = True
         chars_remaining = visible_chars
         new_lines = []
-        for line in self.lines:
+        for line in self.commands:
             new_line = []
             for chunk in line:
                 if chars_remaining >= len(chunk):
@@ -73,36 +109,47 @@ class DialoguePage:
             if chars_remaining <= 0:
                 break
 
-        return DialoguePage(new_lines)
+        d = DialoguePage(new_lines)
+        # print("output from get_visible_text", d)
+        return d
 
     def condense_chunks(self) -> 'DialoguePage':
-        lines_of_chunks = []
-        for line in self.lines:
-            current_string = ""
-            current_tags = None
-            chunks: list[DialogueTextChunk] = []
-            for chunk in line:
-                if current_tags is None or chunk.tags == current_tags:
-                    current_string += chunk.text
-                    if current_tags is None:
-                        current_tags = chunk.tags.copy()
-                else:
-                    chunks.append(DialogueTextChunk(current_string, current_tags))
-                    current_string = chunk.text
+        chunks = []
+        current_string = ""
+        current_tags = None
+        for chunk in self.commands:
+            if isinstance(chunk, DialogueTextChunk) and (current_tags is None or chunk.tags == current_tags):
+                current_string += chunk.text
+                if current_tags is None:
                     current_tags = chunk.tags.copy()
-            if len(current_string) > 0:
+            elif isinstance(chunk, DialogueTextChunk):
                 chunks.append(DialogueTextChunk(current_string, current_tags))
-            lines_of_chunks.append(chunks)
-        return DialoguePage(lines_of_chunks)
+                current_string = chunk.text
+                current_tags = chunk.tags.copy()
+            elif isinstance(chunk, DialogueAction):
+                if len(current_string) > 0:
+                    chunks.append(DialogueTextChunk(current_string, current_tags))
+                chunks.append(chunk)
+                current_string = ""
+                current_tags = None
+            elif isinstance(chunk, DialogueTextLineBreak):
+                if len(current_string) > 0:
+                    chunks.append(DialogueTextChunk(current_string, current_tags))
+                chunks.append(chunk)
+                current_string = ""
+                current_tags = None
+        if len(current_string) > 0:
+            chunks.append(DialogueTextChunk(current_string, current_tags))
 
-    def use_rtl(self):
-        best_font = get_best_font(self.get_raw_text(), FONT_ARRAY)
-        return best_font.get("rtl", False)
+        d = DialoguePage(chunks)
+        # print("condensed chunks:", d)
+        return d
 
 @dataclass
 class DialogueTextContent:
     cleaned_lines: str
-    tags: list[Union[DialogueTag, DialogueAction]]
+    tags: list[DialogueTag]
+    actions: list[DialogueAction]
 
     def get_text_chunks(self) -> list[DialoguePage]:
         pages = []
@@ -110,20 +157,25 @@ class DialogueTextContent:
         for box_text in split_with_joined_sentences(self.cleaned_lines):
             splitter_font_path = get_best_font(box_text, FONT_ARRAY)['path']
             wrapped_box_lines = split_str_into_newlines(box_text, splitter_font_path, 15).split('\n')
-            lines: list[list[DialogueTextChunk]] = []
+            chunks: list[list[DialogueTextChunk]] = []
+
             for line in wrapped_box_lines:
-                chunks: list[DialogueTextChunk] = []
                 for char in line:
+                    # print(f"Processing char {char} at position {current_position}")
+                    # First, process actions
+                    for action in [a for a in self.actions if a.index == current_position]:
+                        # print(f"Action {action} takes place at this position, so insert it")
+                        chunks.append(action)
+
                     this_char_tags: list[str] = []
                     for tag in self.tags:
-                        if isinstance(tag, DialogueTag) and current_position in tag.range():
+                        if current_position in tag.range():
                             this_char_tags.append(tag.name)
                     chunks.append(DialogueTextChunk(char, this_char_tags))
                     current_position += 1
 
-                lines.append(chunks)
-
-            new_page = DialoguePage(lines).condense_chunks()
+                chunks.append(DialogueTextLineBreak())
+            new_page = DialoguePage(chunks).condense_chunks()
             pages.append(new_page)
             
         return pages
@@ -133,12 +185,13 @@ class DialogueTextContent:
 # Group 2: Tag name
 # Group 3: Arguments to tag
 # Group 4: Optional slash at end (i.e. it's self-closing, like an action)
-tag_re = compile(r"<(/??)([a-z]*?)(/??)>")
+tag_re = compile(r"(?<!\\)<(/?)(.+?)(/??)>")
 
 def parse_text(text: str) -> DialogueTextContent:
     tag_stack = []
     final_tags = []
-    stripped_text = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
+    final_actions = []
+    stripped_text = text
     
     next_match = tag_re.search(stripped_text)
     while next_match is not None:
@@ -153,7 +206,7 @@ def parse_text(text: str) -> DialogueTextContent:
             raise Exception(f"Tag at index {start} is both closing and self-closing")
 
         # Opening tag, like <red>
-        if not is_closing_tag:
+        if not is_closing_tag and not is_self_closing_tag:
             tag_stack.append({
                 "name": tag_name,
                 "start": start
@@ -163,10 +216,12 @@ def parse_text(text: str) -> DialogueTextContent:
         elif is_closing_tag:
             if len(tag_stack) == 0:
                 # Closing tag before opening tag
+                print(f"Error - tag stack is empty on closing tag {tag_name}")
                 return DialogueTextContent(text, [])
             tag = tag_stack.pop()
             if tag["name"] != tag_name:
                 # Tag mismatch
+                print(f"Error - tag mismatch (opening tag {tag['name']}, closing tag {tag_name})")
                 return DialogueTextContent(text, [])
 
             # I know it's confusing, sorry. This is the start index of the closing tag
@@ -174,8 +229,8 @@ def parse_text(text: str) -> DialogueTextContent:
             final_tags.append(tag)
 
         # Self-closing tag, like <shake/>
-        if is_self_closing_tag:
-            final_tags.append({
+        elif is_self_closing_tag:
+            final_actions.append({
                 "name": tag_name,
                 "index": start
             })
@@ -184,12 +239,13 @@ def parse_text(text: str) -> DialogueTextContent:
     # Construct list of tags and actions
     tag_objects = []
     for tag in final_tags:
-        if "index" in tag:
-            tag_objects.append(DialogueAction(**tag))
-        else:
-            tag_objects.append(DialogueTag(**tag))
+        tag_objects.append(DialogueTag(**tag))
 
-    return DialogueTextContent(stripped_text, tag_objects)
+    action_objects = []
+    for action in final_actions:
+        action_objects.append(DialogueAction(**action))
+
+    return DialogueTextContent(stripped_text, tag_objects, action_objects)
 
 def get_rich_boxes(text: str):
     """
