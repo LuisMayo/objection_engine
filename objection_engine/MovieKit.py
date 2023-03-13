@@ -560,7 +560,7 @@ class Director:
         temp_video_name = temp_base_name + "-video.mp4"
         temp_audio_name = temp_base_name + "-audio.mp3"
 
-        output_filename = output_filename or temp_base_name
+        output_filename = output_filename or temp_base_name + ".mp4"
 
         fourcc = (
             cv2.VideoWriter_fourcc(*"h264")
