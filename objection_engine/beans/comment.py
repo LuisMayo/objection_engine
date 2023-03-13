@@ -1,6 +1,3 @@
-from ..constants import Character
-
-
 class Comment:
     def __init__(self,
     user_id: str = None,
@@ -23,4 +20,3 @@ class Comment:
         self.score = score
         self.evidence_path = evidence_path
         self.effective_user_id = self.user_id or self.user_name
-        self.character: Character = None
