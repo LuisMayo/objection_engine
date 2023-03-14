@@ -1,5 +1,4 @@
 from objection_engine.renderer import render_comment_list
-# from objection_engine.renderer import render_comment_list
 from objection_engine.beans.comment import Comment
 from time import time
 
