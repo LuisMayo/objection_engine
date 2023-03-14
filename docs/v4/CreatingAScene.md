@@ -5,13 +5,13 @@ methods are more intense but allow finer control over the finished video.
 
 ## The Easy Way (compatible with *Objection 3* code)
 Most of the time, you can use the `render_comment_list()` method from 
-`objection_engine.make_movie` to quickly and easily generate scenes.
+`objection_engine.renderer` to quickly and easily generate scenes.
 
 Here is the script `examples/example_easy.py`, and a video it produces.
 (Note that because the engine uses randomness to choose things like sprites or
 music tracks, your output may not match the linked video exactly.)
 ```python
-from objection_engine.make_movie import render_comment_list
+from objection_engine.renderer import render_comment_list
 from objection_engine.beans.comment import Comment
 
 comments = [
