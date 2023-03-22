@@ -5,13 +5,13 @@ methods are more intense but allow finer control over the finished video.
 
 ## The Easy Way (compatible with *Objection 3* code)
 Most of the time, you can use the `render_comment_list()` method from 
-`objection_engine.v4.make_movie` to quickly and easily generate scenes.
+`objection_engine.renderer` to quickly and easily generate scenes.
 
-Here is the script `examples/v4/example_easy.py`, and a video it produces.
+Here is the script `examples/example_easy.py`, and a video it produces.
 (Note that because the engine uses randomness to choose things like sprites or
 music tracks, your output may not match the linked video exactly.)
 ```python
-from objection_engine.v4.make_movie import render_comment_list
+from objection_engine.renderer import render_comment_list
 from objection_engine.beans.comment import Comment
 
 comments = [
@@ -30,15 +30,15 @@ render_comment_list(comments)
 ```
 
 ## The Hard Way (building everything yourself)
-This script, `examples/v4/example_hard.py`, produces equivalent output to
+This script, `examples/example_hard.py`, produces equivalent output to
 `example_easy.py`, but controls all of the scene actions manually. As a result,
 this example *should* always result in an identical video.
 
 Unlike when using `render_comment_list()`, it will not display progress bars.
 
 ```python
-from objection_engine.v4.ace_attorney_scene import AceAttorneyDirector
-from objection_engine.v4.parse_tags import (
+from objection_engine.ace_attorney_scene import AceAttorneyDirector
+from objection_engine.parse_tags import (
     DialoguePage,
     DialogueAction,
     DialogueTextChunk,
