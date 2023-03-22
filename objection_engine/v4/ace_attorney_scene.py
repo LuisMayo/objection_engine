@@ -44,6 +44,8 @@ from math import cos, sin, pi
 from random import random
 from polyglot.text import Text, Sentence
 
+from ..utils import ensure_assets_are_available
+
 try:
     from rich import print
 except:
@@ -438,6 +440,7 @@ class ActionLinesObject(ImageObject):
 class AceAttorneyDirector(Director):
     def __init__(self, callbacks: dict = None, fps: float = 30):
         super().__init__(None, fps)
+        ensure_assets_are_available()
         self.callbacks = {} if callbacks is None else callbacks
 
         self.root = SceneObject(name="Root")
