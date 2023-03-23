@@ -152,7 +152,9 @@ class NameBox(SceneObject):
         self.text = text
         self.namebox_text.text = self.text
         font_stuff = get_best_font(text, NAMETAG_FONT_ARRAY)
-        self.font = ImageFont.truetype(font_stuff["path"], size=font_stuff.get("size", 12))
+        self.font = ImageFont.truetype(
+            font_stuff["path"], size=font_stuff.get("size", 12)
+        )
 
         text_offset = font_stuff.get("offset", {}).get(TextType.NAME, (0, 0))
         self.namebox_text.x = 4 + text_offset[0]
@@ -416,7 +418,14 @@ class ActionLinesObject(ImageObject):
         height: int = None,
         filepath: str = None,
     ):
-        super().__init__(parent=parent, name=name, pos=pos, width=width, height=height, filepath=filepath)
+        super().__init__(
+            parent=parent,
+            name=name,
+            pos=pos,
+            width=width,
+            height=height,
+            filepath=filepath,
+        )
         self.move_left = True
 
     def update(self, delta):
@@ -1309,7 +1318,15 @@ class DialogueBoxBuilder:
         self.relaxed_track = join(music_code, choice(music_pack["relaxed"]))
         self.tense_track = join(music_code, choice(music_pack["tense"]))
         self.pages.append(
-            DialoguePage([DialogueAction(f"music start {self.relaxed_track}", 0)])
+            DialoguePage(
+                [
+                    DialogueAction(
+                        "sprite left assets_v4/characters/phoenix/phoenix-normal-idle.gif",
+                        0,
+                    ),
+                    DialogueAction(f"music start {self.relaxed_track}", 0),
+                ]
+            )
         )
 
         self.has_done_objection = False
@@ -1364,7 +1381,10 @@ class DialogueBoxBuilder:
         polarity_confidence = text_polarity_data["score"]
 
         do_objection = (
-            (polarity_type == "negative" or (polarity_type == "positive" and random() > 0.7))
+            (
+                polarity_type == "negative"
+                or (polarity_type == "positive" and random() > 0.7)
+            )
             and polarity_confidence > 0.5
             and not self.has_done_objection
         )
