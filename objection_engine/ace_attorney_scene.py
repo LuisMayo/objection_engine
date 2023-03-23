@@ -42,7 +42,7 @@ from math import cos, sin, pi
 from random import random
 from polyglot.text import Text, Sentence
 
-from ..utils import ensure_assets_are_available
+from .utils import ensure_assets_are_available
 
 try:
     from rich import print
@@ -305,7 +305,7 @@ class ExclamationObject(ImageObject):
 
     def play_exclamation(self, type: str, speaker: str):
         self.set_filepath(
-            f"assets_v4/exclamations/{type}.gif", {0.7: lambda: self.set_filepath(None)}
+            f"assets/exclamations/{type}.gif", {0.7: lambda: self.set_filepath(None)}
         )
 
         audio_path = self.get_exclamation_path(type, speaker)
