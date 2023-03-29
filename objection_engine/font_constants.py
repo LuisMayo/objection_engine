@@ -1,4 +1,5 @@
 from enum import IntEnum
+from objection_engine.loading import ASSETS_FOLDER
 
 class TextType(IntEnum):
     DIALOGUE = 0
@@ -6,25 +7,25 @@ class TextType(IntEnum):
 
 FONT_ARRAY = [
         # AA-Like > Pixel > Generic
-        {'path': './assets/textbox/font/igiari-cyrillic/igiari-cyrillic.ttf'},
+        {'path': f'./{ASSETS_FOLDER}/textbox/font/igiari-cyrillic/igiari-cyrillic.ttf'},
         # AA-like, Latin, hiragana, katakana, (part of) cyrillic
-        {'path': './assets/igiari/Igiari.ttf'},
+        {'path': f'./{ASSETS_FOLDER}/textbox/font/igiari/Igiari.ttf'},
         # AA-like, Latin, hiragana, katakana, (part of) cyrillic
-        {'path': './assets/igiari/Galmuri11.ttf'},
+        {'path': f'./{ASSETS_FOLDER}/textbox/font/igiari/Galmuri11.ttf'},
         # Pixel, Kanji, Hiragana, Katakana
-        {'path':'./assets/igiari/jackeyfont.ttf'},
+        {'path': f'./{ASSETS_FOLDER}/textbox/font/igiari/jackeyfont.ttf'},
         # Arabic
-        {'path':'./assets/igiari/arabic-1.ttf', 'size': 12, 'offset': {TextType.NAME: (0, -5)}, 'rtl': True},
+        {'path': f'./{ASSETS_FOLDER}/textbox/font/igiari/arabic-1.ttf', 'size': 12, 'offset': {TextType.NAME: (0, -5)}, 'rtl': True},
         # Pixel-font, Hebrew
-        {'path':'./assets/igiari/STANRG__.ttf'},
+        {'path': f'./{ASSETS_FOLDER}/textbox/font/igiari/STANRG__.ttf'},
         # Generic
-        {'path':'./assets/igiari/NotoSans-Regular.ttf'},
+        {'path': f'./{ASSETS_FOLDER}/textbox/font/igiari/NotoSans-Regular.ttf'},
         # Pixel font, Arabic
-        {'path':'./assets/igiari/bitsy-font-with-arabic.ttf', 'size': 10, 'rtl': True},
+        {'path': f'./{ASSETS_FOLDER}/textbox/font/igiari/bitsy-font-with-arabic.ttf', 'size': 10, 'rtl': True},
     ]
 
 NAMETAG_FONT_ARRAY = [
-    {'path': './assets/ace-name/ace-name.ttf', 'size': 8}
+    {'path': f'./{ASSETS_FOLDER}/textbox/font/ace-name/ace-name.ttf', 'size': 8}
 ] + FONT_ARRAY
 
 TEXT_COLORS = {

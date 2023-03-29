@@ -1324,7 +1324,7 @@ class DialogueBoxBuilder:
             DialoguePage(
                 [
                     DialogueAction(
-                        "sprite left assets_v4/characters/phoenix/phoenix-normal-idle.gif",
+                        f"sprite left {ASSETS_FOLDER}/characters/phoenix/phoenix-normal-idle.gif",
                         0,
                     ),
                     DialogueAction(f"music start {self.relaxed_track}", 0),
@@ -1342,14 +1342,19 @@ class DialogueBoxBuilder:
                     character=users_to_characters[comment.effective_user_id],
                     text=comment.text_content,
                     evidence_path=comment.evidence_path,
+                    manual_score=comment.score
                 )
             )
 
             if "on_comment_processed" in self.callbacks:
                 self.callbacks["on_comment_processed"](i, len(comments), comment)
 
-    def update_pose_for_sentence(self, sentence: Sentence, sprites: list[str]):
-        sentiment: dict = self.get_sentiment(sentence.raw)[0]
+    def update_pose_for_sentence(self, sentence: Sentence, sprites: list[str], manual_score: float = 0.0):
+        if manual_score == 0:
+            sentiment: dict = self.get_sentiment(sentence.raw)[0]
+        else:
+            sentiment: dict = {"label": "positive" if manual_score > 0 else "negative"}
+
         try:
             sprite_cat = sentiment.get("label", "neutral")
         except IndexError:
@@ -1366,7 +1371,7 @@ class DialogueBoxBuilder:
         )
 
     def get_boxes_with_pauses(
-        self, user_name: str, character: str, text: str, evidence_path: str = None
+        self, user_name: str, character: str, text: str, evidence_path: str = None, manual_score: float = 0
     ):
         self.current_character_name = character
         this_char_data = self.character_data["characters"][character]
@@ -1379,9 +1384,13 @@ class DialogueBoxBuilder:
         sentences: list[Sentence] = pg_text.sentences
 
         # Determine if this should have an objection
-        text_polarity_data = self.get_sentiment(pg_text.raw)[0]
-        polarity_type = text_polarity_data["label"]
-        polarity_confidence = text_polarity_data["score"]
+        if manual_score == 0:
+            text_polarity_data = self.get_sentiment(pg_text.raw)[0]
+            polarity_type = text_polarity_data["label"]
+            polarity_confidence = text_polarity_data["score"]
+        else:
+            polarity_type = "positive" if manual_score > 0 else "negative"
+            polarity_confidence = abs(manual_score)
 
         do_objection = (
             (
@@ -1395,7 +1404,7 @@ class DialogueBoxBuilder:
         # Stuff at beginning of text box
         all_pages: list[DialoguePage] = []
 
-        self.update_pose_for_sentence(sentences[0], sprites)
+        self.update_pose_for_sentence(sentences[0], sprites, manual_score=manual_score)
         current_page = self.initialize_box(
             user_name, do_objection, go_to_tense_music, text=text
         )
