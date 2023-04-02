@@ -596,7 +596,7 @@ class Director:
         stream = ffmpeg.output(
             stream,
             output_filename,
-            vcodec="h264",
+            vcodec="h264" if getenv("OE_DIRECT_H264_ENCODING", "false") else "copy",
             acodec="aac",
             pix_fmt="yuv420p",
         )
