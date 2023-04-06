@@ -5,7 +5,7 @@ from collections import Counter
 from random import choice
 from timeit import default_timer as timer
 from os.path import join
-from os import environ
+from os import environ, getenv
 from turtle import pos
 
 environ["TOKENIZERS_PARALLELISM"] = "false"  # to make HF Transformers happy
@@ -1042,7 +1042,7 @@ class DialogueBoxBuilder:
         self.callbacks = {} if callbacks is None else callbacks
 
         # Hugging Face sentiment analyzer
-        self.get_sentiment = pipeline(
+        self._sentiment_analyzer = pipeline(
             "sentiment-analysis",
             model=SENTIMENT_MODEL_PATH,
             tokenizer=SENTIMENT_MODEL_PATH,
@@ -1342,18 +1342,30 @@ class DialogueBoxBuilder:
                     character=users_to_characters[comment.effective_user_id],
                     text=comment.text_content,
                     evidence_path=comment.evidence_path,
-                    manual_score=comment.score
+                    manual_score=comment.score,
                 )
             )
 
             if "on_comment_processed" in self.callbacks:
                 self.callbacks["on_comment_processed"](i, len(comments), comment)
 
-    def update_pose_for_sentence(self, sentence: Sentence, sprites: list[str], manual_score: float = 0.0):
+    def get_sentiment(self, text: str):
+        return (
+            [{"label": "neutral", "score": 1.0}]
+            if (len(getenv("oe_bypass_sentiment", "")) > 0)
+            else self._sentiment_analyzer(text)
+        )
+
+    def update_pose_for_sentence(
+        self, sentence: Sentence, sprites: list[str], manual_score: float = 0.0
+    ):
         if manual_score == 0:
             sentiment: dict = self.get_sentiment(sentence.raw)[0]
         else:
-            sentiment: dict = {"label": "positive" if manual_score > 0 else "negative"}
+            sentiment: dict = {
+                "label": "positive" if manual_score > 0 else "negative",
+                "score": 1.0,
+            }
 
         try:
             sprite_cat = sentiment.get("label", "neutral")
@@ -1371,7 +1383,12 @@ class DialogueBoxBuilder:
         )
 
     def get_boxes_with_pauses(
-        self, user_name: str, character: str, text: str, evidence_path: str = None, manual_score: float = 0
+        self,
+        user_name: str,
+        character: str,
+        text: str,
+        evidence_path: str = None,
+        manual_score: float = 0,
     ):
         self.current_character_name = character
         this_char_data = self.character_data["characters"][character]
