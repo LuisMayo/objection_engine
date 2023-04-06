@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "objection_engine"
-version = "3.2.0"
-description = "Library that turns comment chains into ace attorney scenes, used in several bots"
-authors = ["Luis Mayo Valbuena <luismayovalbuena@outlook.es>"]
+version = "3.3.0"
+description = "Library that turns comment chains into Ace Attorney scenes, used in several bots"
+authors = ["Luis Mayo Valbuena <luismayovalbuena@outlook.es>", "Malcolm Anderson <malcolminyo@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "~3.10"
 spaw = "^0.2"
 Pillow = "^9.1.0"
 matplotlib = "^3.5.1"
@@ -21,8 +21,21 @@ google-cloud-translate = "^2.0.1"
 opencv-python = "^4.5.5"
 fonttools = "^4.33.3"
 numpy = "^1.19.3"
+rich = "^12.6.0"
+requests = "^2.28.1"
+toml = "^0.10.2"
+polyglot = "^16.7.4"
+pyicu = "^2.10.2"
+pycld2 = "^0.41"
+morfessor = "^2.0.6"
+transformers = "^4.25.1"
+torch = "^1.13.1"
+sentencepiece = "^0.1.97"
 
 [tool.poetry.dev-dependencies]
+
+[tool.poetry.group.dev.dependencies]
+black = {version = "^23.1a1", allow-prereleases = true}
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "cython>=0.29.28"]

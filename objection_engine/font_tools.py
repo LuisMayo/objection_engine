@@ -1,4 +1,4 @@
-from objection_engine.beans.font_constants import FONT_ARRAY
+from .font_constants import FONT_ARRAY
 from PIL import ImageFont
 from typing import List, Dict, Union
 from textwrap import wrap
@@ -36,7 +36,7 @@ def get_font_score(font, text):
 def get_best_font(text, font_array):
     best_font = font_array[-1]
     best_font_points = 0
-    text = text.replace('\n', '').replace('\r', '').replace('\t', '')
+    text = text.replace('\n', '').replace('\r', '').replace('\t', '').replace('\u200B', '')
     for font in font_array:
         pts = get_font_score(font, text)
         if pts > best_font_points:

@@ -9,6 +9,9 @@ db.json
 
 # Ignore the assets
 assets/
+assets_v4/
+assets_old/
+assets.zip
 
 dist/
 
@@ -17,3 +20,6 @@ outputs/*.mp4
 .wakatime-project
 polyglot_data
 docker-entrypoint.py
+.DS_Store
+.idea
+test_outputs
