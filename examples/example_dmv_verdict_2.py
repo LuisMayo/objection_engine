@@ -1,4 +1,5 @@
 from objection_engine.ace_attorney_scene import AceAttorneyDirector
+from objection_engine.composers.compose_verdict import compose_verdict
 from objection_engine.parse_tags import (
     DialoguePage,
     DialogueAction,
@@ -13,11 +14,7 @@ VERDICT_SHAKE_COMMAND = "shake 4 0.1"
 VERDICT_WAIT_COMMAND = "wait 0.2"
 
 pages = [
-    DialoguePage(
-        [
-            DialogueAction("music start pwr/cross-moderato", 0)
-        ]
-    ),
+    DialoguePage([DialogueAction("music start pwr/cross-moderato", 0)]),
     DialoguePage(
         [
             DialogueAction(
@@ -62,7 +59,8 @@ pages = [
             DialogueAction(f"wait 0.1", 0),
         ]
     ),
-    DialoguePage([
+    DialoguePage(
+        [
             DialogueAction('nametag "CA DMV"', 0),
             DialogueAction("wait 0.15", 0),
             DialogueAction("showbox", 0),
@@ -81,61 +79,24 @@ pages = [
             DialogueAction("wait 4", 0),
             DialogueAction("hidebox", 0),
             DialogueAction("sound pichoop", 0),
-    ]),
-
-    DialoguePage([
+        ]
+    ),
+    DialoguePage(
+        [
             DialogueAction("hidebox", 0),
-            DialogueAction("sprite judge assets/characters/judge/judge-thinking.gif", 0),
+            DialogueAction(
+                "sprite judge assets/characters/judge/judge-thinking.gif", 0
+            ),
             DialogueAction("cut judge", 0),
-
-
             DialogueAction("wait 2", 0),
-            DialogueAction("verdict set \"Accepted\" white", 0),
-            
-            DialogueAction("verdict show 0", 0),
-            DialogueAction(VERDICT_WAIT_COMMAND, 0),
-            DialogueAction("sound guilty", 0),
-            DialogueAction(VERDICT_SHAKE_COMMAND, 0),
-
-            DialogueAction("verdict show 1", 0),
-            DialogueAction(VERDICT_WAIT_COMMAND, 0),
-            DialogueAction("sound guilty", 0),
-            DialogueAction(VERDICT_SHAKE_COMMAND, 0),
-            
-            DialogueAction("verdict show 2", 0),
-            DialogueAction(VERDICT_WAIT_COMMAND, 0),
-            DialogueAction("sound guilty", 0),
-            DialogueAction(VERDICT_SHAKE_COMMAND, 0),
-
-            DialogueAction("verdict show 3", 0),
-            DialogueAction(VERDICT_WAIT_COMMAND, 0),
-            DialogueAction("sound guilty", 0),
-            DialogueAction(VERDICT_SHAKE_COMMAND, 0),
-
-            DialogueAction("verdict show 4", 0),
-            DialogueAction(VERDICT_WAIT_COMMAND, 0),
-            DialogueAction("sound guilty", 0),
-            DialogueAction(VERDICT_SHAKE_COMMAND, 0),
-
-            DialogueAction("verdict show 5", 0),
-            DialogueAction(VERDICT_WAIT_COMMAND, 0),
-            DialogueAction("sound guilty", 0),
-            DialogueAction(VERDICT_SHAKE_COMMAND, 0),
-
-            DialogueAction("verdict show 6", 0),
-            DialogueAction(VERDICT_WAIT_COMMAND, 0),
-            DialogueAction("sound guilty", 0),
-            DialogueAction(VERDICT_SHAKE_COMMAND, 0),
-
-            DialogueAction("verdict show 7", 0),
-            DialogueAction(VERDICT_WAIT_COMMAND, 0),
-            DialogueAction("sound guilty", 0),
-            DialogueAction(VERDICT_SHAKE_COMMAND, 0),
+        ]
+        + compose_verdict("Accepted", slam_group="letter", color="white")
+        + [
             DialogueAction("wait 5", 0),
         ]
-    )
+    ),
 ]
 
 director = AceAttorneyDirector()
 director.set_current_pages(pages)
-director.render_movie(output_filename=f"dmv-{int(time())}.mp4")
+director.render_movie(output_filename=f"dmv-verdict-2-{int(time())}.mp4")

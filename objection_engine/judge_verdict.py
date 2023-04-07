@@ -19,29 +19,28 @@ VERDICT_COLORS = {
 
 VERDICT_FONT_PATH = f"./{ASSETS_FOLDER}/verdict/DFMinchoStd-W12.otf"
 
+
 class JudgeVerdictTextObject(SceneObject):
-    def __init__(
-        self, parent: SceneObject = None, name: str = ""
-    ):
+    def __init__(self, parent: SceneObject = None, name: str = ""):
         super().__init__(parent, name, (0, 0, 10))
         self.font = None
 
         # If the verdict font isn't available, then don't crash, but don't
         # render anything
         if not exists(VERDICT_FONT_PATH):
-            _print_note(f"Verdict font not found at {VERDICT_FONT_PATH}, so verdict text will not be rendered")
+            _print_note(
+                f"Verdict font not found at {VERDICT_FONT_PATH}, so verdict text will not be rendered"
+            )
             return
-        
-        self.font = ImageFont.truetype(
-            VERDICT_FONT_PATH, VERDICT_FONT_SIZE
-        )
+
+        self.font = ImageFont.truetype(VERDICT_FONT_PATH, VERDICT_FONT_SIZE)
         self._text = ""
         self.clear()
 
     def get_text_bbox(self, text):
         if self.font is None:
-            return (0,0)
-        
+            return (0, 0)
+
         bb = self.font.getbbox(text)
         x1, y1, x2, y2 = bb
 
@@ -58,19 +57,15 @@ class JudgeVerdictTextObject(SceneObject):
     def clear(self):
         if self.font is None:
             return
-        
+
         self.set_text("")
 
     def set_text(self, text: str, text_color: str = None):
         if self.font is None:
             return
-        
+
         self._text = text
 
-        # if len(self._text) == 0:
-        #     self._characters = {"chars": [], "width_sum": 0, "height": 0}
-        #     return
-        
         w, h = self.get_text_bbox(self._text)
 
         x_squish = min(1.0, VERDICT_MAX_WIDTH / w)
@@ -132,13 +127,13 @@ class JudgeVerdictTextObject(SceneObject):
     def show_index(self, index: int):
         if self.font is None:
             return
-        
+
         self._characters["chars"][index]["visible"] = True
 
     def update(self, delta):
         if self.font is None:
             return
-        
+
         for character in self._characters["chars"]:
             if not character["visible"]:
                 continue
@@ -149,7 +144,7 @@ class JudgeVerdictTextObject(SceneObject):
     def render(self, img: Image.Image, ctx: ImageDraw.ImageDraw):
         if self.font is None:
             return
-        
+
         width_so_far = -int(self._characters["width_sum"] / 2) - VERDICT_STROKE_WIDTH
         for character in self._characters["chars"]:
             if not character["visible"]:
@@ -158,7 +153,11 @@ class JudgeVerdictTextObject(SceneObject):
             char_width = character["width"]
 
             x = width_so_far
-            y = character["rect"][1] - int(self._characters["height"] / 2) - VERDICT_STROKE_WIDTH
+            y = (
+                character["rect"][1]
+                - int(self._characters["height"] / 2)
+                - VERDICT_STROKE_WIDTH
+            )
             w = char_img.width
             h = char_img.height
 

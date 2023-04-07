@@ -10,9 +10,6 @@ from time import time
 
 SWITCH_SPRITE_TIME = 0.18
 
-VERDICT_SHAKE_COMMAND = "shake 4 0.1"
-VERDICT_WAIT_COMMAND = "wait 0.2"
-
 pages = [
     DialoguePage([DialogueAction("music start pwr/cross-moderato", 0)]),
     DialoguePage(
@@ -119,7 +116,7 @@ pages = [
             DialogueAction("cut judge", 0),
             DialogueAction("wait 2", 0),
         ]
-        + compose_verdict("Denied", slam_group="letter", color="black")
+        + compose_verdict("Plate Denied", slam_group="word", color="black", slam_delay=0.35)
         + [
             DialogueAction("wait 5", 0),
         ]
@@ -128,4 +125,4 @@ pages = [
 
 director = AceAttorneyDirector()
 director.set_current_pages(pages)
-director.render_movie(output_filename=f"dmv-verdict-{int(time())}.mp4")
+director.render_movie(output_filename=f"dmv-verdict-words-{int(time())}.mp4")
