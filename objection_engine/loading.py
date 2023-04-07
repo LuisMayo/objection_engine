@@ -8,7 +8,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 from rich import print
 
-ASSETS_FOLDER = "assets_v4"
+ASSETS_FOLDER = "assets"
 CHARACTERS_FOLDER = "characters"
 MUSIC_FOLDER = "music"
 

@@ -2,7 +2,7 @@
 *Objection 4* makes it very easy to add your own characters to the character
 pool! In this tutorial, I'll go through the steps of adding Athena Cykes.
 
-**NOTE:** You'll need access to the `assets_v4` folder of *Objection* in order to
+**NOTE:** You'll need access to the `assets` folder of *Objection* in order to
 add custom characters. If you're using the public social media bots, this won't
 work.
 
@@ -121,7 +121,7 @@ athena
 
 With the following script, we can generate a video of Athena in action:
 ```python
-from objection_engine.v4.make_movie import render_comment_list
+from objection_engine.renderer import render_comment_list
 from objection_engine.beans.comment import Comment
 
 comments = [

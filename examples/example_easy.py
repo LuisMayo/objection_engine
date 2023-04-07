@@ -1,4 +1,4 @@
-from objection_engine.v4.make_movie import render_comment_list
+from objection_engine.renderer import render_comment_list
 from objection_engine.beans.comment import Comment
 
 comments = [

@@ -5,13 +5,13 @@ methods are more intense but allow finer control over the finished video.
 
 ## The Easy Way (compatible with *Objection 3* code)
 Most of the time, you can use the `render_comment_list()` method from 
-`objection_engine.v4.make_movie` to quickly and easily generate scenes.
+`objection_engine.renderer` to quickly and easily generate scenes.
 
-Here is the script `examples/v4/example_easy.py`, and a video it produces.
+Here is the script `examples/example_easy.py`, and a video it produces.
 (Note that because the engine uses randomness to choose things like sprites or
 music tracks, your output may not match the linked video exactly.)
 ```python
-from objection_engine.v4.make_movie import render_comment_list
+from objection_engine.renderer import render_comment_list
 from objection_engine.beans.comment import Comment
 
 comments = [
@@ -30,15 +30,15 @@ render_comment_list(comments)
 ```
 
 ## The Hard Way (building everything yourself)
-This script, `examples/v4/example_hard.py`, produces equivalent output to
+This script, `examples/example_hard.py`, produces equivalent output to
 `example_easy.py`, but controls all of the scene actions manually. As a result,
 this example *should* always result in an identical video.
 
 Unlike when using `render_comment_list()`, it will not display progress bars.
 
 ```python
-from objection_engine.v4.ace_attorney_scene import AceAttorneyDirector
-from objection_engine.v4.parse_tags import (
+from objection_engine.ace_attorney_scene import AceAttorneyDirector
+from objection_engine.parse_tags import (
     DialoguePage,
     DialogueAction,
     DialogueTextChunk,
@@ -51,7 +51,7 @@ pages = [
         [
             DialogueAction("wait 0.03", 0),
             DialogueAction(
-                "sprite left assets_v4/characters/phoenix/phoenix-normal-idle.gif", 0
+                "sprite left assets/characters/phoenix/phoenix-normal-idle.gif", 0
             ),
             DialogueAction("cut left", 0),
             DialogueAction('nametag "Phoenix"', 0),
@@ -59,19 +59,19 @@ pages = [
             DialogueAction("evidence clear", 0),
             DialogueAction("startblip male", 0),
             DialogueAction(
-                "sprite left assets_v4/characters/phoenix/phoenix-normal-talk.gif", 0
+                "sprite left assets/characters/phoenix/phoenix-normal-talk.gif", 0
             ),
             DialogueTextChunk("Hello", []),
             DialogueTextChunk(".", []),
             DialogueAction("stopblip", 0),
             DialogueTextChunk(" ", []),
             DialogueAction(
-                "sprite left assets_v4/characters/phoenix/phoenix-normal-idle.gif", 0
+                "sprite left assets/characters/phoenix/phoenix-normal-idle.gif", 0
             ),
             DialogueAction("wait 0.6", 0),
             DialogueAction("startblip male", 0),
             DialogueAction(
-                "sprite left assets_v4/characters/phoenix/phoenix-handsondesk-talk.gif",
+                "sprite left assets/characters/phoenix/phoenix-handsondesk-talk.gif",
                 0,
             ),
             DialogueTextChunk("My", []),
@@ -83,7 +83,7 @@ pages = [
             DialogueTextChunk("Phoenix", []),
             DialogueTextChunk(".", []),
             DialogueAction(
-                "sprite left assets_v4/characters/phoenix/phoenix-handsondesk-idle.gif",
+                "sprite left assets/characters/phoenix/phoenix-handsondesk-idle.gif",
                 0,
             ),
             DialogueAction("stopblip", 0),
@@ -98,7 +98,7 @@ pages = [
         [
             DialogueAction("wait 0.03", 0),
             DialogueAction(
-                "sprite left assets_v4/characters/phoenix/phoenix-handsondesk-idle.gif",
+                "sprite left assets/characters/phoenix/phoenix-handsondesk-idle.gif",
                 0,
             ),
             DialogueAction("cut left", 0),
@@ -106,7 +106,7 @@ pages = [
             DialogueAction("showbox", 0),
             DialogueAction("startblip male", 0),
             DialogueAction(
-                "sprite left assets_v4/characters/phoenix/phoenix-handsondesk-talk.gif",
+                "sprite left assets/characters/phoenix/phoenix-handsondesk-talk.gif",
                 0,
             ),
             DialogueTextChunk("I", []),
@@ -122,11 +122,11 @@ pages = [
             DialogueAction("stopblip", 0),
             DialogueTextChunk(" ", []),
             DialogueAction(
-                "sprite left assets_v4/characters/phoenix/phoenix-handsondesk-idle.gif",
+                "sprite left assets/characters/phoenix/phoenix-handsondesk-idle.gif",
                 0,
             ),
             DialogueAction(
-                "sprite left assets_v4/characters/phoenix/phoenix-handsondesk-idle.gif",
+                "sprite left assets/characters/phoenix/phoenix-handsondesk-idle.gif",
                 0,
             ),
             DialogueAction("stopblip", 0),
@@ -141,7 +141,7 @@ pages = [
         [
             DialogueAction("wait 0.03", 0),
             DialogueAction(
-                "sprite left assets_v4/characters/phoenix/phoenix-handsondesk-idle.gif",
+                "sprite left assets/characters/phoenix/phoenix-handsondesk-idle.gif",
                 0,
             ),
             DialogueAction("cut left", 0),
@@ -150,7 +150,7 @@ pages = [
             DialogueAction("evidence clear", 0),
             DialogueAction("startblip male", 0),
             DialogueAction(
-                "sprite left assets_v4/characters/phoenix/phoenix-handsondesk-talk.gif",
+                "sprite left assets/characters/phoenix/phoenix-handsondesk-talk.gif",
                 0,
             ),
             DialogueTextChunk("Here", []),
@@ -168,11 +168,11 @@ pages = [
             DialogueAction("stopblip", 0),
             DialogueTextChunk(" ", []),
             DialogueAction(
-                "sprite left assets_v4/characters/phoenix/phoenix-handsondesk-idle.gif",
+                "sprite left assets/characters/phoenix/phoenix-handsondesk-idle.gif",
                 0,
             ),
             DialogueAction(
-                "sprite left assets_v4/characters/phoenix/phoenix-handsondesk-idle.gif",
+                "sprite left assets/characters/phoenix/phoenix-handsondesk-idle.gif",
                 0,
             ),
             DialogueAction("stopblip", 0),
@@ -190,7 +190,7 @@ pages = [
             DialogueAction("wait 0.5", 0),
             DialogueAction("pan right", 0),
             DialogueAction(
-                "sprite right assets_v4/characters/edgeworth/edgeworth-document-idle.gif",
+                "sprite right assets/characters/edgeworth/edgeworth-document-idle.gif",
                 0,
             ),
             DialogueAction("wait 1.0", 0),
@@ -199,7 +199,7 @@ pages = [
             DialogueAction("evidence clear", 0),
             DialogueAction("startblip male", 0),
             DialogueAction(
-                "sprite right assets_v4/characters/edgeworth/edgeworth-document-talk.gif",
+                "sprite right assets/characters/edgeworth/edgeworth-document-talk.gif",
                 0,
             ),
             DialogueTextChunk("I", []),
@@ -210,13 +210,13 @@ pages = [
             DialogueTextChunk(",", []),
             DialogueAction("stopblip", 0),
             DialogueAction(
-                "sprite right assets_v4/characters/edgeworth/edgeworth-document-idle.gif",
+                "sprite right assets/characters/edgeworth/edgeworth-document-idle.gif",
                 0,
             ),
             DialogueAction("wait 0.3", 0),
             DialogueAction("startblip male", 0),
             DialogueAction(
-                "sprite right assets_v4/characters/edgeworth/edgeworth-document-talk.gif",
+                "sprite right assets/characters/edgeworth/edgeworth-document-talk.gif",
                 0,
             ),
             DialogueTextChunk(" ", []),
@@ -233,13 +233,13 @@ pages = [
             DialogueTextChunk("-", []),
             DialogueAction("stopblip", 0),
             DialogueAction(
-                "sprite right assets_v4/characters/edgeworth/edgeworth-document-idle.gif",
+                "sprite right assets/characters/edgeworth/edgeworth-document-idle.gif",
                 0,
             ),
             DialogueAction("wait 0.3", 0),
             DialogueAction("startblip male", 0),
             DialogueAction(
-                "sprite right assets_v4/characters/edgeworth/edgeworth-document-talk.gif",
+                "sprite right assets/characters/edgeworth/edgeworth-document-talk.gif",
                 0,
             ),
             DialogueTextChunk(" ", []),
@@ -250,11 +250,11 @@ pages = [
             DialogueAction("stopblip", 0),
             DialogueTextChunk(" ", []),
             DialogueAction(
-                "sprite right assets_v4/characters/edgeworth/edgeworth-document-idle.gif",
+                "sprite right assets/characters/edgeworth/edgeworth-document-idle.gif",
                 0,
             ),
             DialogueAction(
-                "sprite right assets_v4/characters/edgeworth/edgeworth-document-idle.gif",
+                "sprite right assets/characters/edgeworth/edgeworth-document-idle.gif",
                 0,
             ),
             DialogueAction("stopblip", 0),

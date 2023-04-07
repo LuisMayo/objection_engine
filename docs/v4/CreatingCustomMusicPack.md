@@ -3,7 +3,7 @@
 I'll walk through the process of creating a music pack for music from
 *Phoenix Wright: Ace Attorney ~ Dual Destinies*.
 
-**NOTE:** You'll need access to the `assets_v4` folder of *Objection* in order to
+**NOTE:** You'll need access to the `assets` folder of *Objection* in order to
 add custom music packs. If you're using the public social media bots, this won't
 work.
 
@@ -51,7 +51,7 @@ dd
 
 Let's hear it in action!
 ```python
-from objection_engine.v4.make_movie import render_comment_list
+from objection_engine.renderer import render_comment_list
 from objection_engine.beans.comment import Comment
 
 comments = [

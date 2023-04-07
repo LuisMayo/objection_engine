@@ -1,10 +1,10 @@
-from objection_engine.v4.ace_attorney_scene import (
+from objection_engine.ace_attorney_scene import (
     AceAttorneyDirector,
     DialogueBoxBuilder,
 )
 
 from objection_engine.beans.comment import Comment
-from objection_engine.v4.parse_tags import DialoguePage
+from objection_engine.parse_tags import DialoguePage
 
 from rich import print
 from rich.live import Live
@@ -49,10 +49,13 @@ def render_comment_list(
         )
 
         def on_characters_cast(cast: dict):
-            cast_table = Table("User ID", "Character ID", title="Cast")
-            for username, character in cast.items():
-                cast_table.add_row(username, character)
-            print(cast_table)
+            try:
+                cast_table = Table("User ID", "Character ID", title="Cast")
+                for username, character in cast.items():
+                    cast_table.add_row(username, character)
+                print(cast_table)
+            except:
+                pass
 
         def on_comment_processed(
             comment_index: int, num_comments: int, comment: Comment
@@ -120,7 +123,7 @@ def render_comment_list(
         builder.render(
             comment_list,
             output_filename=output_filename,
-            music_code=music_code,
+            music_code=music_code.lower(),
             assigned_characters=assigned_characters,
             adult_mode=adult_mode,
             avoid_spoiler_sprites=avoid_spoiler_sprites,

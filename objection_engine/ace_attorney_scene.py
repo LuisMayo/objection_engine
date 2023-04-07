@@ -5,17 +5,15 @@ from collections import Counter
 from random import choice
 from timeit import default_timer as timer
 from os.path import join
-from os import environ
+from os import environ, getenv
 from turtle import pos
 
 environ["TOKENIZERS_PARALLELISM"] = "false"  # to make HF Transformers happy
 
 from transformers import pipeline
 
-from objection_engine.v4.loading import ASSETS_FOLDER, CHARACTERS_FOLDER
-from objection_engine.beans.font_constants import NAMETAG_FONT_ARRAY, TextType
-
-from objection_engine.v4.loading import load_character_data, load_music_data
+from objection_engine.loading import ASSETS_FOLDER, CHARACTERS_FOLDER
+from objection_engine.loading import load_character_data, load_music_data
 from objection_engine.beans.comment import Comment
 
 from .MovieKit import (
@@ -39,13 +37,15 @@ from .parse_tags import (
     DialogueTextLineBreak,
 )
 from .font_tools import get_best_font, get_text_width
-from .font_constants import TEXT_COLORS, FONT_ARRAY
+from .font_constants import TEXT_COLORS, FONT_ARRAY, NAMETAG_FONT_ARRAY, TextType
 from typing import Callable, Optional
 from os.path import exists, join
 from shlex import split
 from math import cos, sin, pi
 from random import random
 from polyglot.text import Text, Sentence
+
+from .utils import ensure_assets_are_available
 
 try:
     from rich import print
@@ -157,7 +157,9 @@ class NameBox(SceneObject):
         self.text = text
         self.namebox_text.text = self.text
         font_stuff = get_best_font(text, NAMETAG_FONT_ARRAY)
-        self.font = ImageFont.truetype(font_stuff["path"], size=font_stuff.get("size", 12))
+        self.font = ImageFont.truetype(
+            font_stuff["path"], size=font_stuff.get("size", 12)
+        )
 
         text_offset = font_stuff.get("offset", {}).get(TextType.NAME, (0, 0))
         self.namebox_text.x = 4 + text_offset[0]
@@ -308,7 +310,7 @@ class ExclamationObject(ImageObject):
 
     def play_exclamation(self, type: str, speaker: str):
         self.set_filepath(
-            f"assets_v4/exclamations/{type}.gif", {0.7: lambda: self.set_filepath(None)}
+            f"assets/exclamations/{type}.gif", {0.7: lambda: self.set_filepath(None)}
         )
 
         audio_path = self.get_exclamation_path(type, speaker)
@@ -421,7 +423,14 @@ class ActionLinesObject(ImageObject):
         height: int = None,
         filepath: str = None,
     ):
-        super().__init__(parent=parent, name=name, pos=pos, width=width, height=height, filepath=filepath)
+        super().__init__(
+            parent=parent,
+            name=name,
+            pos=pos,
+            width=width,
+            height=height,
+            filepath=filepath,
+        )
         self.move_left = True
 
     def update(self, delta):
@@ -441,6 +450,7 @@ class ActionLinesObject(ImageObject):
 class AceAttorneyDirector(Director):
     def __init__(self, callbacks: dict = None, fps: float = 30):
         super().__init__(None, fps)
+        ensure_assets_are_available()
         self.callbacks = {} if callbacks is None else callbacks
 
         self.root = SceneObject(name="Root")
@@ -1053,7 +1063,7 @@ class DialogueBoxBuilder:
         self.callbacks = {} if callbacks is None else callbacks
 
         # Hugging Face sentiment analyzer
-        self.get_sentiment = pipeline(
+        self._sentiment_analyzer = pipeline(
             "sentiment-analysis",
             model=SENTIMENT_MODEL_PATH,
             tokenizer=SENTIMENT_MODEL_PATH,
@@ -1332,7 +1342,15 @@ class DialogueBoxBuilder:
         self.relaxed_track = join(music_code, choice(music_pack["relaxed"]))
         self.tense_track = join(music_code, choice(music_pack["tense"]))
         self.pages.append(
-            DialoguePage([DialogueAction(f"music start {self.relaxed_track}", 0)])
+            DialoguePage(
+                [
+                    DialogueAction(
+                        f"sprite left {ASSETS_FOLDER}/characters/phoenix/phoenix-normal-idle.gif",
+                        0,
+                    ),
+                    DialogueAction(f"music start {self.relaxed_track}", 0),
+                ]
+            )
         )
 
         self.has_done_objection = False
@@ -1345,14 +1363,31 @@ class DialogueBoxBuilder:
                     character=users_to_characters[comment.effective_user_id],
                     text=comment.text_content,
                     evidence_path=comment.evidence_path,
+                    manual_score=comment.score,
                 )
             )
 
             if "on_comment_processed" in self.callbacks:
                 self.callbacks["on_comment_processed"](i, len(comments), comment)
 
-    def update_pose_for_sentence(self, sentence: Sentence, sprites: list[str]):
-        sentiment: dict = self.get_sentiment(sentence.raw)[0]
+    def get_sentiment(self, text: str):
+        return (
+            [{"label": "neutral", "score": 1.0}]
+            if (len(getenv("oe_bypass_sentiment", "")) > 0)
+            else self._sentiment_analyzer(text)
+        )
+
+    def update_pose_for_sentence(
+        self, sentence: Sentence, sprites: list[str], manual_score: float = 0.0
+    ):
+        if manual_score == 0:
+            sentiment: dict = self.get_sentiment(sentence.raw)[0]
+        else:
+            sentiment: dict = {
+                "label": "positive" if manual_score > 0 else "negative",
+                "score": 1.0,
+            }
+
         try:
             sprite_cat = sentiment.get("label", "neutral")
         except IndexError:
@@ -1369,7 +1404,12 @@ class DialogueBoxBuilder:
         )
 
     def get_boxes_with_pauses(
-        self, user_name: str, character: str, text: str, evidence_path: str = None
+        self,
+        user_name: str,
+        character: str,
+        text: str,
+        evidence_path: str = None,
+        manual_score: float = 0,
     ):
         self.current_character_name = character
         this_char_data = self.character_data["characters"][character]
@@ -1382,12 +1422,19 @@ class DialogueBoxBuilder:
         sentences: list[Sentence] = pg_text.sentences
 
         # Determine if this should have an objection
-        text_polarity_data = self.get_sentiment(pg_text.raw)[0]
-        polarity_type = text_polarity_data["label"]
-        polarity_confidence = text_polarity_data["score"]
+        if manual_score == 0:
+            text_polarity_data = self.get_sentiment(pg_text.raw)[0]
+            polarity_type = text_polarity_data["label"]
+            polarity_confidence = text_polarity_data["score"]
+        else:
+            polarity_type = "positive" if manual_score > 0 else "negative"
+            polarity_confidence = abs(manual_score)
 
         do_objection = (
-            (polarity_type == "negative" or (polarity_type == "positive" and random() > 0.7))
+            (
+                polarity_type == "negative"
+                or (polarity_type == "positive" and random() > 0.7)
+            )
             and polarity_confidence > 0.5
             and not self.has_done_objection
         )
@@ -1395,7 +1442,7 @@ class DialogueBoxBuilder:
         # Stuff at beginning of text box
         all_pages: list[DialoguePage] = []
 
-        self.update_pose_for_sentence(sentences[0], sprites)
+        self.update_pose_for_sentence(sentences[0], sprites, manual_score=manual_score)
         current_page = self.initialize_box(
             user_name, do_objection, go_to_tense_music, text=text
         )
