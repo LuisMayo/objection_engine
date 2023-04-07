@@ -1,6 +1,8 @@
-from objection_engine.v4.math_helpers import lerp
+from objection_engine.loading import ASSETS_FOLDER, _print_note
+from objection_engine.math_helpers import lerp
 from .MovieKit import SceneObject
 from PIL import Image, ImageDraw, ImageFont
+from os.path import exists
 
 VERDICT_FONT_SIZE = 70
 VERDICT_FONT_START_SIZE_RATIO = 8 / 3
@@ -15,20 +17,32 @@ VERDICT_COLORS = {
     "white": {"fill": (255, 255, 255), "stroke": (0, 0, 0)},
 }
 
+VERDICT_FONT_PATH = f"./{ASSETS_FOLDER}/verdict/DFMinchoStd-W12.otf"
 
 class JudgeVerdictTextObject(SceneObject):
     def __init__(
         self, parent: SceneObject = None, name: str = ""
     ):
         super().__init__(parent, name, (0, 0, 10))
-        self.normal_font = ImageFont.truetype(
-            "./assets_v4/verdict/DFMinchoStd-W12.otf", VERDICT_FONT_SIZE
+        self.font = None
+
+        # If the verdict font isn't available, then don't crash, but don't
+        # render anything
+        if not exists(VERDICT_FONT_PATH):
+            _print_note(f"Verdict font not found at {VERDICT_FONT_PATH}, so verdict text will not be rendered")
+            return
+        
+        self.font = ImageFont.truetype(
+            VERDICT_FONT_PATH, VERDICT_FONT_SIZE
         )
         self._text = ""
         self.clear()
 
     def get_text_bbox(self, text):
-        bb = self.normal_font.getbbox(text)
+        if self.font is None:
+            return (0,0)
+        
+        bb = self.font.getbbox(text)
         x1, y1, x2, y2 = bb
 
         padding = VERDICT_STROKE_WIDTH
@@ -42,9 +56,15 @@ class JudgeVerdictTextObject(SceneObject):
         return (w, h)
 
     def clear(self):
+        if self.font is None:
+            return
+        
         self.set_text("")
 
     def set_text(self, text: str, text_color: str = None):
+        if self.font is None:
+            return
+        
         self._text = text
 
         # if len(self._text) == 0:
@@ -57,8 +77,8 @@ class JudgeVerdictTextObject(SceneObject):
         chars = []
         for i, c in enumerate(self._text):
             next_char = "" if i == len(self._text) - 1 else self._text[i + 1]
-            next_char_width = self.normal_font.getlength(next_char)
-            char_width = self.normal_font.getlength(c + next_char) - next_char_width
+            next_char_width = self.font.getlength(next_char)
+            char_width = self.font.getlength(c + next_char) - next_char_width
 
             # For each character, make an image and store it along with the character
             # it holds and its getlength value
@@ -73,7 +93,7 @@ class JudgeVerdictTextObject(SceneObject):
                 "fill": VERDICT_COLORS[text_color]["fill"],
                 "stroke_width": VERDICT_STROKE_WIDTH,
                 "stroke_fill": VERDICT_COLORS[text_color]["stroke"],
-                "font": self.normal_font,
+                "font": self.font,
                 "anchor": "lt",
             }
             char_img_ctx.text(**args)
@@ -86,10 +106,10 @@ class JudgeVerdictTextObject(SceneObject):
 
             # Get bounding box stuff!
             # From https://github.com/python-pillow/Pillow/issues/3921#issuecomment-533085656
-            bottom_1 = self.normal_font.getsize(self._text[i])[1]
-            right, bottom_2 = self.normal_font.getsize(self._text[: i + 1])
+            bottom_1 = self.font.getsize(self._text[i])[1]
+            right, bottom_2 = self.font.getsize(self._text[: i + 1])
             bottom = bottom_1 if bottom_1 < bottom_2 else bottom_2
-            width, height = self.normal_font.getmask(c).size
+            width, height = self.font.getmask(c).size
             top = bottom - height
             left = right - width
 
@@ -110,9 +130,15 @@ class JudgeVerdictTextObject(SceneObject):
         self._characters = {"chars": chars, "width_sum": width_sum, "height": h}
 
     def show_index(self, index: int):
+        if self.font is None:
+            return
+        
         self._characters["chars"][index]["visible"] = True
 
     def update(self, delta):
+        if self.font is None:
+            return
+        
         for character in self._characters["chars"]:
             if not character["visible"]:
                 continue
@@ -121,6 +147,9 @@ class JudgeVerdictTextObject(SceneObject):
             )
 
     def render(self, img: Image.Image, ctx: ImageDraw.ImageDraw):
+        if self.font is None:
+            return
+        
         width_so_far = -int(self._characters["width_sum"] / 2) - VERDICT_STROKE_WIDTH
         for character in self._characters["chars"]:
             if not character["visible"]:
