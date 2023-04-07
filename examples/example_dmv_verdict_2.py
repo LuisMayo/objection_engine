@@ -21,20 +21,24 @@ pages = [
     DialoguePage(
         [
             DialogueAction(
-                "sprite center assets/characters/dahlia/dahlia-normal-idle.gif", 0
+                f"sprite left assets/characters/phoenix/phoenix-thinking-idle.gif",
+                0,
+            ),
+            DialogueAction(
+                "sprite center assets/characters/tigre/tigre-normal-idle.gif", 0
             ),
             DialogueAction("cut center", 0),
             DialogueAction('nametag "Customer"', 0),
-            DialogueAction("evidence right examples/fish.png", 0),
+            DialogueAction("evidence right examples/ms_daang.png", 0),
             DialogueAction("wait 0.5", 0),
             DialogueAction("showbox", 0),
-            DialogueAction("startblip female", 0),
+            DialogueAction("startblip male", 0),
             DialogueAction(
-                "sprite center assets/characters/dahlia/dahlia-normal-talk.gif", 0
+                "sprite center assets/characters/tigre/tigre-normal-talk.gif", 0
             ),
-            DialogueTextChunk("I LOVE TO FISH", ["green"]),
+            DialogueTextChunk("MUSTANG", ["green"]),
             DialogueAction(
-                "sprite center assets/characters/dahlia/dahlia-normal-idle.gif", 0
+                "sprite center assets/characters/tigre/tigre-normal-idle.gif", 0
             ),
             DialogueAction("stopblip", 0),
             DialogueAction("showarrow", 0),
@@ -48,19 +52,7 @@ pages = [
         [
             DialogueAction("hidebox", 0),
             DialogueAction("evidence clear", 0),
-            DialogueAction("flash 0.1", 0),
-            DialogueAction("bubble objection phoenix", 0),
-            DialogueAction(f"wait 0.1", 0),
-            DialogueAction("music stop", 0),
-            DialogueAction(f"wait 1.2", 0),
-
-            DialogueAction("hidebox", 0),
-            DialogueAction("wait 0.25", 0),
             DialogueAction(f"pan left", 0),
-            DialogueAction(
-                f"sprite left assets/characters/phoenix/phoenix-handsondesk-idle.gif",
-                0,
-            ),
             DialogueAction(f"wait {SWITCH_SPRITE_TIME}", 0),
             DialogueAction("show left", 0),
             DialogueAction("show right", 0),
@@ -68,43 +60,21 @@ pages = [
             DialogueAction(f"wait {1 - SWITCH_SPRITE_TIME}", 0),
             DialogueAction("show center", 0),
             DialogueAction(f"wait 0.1", 0),
-            DialogueAction(
-                f"sprite left assets/characters/phoenix/phoenix-deskslam.gif",
-                0,
-            ),
-            DialogueAction("wait 0.15", 0),
-            DialogueAction("sound deskslam", 0),
-            DialogueAction("wait 0.7", 0),
-            DialogueAction(
-                f"sprite left assets/characters/phoenix/phoenix-handsondesk-idle.gif",
-                0,
-            ),
-            DialogueAction("wait 0.5", 0)
         ]
     ),
     DialoguePage([
             DialogueAction('nametag "CA DMV"', 0),
-            DialogueAction(
-                f"sprite leftzoom assets/characters/phoenix/phoenix-zoom-idle.gif",
-                0,
-            ),
-            DialogueAction(f"music start pwr/press", 0),
-            # DialogueAction("flash 0.1", 0),
-            DialogueAction("cut leftzoom", 0),
             DialogueAction("wait 0.15", 0),
             DialogueAction("showbox", 0),
             DialogueAction("startblip male", 0),
             DialogueAction(
-                f"sprite leftzoom assets/characters/phoenix/phoenix-zoom-talk.gif",
+                f"sprite left assets/characters/phoenix/phoenix-thinking-talk.gif",
                 0,
             ),
-            DialogueTextChunk("SEXUAL CONNOTATIONS", []),
-            DialogueAction("flash 0.15", 0),
-            DialogueAction("shake 5 0.3", 0),
-            DialogueAction("sound objection", 0),
+            DialogueTextChunk("DANG/DAMN?", []),
             DialogueAction("stopblip", 0),
             DialogueAction(
-                f"sprite leftzoom assets/characters/phoenix/phoenix-zoom-idle.gif",
+                f"sprite left assets/characters/phoenix/phoenix-thinking-idle.gif",
                 0,
             ),
             DialogueAction("showarrow", 0),
@@ -120,7 +90,7 @@ pages = [
 
 
             DialogueAction("wait 2", 0),
-            DialogueAction("verdict set \"Denied\" black", 0),
+            DialogueAction("verdict set \"Accepted\" white", 0),
             
             DialogueAction("verdict show 0", 0),
             DialogueAction(VERDICT_WAIT_COMMAND, 0),
@@ -152,6 +122,15 @@ pages = [
             DialogueAction("sound guilty", 0),
             DialogueAction(VERDICT_SHAKE_COMMAND, 0),
 
+            DialogueAction("verdict show 6", 0),
+            DialogueAction(VERDICT_WAIT_COMMAND, 0),
+            DialogueAction("sound guilty", 0),
+            DialogueAction(VERDICT_SHAKE_COMMAND, 0),
+
+            DialogueAction("verdict show 7", 0),
+            DialogueAction(VERDICT_WAIT_COMMAND, 0),
+            DialogueAction("sound guilty", 0),
+            DialogueAction(VERDICT_SHAKE_COMMAND, 0),
             DialogueAction("wait 5", 0),
         ]
     )
