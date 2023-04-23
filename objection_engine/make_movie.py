@@ -28,6 +28,7 @@ def render_comment_list(
     adult_mode: bool = False,
     avoid_spoiler_sprites: bool = False,
 ):
+    print("EDITTT")
     with Progress(
         TextColumn("[progress.description]{task.description}"),
         BarColumn(),

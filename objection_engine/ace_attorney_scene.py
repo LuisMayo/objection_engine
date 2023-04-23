@@ -7,6 +7,7 @@ from timeit import default_timer as timer
 from os.path import join
 from os import environ, getenv
 from turtle import pos
+from polyglot.text import Text
 
 environ["TOKENIZERS_PARALLELISM"] = "false"  # to make HF Transformers happy
 
@@ -1041,12 +1042,35 @@ class DialogueBoxBuilder:
         self.has_gone_to_tense_music: bool = False
         self.callbacks = {} if callbacks is None else callbacks
 
+        self._sentiment_analyzer = None
         # Hugging Face sentiment analyzer
-        self._sentiment_analyzer = pipeline(
-            "sentiment-analysis",
-            model=SENTIMENT_MODEL_PATH,
-            tokenizer=SENTIMENT_MODEL_PATH,
-        )
+        if len(getenv("oe_bypass_sentiment", "")) <= 0:
+            model_setting = getenv("oe_sentiment_model", "hf")
+            if model_setting == 'hf':
+                self._sentiment_analyzer = pipeline(
+                    "sentiment-analysis",
+                    model=SENTIMENT_MODEL_PATH,
+                    tokenizer=SENTIMENT_MODEL_PATH,
+                )
+
+    def hf_sentiment(self, text: str):
+        return self._sentiment_analyzer(text)[0]
+
+    def poly_sentiment(self, text: str):
+        print(text)
+        poly_text = Text(text)
+        try:
+            polarity = poly_text.polarity
+        except:
+            polarity = 0
+        print(polarity)
+        if polarity > 0.35:
+            return {'label': 'positive', 'score': 1.0}
+        # If polarity is -1 there isn't enough information to determine if it's negative therefore we introduce randomness
+        if polarity < -0.35 and (polarity > -1 or random.random() > 0.25):
+            return {'label': 'negative', 'score': 1.0}
+        return {'label': 'positive', 'score': 0.0}
+
 
     def reload_character_data(self, verify_sprites: bool = False):
         self.character_data = load_character_data(verify_sprites=verify_sprites)
@@ -1350,17 +1374,20 @@ class DialogueBoxBuilder:
                 self.callbacks["on_comment_processed"](i, len(comments), comment)
 
     def get_sentiment(self, text: str):
-        return (
-            [{"label": "neutral", "score": 1.0}]
-            if (len(getenv("oe_bypass_sentiment", "")) > 0)
-            else self._sentiment_analyzer(text)
-        )
+        if len(getenv("oe_bypass_sentiment", "")) > 0:
+            return {"label": "neutral", "score": 1.0}
+        else:
+            model_setting = getenv("oe_sentiment_model", "hf")
+            if model_setting == 'hf':
+                return self.hf_sentiment(text)
+            else:
+                return self.poly_sentiment(text)
 
     def update_pose_for_sentence(
         self, sentence: Sentence, sprites: list[str], manual_score: float = 0.0
     ):
         if manual_score == 0:
-            sentiment: dict = self.get_sentiment(sentence.raw)[0]
+            sentiment: dict = self.get_sentiment(sentence.raw)
         else:
             sentiment: dict = {
                 "label": "positive" if manual_score > 0 else "negative",
@@ -1402,7 +1429,7 @@ class DialogueBoxBuilder:
 
         # Determine if this should have an objection
         if manual_score == 0:
-            text_polarity_data = self.get_sentiment(pg_text.raw)[0]
+            text_polarity_data = self.get_sentiment(pg_text.raw)
             polarity_type = text_polarity_data["label"]
             polarity_confidence = text_polarity_data["score"]
         else:
@@ -1411,7 +1438,7 @@ class DialogueBoxBuilder:
 
         do_objection = (
             (
-                polarity_type == "negative"
+                (polarity_type == "negative" and random() > 0.3)
                 or (polarity_type == "positive" and random() > 0.7)
             )
             and polarity_confidence > 0.5
