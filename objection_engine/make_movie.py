@@ -18,6 +18,7 @@ from rich.progress import (
     TimeElapsedColumn,
 )
 
+from objection_engine.utils import ensure_assets_are_available
 
 def render_comment_list(
     comment_list: list["Comment"],
@@ -28,6 +29,7 @@ def render_comment_list(
     adult_mode: bool = False,
     avoid_spoiler_sprites: bool = False,
 ):
+    ensure_assets_are_available()
     with Progress(
         TextColumn("[progress.description]{task.description}"),
         BarColumn(),
