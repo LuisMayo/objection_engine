@@ -90,6 +90,9 @@ Immediately moves the camera to the specified `position`.
 
 See the documentation for the `sprite` command for valid `position` values.
 
+In addition to those positions, `gavel` is also a valid position to cut to
+when displaying a gavel slam animation.
+
 ### `pan <position>`
 Performs the "courtroom pan" animation from the camera's current position
 to the specified `position`. The animation takes `0.5` seconds,
@@ -102,3 +105,12 @@ See the documentation for the `sprite` command for valid `position` values.
 ## Scene flow
 ### `wait <duration>`
 Pauses execution of commands for `duration` seconds.
+
+## Gavel slam
+### `gavel <frame>`
+Sets the frame of the gavel slam to `<frame>`. Valid frames are:
+- `0` - The gavel is not visible.
+- `1` - The bottom of the gavel is visible at the top of the screen.
+- `2` - The entire gavel is visible and touching the block.
+- `3` - The entire gavel is visible and touching the block, and there are impact
+lines around the screen.
