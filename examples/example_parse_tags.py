@@ -1,7 +1,6 @@
 from objection_engine.ace_attorney_scene import AceAttorneyDirector
 from objection_engine.parse_tags import DialoguePage
-from objection_engine.parse_tags_v2 import parse_line
-from rich import print
+from objection_engine.parse_tags import parse_line
 
 script = """
 [music start pwr/trial]

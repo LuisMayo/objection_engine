@@ -1,8 +1,7 @@
 from dataclasses import dataclass, field
 from re import compile
-from typing import Union
 from copy import deepcopy
-from .font_tools import get_best_font, split_str_into_newlines, split_with_joined_sentences
+from objection_engine.font_tools import get_best_font, split_str_into_newlines, split_with_joined_sentences, get_text_width
 from .font_constants import FONT_ARRAY
 
 @dataclass
@@ -180,76 +179,35 @@ class DialogueTextContent:
             
         return pages
 
+__tag_matcher = compile(r"\[(.*?)\]")
+def parse_line(text: str) -> DialoguePage:
+    current_line_width = 0.0
 
-# Group 1: Optional slash at the beginning (i.e. it's a closing tag)
-# Group 2: Tag name
-# Group 3: Arguments to tag
-# Group 4: Optional slash at end (i.e. it's self-closing, like an action)
-tag_re = compile(r"(?<!\\)<(/?)(.+?)(/??)>")
+    page_content: list[BaseDialogueItem] = []
 
-def parse_text(text: str) -> DialogueTextContent:
-    tag_stack = []
-    final_tags = []
-    final_actions = []
-    stripped_text = text
-    
-    next_match = tag_re.search(stripped_text)
-    while next_match is not None:
-        start, end = next_match.span(0)
-        stripped_text = stripped_text[:start] + stripped_text[end:]
+    remaining_text = text
+    while len(remaining_text) > 0:
+        re_match = __tag_matcher.match(remaining_text)
+        if re_match is not None:
+            # Tag found at beginning of string, let's get it
+            match_content = re_match.group(1)
 
-        closing_slash, tag_name, self_closing_slash = next_match.group(1, 2, 3)
-        is_closing_tag = closing_slash == "/"
-        is_self_closing_tag = self_closing_slash == "/"
+            if match_content == "br":
+                page_content.append(DialogueTextLineBreak())
+            else:
+                page_content.append(DialogueAction(match_content, 0))
+            remaining_text = remaining_text[len(re_match.group(0)):]
+        else:
+            char = remaining_text[0]
+            page_content.append(DialogueTextChunk(char, []))
 
-        if is_closing_tag and is_self_closing_tag:
-            raise Exception(f"Tag at index {start} is both closing and self-closing")
+            # Uncomment for auto line breaking (but its stinky)
+            # char_width = get_text_width(char, font=get_best_font(char, FONT_ARRAY))
+            # current_line_width += char_width
+            # if current_line_width > MAX_WIDTH:
+            #     page_content.append(DialogueTextLineBreak())
+            #     current_line_width = 0.0
+                
+            remaining_text = remaining_text[1:]
 
-        # Opening tag, like <red>
-        if not is_closing_tag and not is_self_closing_tag:
-            tag_stack.append({
-                "name": tag_name,
-                "start": start
-            })
-
-        # Closing tag, like </red>
-        elif is_closing_tag:
-            if len(tag_stack) == 0:
-                # Closing tag before opening tag
-                print(f"Error - tag stack is empty on closing tag {tag_name}")
-                return DialogueTextContent(text, [])
-            tag = tag_stack.pop()
-            if tag["name"] != tag_name:
-                # Tag mismatch
-                print(f"Error - tag mismatch (opening tag {tag['name']}, closing tag {tag_name})")
-                return DialogueTextContent(text, [])
-
-            # I know it's confusing, sorry. This is the start index of the closing tag
-            tag["end"] = start
-            final_tags.append(tag)
-
-        # Self-closing tag, like <shake/>
-        elif is_self_closing_tag:
-            final_actions.append({
-                "name": tag_name,
-                "index": start
-            })
-        next_match = tag_re.search(stripped_text)
-
-    # Construct list of tags and actions
-    tag_objects = []
-    for tag in final_tags:
-        tag_objects.append(DialogueTag(**tag))
-
-    action_objects = []
-    for action in final_actions:
-        action_objects.append(DialogueAction(**action))
-
-    return DialogueTextContent(stripped_text, tag_objects, action_objects)
-
-def get_rich_boxes(text: str):
-    """
-    Given input `text`, returns a list of `DialoguePage` objects. Each object
-    represents a single dialogue box.
-    """
-    return parse_text(text).get_text_chunks()
+    return page_content
