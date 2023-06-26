@@ -8,6 +8,8 @@ from os.path import join
 from os import environ, getenv
 from turtle import pos
 
+from objection_engine.testimony_indicator import TestimonyIndicatorTextObject
+
 environ["TOKENIZERS_PARALLELISM"] = "false"  # to make HF Transformers happy
 
 from transformers import pipeline
@@ -598,6 +600,8 @@ class AceAttorneyDirector(Director):
 
         self.judge_verdict = JudgeVerdictTextObject(parent=self.root, name="Judge Verdict")
 
+        self.testimony_indicator = TestimonyIndicatorTextObject(parent=self.root, name="Testimony Indicator")
+        
         self.scene = Scene(width=256, height=192, root=self.root)
 
         if "on_director_initialized" in self.callbacks:
