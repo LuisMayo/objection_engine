@@ -10,8 +10,10 @@ pages = [
     DialoguePage(
         [
             DialogueAction("music start pwr/cross-moderato", 0),
-            DialogueAction("testimony set 'Discussion'", 0), # Set testimony indicator text with default colors
-            DialogueAction("testimony show", 0), # Show testimony indicator
+            DialogueAction(
+                "testimony set 'Discussion'", 0
+            ),  # Set testimony indicator text with default colors
+            DialogueAction("testimony show", 0),  # Show testimony indicator
         ]
     ),
     DialoguePage(
@@ -154,10 +156,12 @@ pages = [
         [
             DialogueAction("wait 0.03", 0),
             DialogueAction("hidebox", 0),
-            DialogueAction("testimony hide", 0), # Hide testimony indicator
-            DialogueAction("testimony set 'Counterargument'", 0), # Set a new testimony indicator
-            DialogueAction("testimony fillcolor 56 200 200", 0), # Set the fill color
-            DialogueAction("testimony strokecolor 128 0 56", 0), # Set the stroke color
+            DialogueAction("testimony hide", 0),  # Hide testimony indicator
+            DialogueAction(
+                "testimony set 'Counterargument'", 0
+            ),  # Set a new testimony indicator
+            DialogueAction("testimony fillcolor 56 200 200", 0),  # Set the fill color
+            DialogueAction("testimony strokecolor 128 0 56", 0),  # Set the stroke color
             DialogueAction("wait 0.5", 0),
             DialogueAction("pan right", 0),
             DialogueAction(
@@ -167,7 +171,7 @@ pages = [
             DialogueAction("wait 1.0", 0),
             DialogueAction('nametag "Edgeworth"', 0),
             DialogueAction("showbox", 0),
-            DialogueAction("testimony show", 0), # Start showing new indicator
+            DialogueAction("testimony show", 0),  # Start showing new indicator
             DialogueAction("evidence clear", 0),
             DialogueAction("startblip male", 0),
             DialogueAction(
@@ -191,8 +195,10 @@ pages = [
                 "sprite right assets/characters/edgeworth/edgeworth-document-talk.gif",
                 0,
             ),
-            DialogueAction("testimony fillcolor default", 0), # Reset the fill color
-            DialogueAction("testimony strokecolor default", 0), # Reset the stroke color
+            DialogueAction("testimony fillcolor default", 0),  # Reset the fill color
+            DialogueAction(
+                "testimony strokecolor default", 0
+            ),  # Reset the stroke color
             DialogueTextChunk(" ", []),
             DialogueTextChunk("because", []),
             DialogueTextChunk(" ", []),
