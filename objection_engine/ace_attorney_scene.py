@@ -598,9 +598,13 @@ class AceAttorneyDirector(Director):
 
         self.evidence = EvidenceObject(parent=self.textbox_shaker, director=self)
 
-        self.judge_verdict = JudgeVerdictTextObject(parent=self.root, name="Judge Verdict")
+        self.judge_verdict = JudgeVerdictTextObject(
+            parent=self.root, name="Judge Verdict"
+        )
 
-        self.testimony_indicator = TestimonyIndicatorTextObject(parent=self.root, name="Testimony Indicator")
+        self.testimony_indicator = TestimonyIndicatorTextObject(
+            parent=self.root, name="Testimony Indicator"
+        )
 
         self.scene = Scene(width=256, height=192, root=self.root)
 
@@ -846,7 +850,7 @@ class AceAttorneyDirector(Director):
                             r = int(action_split[2])
                             g = int(action_split[3])
                             b = int(action_split[4])
-                            self.testimony_indicator.set_fill_color((r,g,b))
+                            self.testimony_indicator.set_fill_color((r, g, b))
                     elif command == "strokecolor":
                         if len(action_split) == 3 and action_split[2] == "default":
                             self.testimony_indicator.set_stroke_color(None)
@@ -854,7 +858,7 @@ class AceAttorneyDirector(Director):
                             r = int(action_split[2])
                             g = int(action_split[3])
                             b = int(action_split[4])
-                            self.testimony_indicator.set_stroke_color((r,g,b))
+                            self.testimony_indicator.set_stroke_color((r, g, b))
                     elif command == "show":
                         self.testimony_indicator.make_visible()
                     elif command == "hide":

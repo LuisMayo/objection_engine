@@ -42,20 +42,17 @@ class TestimonyIndicatorTextObject(SceneObject):
         return (x2 - x1, y2 - y1)
 
     def set_fill_color(self, color: tuple[int, int, int] = None):
-        self.fill_color = color if color is not None else (255,255,255)
+        self.fill_color = color if color is not None else (255, 255, 255)
         self.render_internal_graphic()
 
     def set_stroke_color(self, color: tuple[int, int, int] = None):
         self.stroke_color = color if color is not None else (0, 192, 56)
         self.render_internal_graphic()
 
-    def set_text(
-        self,
-        text: str
-    ):
+    def set_text(self, text: str):
         self._text = text
         self.render_internal_graphic()
-        
+
     def render_internal_graphic(self):
         if self.font is None:
             return
@@ -105,7 +102,7 @@ class TestimonyIndicatorTextObject(SceneObject):
 
         if not self.can_be_displayed:
             return
-        
+
         if not self.text_visible:
             return
 
