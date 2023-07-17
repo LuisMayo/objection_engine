@@ -1,5 +1,5 @@
 # DialogueAction Commands
-*Objection 4* allows for fine control of the way that dialogue plays out. This
+*Objection* allows for fine control of the way that dialogue plays out. This
 document describes all of the currently-supported `DialogueAction` commands.
 
 ## Character control
@@ -105,6 +105,28 @@ See the documentation for the `sprite` command for valid `position` values.
 ## Scene flow
 ### `wait <duration>`
 Pauses execution of commands for `duration` seconds.
+
+## Judge's verdict
+
+### `verdict set <text> <color>`
+Sets the text for the verdict effect to the `text` argument. If `text` contains
+spaces, you will need to wrap it in quote marks. The `color` argument may be
+either `black` for black letters with a white stroke, or `white` for white
+letters with a black stroke.
+
+When this command is run, the text will not appear; use the `verdict show`
+command to make it appear.
+
+### `verdict show <index>`
+Causes the `index`th character in the text set by `verdict set` to appear and
+play a "slam down" animation.
+
+Note that this command is non-blocking; if you want a delay between letters
+appearing, you will need to use a `wait` command.
+
+### `verdict clear`
+Immediately removes the verdict text from the screen, and resets the internal
+string to an empty one.
 
 ## Gavel slam
 ### `gavel <frame>`

@@ -1,5 +1,5 @@
 # Creating a Custom Character
-*Objection 4* makes it very easy to add your own characters to the character
+*Objection* makes it very easy to add your own characters to the character
 pool! In this tutorial, I'll go through the steps of adding Athena Cykes.
 
 **NOTE:** You'll need access to the `assets` folder of *Objection* in order to
