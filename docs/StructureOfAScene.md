@@ -1,6 +1,5 @@
 # Structure of a Scene
-*Objection 4* introduces a more transparent, editable structure
-for scenes than was present in *Objection 3*.
+*Objection* introduces a transparent, editable structure.
 
 In short:
 - A scene is made up of a list of `DialoguePage` objects.
