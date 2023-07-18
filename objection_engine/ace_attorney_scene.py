@@ -8,6 +8,8 @@ from os.path import join
 from os import environ, getenv
 from turtle import pos
 
+from objection_engine.testimony_indicator import TestimonyIndicatorTextObject
+
 environ["TOKENIZERS_PARALLELISM"] = "false"  # to make HF Transformers happy
 
 from transformers import pipeline
@@ -596,7 +598,13 @@ class AceAttorneyDirector(Director):
 
         self.evidence = EvidenceObject(parent=self.textbox_shaker, director=self)
 
-        self.judge_verdict = JudgeVerdictTextObject(parent=self.root, name="Judge Verdict")
+        self.judge_verdict = JudgeVerdictTextObject(
+            parent=self.root, name="Judge Verdict"
+        )
+
+        self.testimony_indicator = TestimonyIndicatorTextObject(
+            parent=self.root, name="Testimony Indicator"
+        )
 
         self.scene = Scene(width=256, height=192, root=self.root)
 
@@ -830,6 +838,33 @@ class AceAttorneyDirector(Director):
 
                     current_dialogue_obj.completed = True
 
+                elif c == "testimony":
+                    command = action_split[1]
+                    if command == "set":
+                        new_text = action_split[2]
+                        self.testimony_indicator.set_text(new_text)
+                    elif command == "fillcolor":
+                        if len(action_split) == 3 and action_split[2] == "default":
+                            self.testimony_indicator.set_fill_color(None)
+                        else:
+                            r = int(action_split[2])
+                            g = int(action_split[3])
+                            b = int(action_split[4])
+                            self.testimony_indicator.set_fill_color((r, g, b))
+                    elif command == "strokecolor":
+                        if len(action_split) == 3 and action_split[2] == "default":
+                            self.testimony_indicator.set_stroke_color(None)
+                        else:
+                            r = int(action_split[2])
+                            g = int(action_split[3])
+                            b = int(action_split[4])
+                            self.testimony_indicator.set_stroke_color((r, g, b))
+                    elif command == "show":
+                        self.testimony_indicator.make_visible()
+                    elif command == "hide":
+                        self.testimony_indicator.make_invisible()
+
+                    current_dialogue_obj.completed = True
                 elif c == "nop":
                     current_dialogue_obj.completed = True
 
