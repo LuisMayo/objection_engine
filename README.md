@@ -101,6 +101,7 @@ docker run --rm \
 #### Settings
 The following environment variables are honored by objection_engine:
 - oe_bypass_sentiment: If on any value other than the empty string, the sentiment analysis is bypassed
+- oe_sentiment_model: If "polyglot", polyglot will be used for sentiment analisis, if empty or "hf" it would be a huggingface model. When using polyglot models remember to do python -m polyglot download TASK:sentiment2
 - ~~oe_stats_server~~ (not longer supported as of Objection engine 3.3.0): If present, it will be used as the URL to post statistics to. The server responsible should be similar to https://github.com/LuisMayo/simple-server-counter
 - oe_polyglot_models: (docker only) If on polyglot model(s), the data for the model will be downloaded when starting the container.
 - OE_DIRECT_H264_ENCODING: If "true" then it will directly encode the videos in H264 with OpenCV, instead of encoding in mp4v and re-encoding later. This is faster than the default, but it requires running on windows or having a self-compiled OpenCV build in your system. If you don't know what any of this means, don't enable it.

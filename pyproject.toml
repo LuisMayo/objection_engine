@@ -33,8 +33,6 @@ torch = "^1.13.1"
 sentencepiece = "^0.1.97"
 
 [tool.poetry.dev-dependencies]
-
-[tool.poetry.group.dev.dependencies]
 black = {version = "^23.1a1", allow-prereleases = true}
 
 [build-system]
