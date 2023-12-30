@@ -1113,13 +1113,11 @@ class DialogueBoxBuilder:
         return self._sentiment_analyzer(text)[0]
 
     def poly_sentiment(self, text: str):
-        print(text)
         poly_text = Text(text)
         try:
             polarity = poly_text.polarity
-        except:
+        except Exception as e:
             polarity = 0
-        print(polarity)
         if polarity > 0.35:
             return {'label': 'positive', 'score': 1.0}
         # If polarity is -1 there isn't enough information to determine if it's negative therefore we introduce randomness
