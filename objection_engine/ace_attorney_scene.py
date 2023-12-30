@@ -9,6 +9,8 @@ from os import environ, getenv
 from turtle import pos
 from polyglot.text import Text
 
+from objection_engine.testimony_indicator import TestimonyIndicatorTextObject
+
 environ["TOKENIZERS_PARALLELISM"] = "false"  # to make HF Transformers happy
 
 from transformers import pipeline
@@ -25,6 +27,9 @@ from .MovieKit import (
     SimpleTextObject,
     Director,
 )
+
+from .judge_verdict import JudgeVerdictTextObject
+
 from .math_helpers import ease_in_out_cubic, ease_in_out_sine, lerp, remap
 from PIL import Image, ImageDraw, ImageFont
 from .parse_tags import (
@@ -594,6 +599,14 @@ class AceAttorneyDirector(Director):
 
         self.evidence = EvidenceObject(parent=self.textbox_shaker, director=self)
 
+        self.judge_verdict = JudgeVerdictTextObject(
+            parent=self.root, name="Judge Verdict"
+        )
+
+        self.testimony_indicator = TestimonyIndicatorTextObject(
+            parent=self.root, name="Testimony Indicator"
+        )
+
         self.scene = Scene(width=256, height=192, root=self.root)
 
         if "on_director_initialized" in self.callbacks:
@@ -810,6 +823,49 @@ class AceAttorneyDirector(Director):
                         self.witness_stand.visible = False
                     current_dialogue_obj.completed = True
 
+                elif c == "verdict":
+                    command = action_split[1]
+                    if command == "set":
+                        new_text = action_split[2]
+                        text_color = action_split[3]
+                        self.judge_verdict.set_text(new_text, text_color)
+
+                    elif command == "show":
+                        index = int(action_split[2])
+                        self.judge_verdict.show_index(index)
+
+                    elif command == "clear":
+                        self.judge_verdict.clear()
+
+                    current_dialogue_obj.completed = True
+
+                elif c == "testimony":
+                    command = action_split[1]
+                    if command == "set":
+                        new_text = action_split[2]
+                        self.testimony_indicator.set_text(new_text)
+                    elif command == "fillcolor":
+                        if len(action_split) == 3 and action_split[2] == "default":
+                            self.testimony_indicator.set_fill_color(None)
+                        else:
+                            r = int(action_split[2])
+                            g = int(action_split[3])
+                            b = int(action_split[4])
+                            self.testimony_indicator.set_fill_color((r, g, b))
+                    elif command == "strokecolor":
+                        if len(action_split) == 3 and action_split[2] == "default":
+                            self.testimony_indicator.set_stroke_color(None)
+                        else:
+                            r = int(action_split[2])
+                            g = int(action_split[3])
+                            b = int(action_split[4])
+                            self.testimony_indicator.set_stroke_color((r, g, b))
+                    elif command == "show":
+                        self.testimony_indicator.make_visible()
+                    elif command == "hide":
+                        self.testimony_indicator.make_invisible()
+
+                    current_dialogue_obj.completed = True
                 elif c == "nop":
                     current_dialogue_obj.completed = True
 

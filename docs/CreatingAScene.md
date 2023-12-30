@@ -1,5 +1,5 @@
 # Creating a Scene
-*Objection 4* has a few different ways to build scenes before rendering them.
+*Objection* has a few different ways to build scenes before rendering them.
 Some methods are simpler but leave more up to random chance, whereas other
 methods are more intense but allow finer control over the finished video.
 

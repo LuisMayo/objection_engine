@@ -1,5 +1,5 @@
 # Creating a Custom Music Pack
-*Objection 4* makes it very easy to add custom music packs. In this tutorial,
+*Objection* makes it very easy to add custom music packs. In this tutorial,
 I'll walk through the process of creating a music pack for music from
 *Phoenix Wright: Ace Attorney ~ Dual Destinies*.
 
