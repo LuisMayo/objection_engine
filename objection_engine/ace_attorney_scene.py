@@ -8,6 +8,7 @@ from os.path import join
 from os import environ, getenv
 from turtle import pos
 
+from objection_engine.gavel_slam import GavelSlamObject
 from objection_engine.testimony_indicator import TestimonyIndicatorTextObject
 
 environ["TOKENIZERS_PARALLELISM"] = "false"  # to make HF Transformers happy
@@ -606,6 +607,12 @@ class AceAttorneyDirector(Director):
             parent=self.root, name="Testimony Indicator"
         )
 
+        self.gavel_slam = GavelSlamObject(
+            parent=self.world_shaker,
+            name="Gavel Slam",
+            pos=(560, 256, 0)
+            )
+
         self.scene = Scene(width=256, height=192, root=self.root)
 
         if "on_director_initialized" in self.callbacks:
@@ -790,6 +797,8 @@ class AceAttorneyDirector(Director):
                         self.cut_to_phoenix_action()
                     elif position == "rightzoom":
                         self.cut_to_edgeworth_action()
+                    elif position == "gavel":
+                        self.cut_to_gavel()
                     current_dialogue_obj.completed = True
 
                 elif c == "pan":
@@ -838,6 +847,10 @@ class AceAttorneyDirector(Director):
 
                     current_dialogue_obj.completed = True
 
+                elif c == "gavel":
+                    self.gavel_slam.set_gavel_frame(int(action_split[1]))
+                    current_dialogue_obj.completed = True
+
                 elif c == "testimony":
                     command = action_split[1]
                     if command == "set":
@@ -865,6 +878,7 @@ class AceAttorneyDirector(Director):
                         self.testimony_indicator.make_invisible()
 
                     current_dialogue_obj.completed = True
+
                 elif c == "nop":
                     current_dialogue_obj.completed = True
 
@@ -998,6 +1012,10 @@ class AceAttorneyDirector(Director):
     def cut_to_edgeworth_action(self):
         self.world_root.set_x(0)
         self.world_root.set_y(-768)
+
+    def cut_to_gavel(self):
+        self.world_root.set_x(-560)
+        self.world_root.set_y(-256)
 
     current_music_track: Optional[dict] = None
     current_voice_blips: Optional[dict] = None
