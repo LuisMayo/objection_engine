@@ -5,6 +5,11 @@ from random import choice
 from timeit import default_timer as timer
 from os.path import join, exists
 from os import environ, getenv
+from turtle import pos
+from polyglot.text import Text
+
+from objection_engine.gavel_slam import GavelSlamObject
+from objection_engine.testimony_indicator import TestimonyIndicatorTextObject
 
 environ["TOKENIZERS_PARALLELISM"] = "false"  # to make HF Transformers happy
 
@@ -594,7 +599,19 @@ class AceAttorneyDirector(Director):
 
         self.evidence = EvidenceObject(parent=self.textbox_shaker, director=self)
 
-        self.judge_verdict = JudgeVerdictTextObject(parent=self.root, name="Judge Verdict")
+        self.judge_verdict = JudgeVerdictTextObject(
+            parent=self.root, name="Judge Verdict"
+        )
+
+        self.testimony_indicator = TestimonyIndicatorTextObject(
+            parent=self.root, name="Testimony Indicator"
+        )
+
+        self.gavel_slam = GavelSlamObject(
+            parent=self.world_shaker,
+            name="Gavel Slam",
+            pos=(560, 256, 0)
+            )
 
         self.scene = Scene(width=256, height=192, root=self.root)
 
@@ -785,6 +802,8 @@ class AceAttorneyDirector(Director):
                             self.cut_to_phoenix_action()
                         elif position == "rightzoom":
                             self.cut_to_edgeworth_action()
+                        elif position == "gavel":
+                            self.cut_to_gavel()
                         current_dialogue_obj.completed = True
 
                     elif c == "pan":
@@ -830,6 +849,38 @@ class AceAttorneyDirector(Director):
 
                         elif command == "clear":
                             self.judge_verdict.clear()
+
+                        current_dialogue_obj.completed = True
+
+                    elif c == "gavel":
+                        self.gavel_slam.set_gavel_frame(int(action_split[1]))
+                        current_dialogue_obj.completed = True
+
+                    elif c == "testimony":
+                        command = action_split[1]
+                        if command == "set":
+                            new_text = action_split[2]
+                            self.testimony_indicator.set_text(new_text)
+                        elif command == "fillcolor":
+                            if len(action_split) == 3 and action_split[2] == "default":
+                                self.testimony_indicator.set_fill_color(None)
+                            else:
+                                r = int(action_split[2])
+                                g = int(action_split[3])
+                                b = int(action_split[4])
+                                self.testimony_indicator.set_fill_color((r, g, b))
+                        elif command == "strokecolor":
+                            if len(action_split) == 3 and action_split[2] == "default":
+                                self.testimony_indicator.set_stroke_color(None)
+                            else:
+                                r = int(action_split[2])
+                                g = int(action_split[3])
+                                b = int(action_split[4])
+                                self.testimony_indicator.set_stroke_color((r, g, b))
+                        elif command == "show":
+                            self.testimony_indicator.make_visible()
+                        elif command == "hide":
+                            self.testimony_indicator.make_invisible()
 
                         current_dialogue_obj.completed = True
 
@@ -971,6 +1022,10 @@ class AceAttorneyDirector(Director):
         self.world_root.set_x(0)
         self.world_root.set_y(-768)
 
+    def cut_to_gavel(self):
+        self.world_root.set_x(-560)
+        self.world_root.set_y(-256)
+
     current_music_track: Optional[dict] = None
     current_voice_blips: Optional[dict] = None
 
@@ -1069,12 +1124,33 @@ class DialogueBoxBuilder:
         self.has_gone_to_tense_music: bool = False
         self.callbacks = {} if callbacks is None else callbacks
 
+        self._sentiment_analyzer = None
         # Hugging Face sentiment analyzer
-        self._sentiment_analyzer = pipeline(
-            "sentiment-analysis",
-            model=SENTIMENT_MODEL_PATH,
-            tokenizer=SENTIMENT_MODEL_PATH,
-        )
+        if len(getenv("oe_bypass_sentiment", "")) <= 0:
+            model_setting = getenv("oe_sentiment_model", "hf")
+            if model_setting == 'hf':
+                self._sentiment_analyzer = pipeline(
+                    "sentiment-analysis",
+                    model=SENTIMENT_MODEL_PATH,
+                    tokenizer=SENTIMENT_MODEL_PATH,
+                )
+
+    def hf_sentiment(self, text: str):
+        return self._sentiment_analyzer(text)[0]
+
+    def poly_sentiment(self, text: str):
+        poly_text = Text(text)
+        try:
+            polarity = poly_text.polarity
+        except Exception as e:
+            polarity = 0
+        if polarity > 0.35:
+            return {'label': 'positive', 'score': 1.0}
+        # If polarity is -1 there isn't enough information to determine if it's negative therefore we introduce randomness
+        if polarity < -0.35 and (polarity > -1 or random.random() > 0.25):
+            return {'label': 'negative', 'score': 1.0}
+        return {'label': 'positive', 'score': 0.0}
+
 
     def reload_character_data(self, verify_sprites: bool = False):
         self.character_data = load_character_data(verify_sprites=verify_sprites)
@@ -1378,17 +1454,20 @@ class DialogueBoxBuilder:
                 self.callbacks["on_comment_processed"](i, len(comments), comment)
 
     def get_sentiment(self, text: str):
-        return (
-            [{"label": "neutral", "score": 1.0}]
-            if (len(getenv("oe_bypass_sentiment", "")) > 0)
-            else self._sentiment_analyzer(text)
-        )
+        if len(getenv("oe_bypass_sentiment", "")) > 0:
+            return {"label": "neutral", "score": 1.0}
+        else:
+            model_setting = getenv("oe_sentiment_model", "hf")
+            if model_setting == 'hf':
+                return self.hf_sentiment(text)
+            else:
+                return self.poly_sentiment(text)
 
     def update_pose_for_sentence(
         self, sentence: Sentence, sprites: list[str], manual_score: float = 0.0
     ):
         if manual_score == 0:
-            sentiment: dict = self.get_sentiment(sentence.raw)[0]
+            sentiment: dict = self.get_sentiment(sentence.raw)
         else:
             sentiment: dict = {
                 "label": "positive" if manual_score > 0 else "negative",
@@ -1430,7 +1509,7 @@ class DialogueBoxBuilder:
 
         # Determine if this should have an objection
         if manual_score == 0:
-            text_polarity_data = self.get_sentiment(pg_text.raw)[0]
+            text_polarity_data = self.get_sentiment(pg_text.raw)
             polarity_type = text_polarity_data["label"]
             polarity_confidence = text_polarity_data["score"]
         else:
@@ -1439,7 +1518,7 @@ class DialogueBoxBuilder:
 
         do_objection = (
             (
-                polarity_type == "negative"
+                (polarity_type == "negative" and random() > 0.3)
                 or (polarity_type == "positive" and random() > 0.7)
             )
             and polarity_confidence > 0.5

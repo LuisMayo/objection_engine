@@ -1,5 +1,5 @@
 # DialogueAction Commands
-*Objection 4* allows for fine control of the way that dialogue plays out. This
+*Objection* allows for fine control of the way that dialogue plays out. This
 document describes all of the currently-supported `DialogueAction` commands.
 
 ## Character control
@@ -90,6 +90,9 @@ Immediately moves the camera to the specified `position`.
 
 See the documentation for the `sprite` command for valid `position` values.
 
+In addition to those positions, `gavel` is also a valid position to cut to
+when displaying a gavel slam animation.
+
 ### `pan <position>`
 Performs the "courtroom pan" animation from the camera's current position
 to the specified `position`. The animation takes `0.5` seconds,
@@ -102,3 +105,34 @@ See the documentation for the `sprite` command for valid `position` values.
 ## Scene flow
 ### `wait <duration>`
 Pauses execution of commands for `duration` seconds.
+
+## Judge's verdict
+
+### `verdict set <text> <color>`
+Sets the text for the verdict effect to the `text` argument. If `text` contains
+spaces, you will need to wrap it in quote marks. The `color` argument may be
+either `black` for black letters with a white stroke, or `white` for white
+letters with a black stroke.
+
+When this command is run, the text will not appear; use the `verdict show`
+command to make it appear.
+
+### `verdict show <index>`
+Causes the `index`th character in the text set by `verdict set` to appear and
+play a "slam down" animation.
+
+Note that this command is non-blocking; if you want a delay between letters
+appearing, you will need to use a `wait` command.
+
+### `verdict clear`
+Immediately removes the verdict text from the screen, and resets the internal
+string to an empty one.
+
+## Gavel slam
+### `gavel <frame>`
+Sets the frame of the gavel slam to `<frame>`. Valid frames are:
+- `0` - The gavel is not visible.
+- `1` - The bottom of the gavel is visible at the top of the screen.
+- `2` - The entire gavel is visible and touching the block.
+- `3` - The entire gavel is visible and touching the block, and there are impact
+lines around the screen.
