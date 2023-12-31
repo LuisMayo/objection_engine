@@ -223,6 +223,8 @@
     </page>
     <page>
         <music action="start" src="pwr/cross-moderato"/>
+        <testimony action="set" text="Statement"/>
+        <testimony action="show"/>
     </page>
     <page>
         <sprite position="right" src="assets/characters/edgeworth/edgeworth-document-talk.gif"/>
@@ -280,6 +282,7 @@
     </page>
     <page>
         <hidebox/>
+        <testimony action="hide"/>
         <music action="stop"/>
         <bubble type="objection" character="phoenix"/>
         <wait duration="1"/>
@@ -291,6 +294,10 @@
         <cut position="left"/>
         <showbox/>
         <evidence action="clear"/>
+
+        <testimony action="set" text="Rebuttal"/>
+        <testimony action="strokecolor" r="255"/>
+        <testimony action="show"/>
     </page>
     <page>
         <startblip gender="male"/>
@@ -549,6 +556,7 @@
         <cut position="judge"/>
         <showbox/>
         <evidence action="clear"/>
+        <testimony action="hide"/>
     </page>
     <page>
         <startblip gender="male"/>

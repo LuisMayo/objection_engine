@@ -28,7 +28,7 @@ class Handler(xml.sax.ContentHandler):
         elif name == "br":
             self.__current_page_contents.append(DialogueTextLineBreak())
         elif name == "sp":
-            self.__current_page_contents.append(DialogueTextChunk(' ', []))
+            self.__current_page_contents.append(DialogueTextChunk(" ", []))
         elif name == "startblip":
             gender = attrs_dict.get("gender", "male")
             self.__current_page_contents.append(
@@ -194,6 +194,45 @@ class Handler(xml.sax.ContentHandler):
             color = attrs_dict.get("color")
             self.__color_stack.append(color)
 
+        elif name == "testimony":
+            action = attrs_dict.get("action")
+            if action is None:
+                raise Exception("`<testimony/>` tag needs `action` attribute")
+
+            if action == "set":
+                new_text = attrs_dict.get("text")
+                if new_text is None:
+                    raise Exception(
+                        '`<testimony action="set"/>` tag needs `text` attribute'
+                    )
+                self.__current_page_contents.append(
+                    DialogueAction(f"testimony set '{new_text}'", 0)
+                )
+            elif action == "show":
+                self.__current_page_contents.append(
+                    DialogueAction(f"testimony show", 0)
+                )
+            elif action == "hide":
+                self.__current_page_contents.append(
+                    DialogueAction(f"testimony hide", 0)
+                )
+            elif action == "fillcolor":
+                r = attrs_dict.get("r", 0)
+                g = attrs_dict.get("g", 0)
+                b = attrs_dict.get("b", 0)
+                self.__current_page_contents.append(
+                    DialogueAction(f"testimony fillcolor {r} {g} {b}", 0)
+                )
+            elif action == "strokecolor":
+                r = attrs_dict.get("r", 0)
+                g = attrs_dict.get("g", 0)
+                b = attrs_dict.get("b", 0)
+                self.__current_page_contents.append(
+                    DialogueAction(f"testimony strokecolor {r} {g} {b}", 0)
+                )
+            else:
+                raise Exception(f"<testimony/> tag has unknown action '{action}'")
+
     def endElement(self, name: str):
         # print(f"endElement {name=}")
         if name == "page":
@@ -210,7 +249,7 @@ class Handler(xml.sax.ContentHandler):
         content = content.strip()
         if len(content.strip()) == 0:
             return
-        
+
         content = content.replace("!nbsp;", " ")
         tags = []
         if len(self.__color_stack) > 0:
