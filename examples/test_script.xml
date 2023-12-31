@@ -621,5 +621,18 @@
         <hidearrow/>
         <sound src="pichoop"/>
         <wait duration="1"/>
+        <cut position="gavel"/>
+    </page>
+    <page>
+        <gavel frame="0"/>
+        <wait duration="0.3"/>
+        <gavel frame="1"/>
+        <wait duration="0.04"/>
+        <gavel frame="2"/>
+        <wait duration="0.04"/>
+        <gavel frame="3"/>
+        <sound src="gavel"/>
+        <shake magnitude="3" duration="0.2"/>
+        <wait duration="1"/>
     </page>
 </conversation>

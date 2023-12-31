@@ -233,6 +233,14 @@ class Handler(xml.sax.ContentHandler):
             else:
                 raise Exception(f"<testimony/> tag has unknown action '{action}'")
 
+        elif name == "gavel":
+            frame = attrs_dict.get("frame", 0)
+            if frame is None:
+                raise Exception("`<gavel/>` needs `frame` attribute")
+            self.__current_page_contents.append(
+                DialogueAction(f'gavel {frame}', 0)
+            )
+            
     def endElement(self, name: str):
         # print(f"endElement {name=}")
         if name == "page":
