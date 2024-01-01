@@ -1139,7 +1139,7 @@ class DialogueBoxBuilder:
         if polarity > 0.35:
             return {'label': 'positive', 'score': 1.0}
         # If polarity is -1 there isn't enough information to determine if it's negative therefore we introduce randomness
-        if polarity < -0.35 and (polarity > -1 or random.random() > 0.25):
+        if polarity < -0.35 and (polarity > -1 or random() > 0.25):
             return {'label': 'negative', 'score': 1.0}
         return {'label': 'positive', 'score': 0.0}
 
