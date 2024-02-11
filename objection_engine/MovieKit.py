@@ -3,7 +3,7 @@ import ffmpeg
 from .math_helpers import lerp
 from typing import Callable, Union
 from time import time, sleep
-from os import mkdir, remove, getenv
+from os import mkdir, remove, getenv, getcwd
 from shutil import rmtree
 from pydub import AudioSegment
 import cv2
@@ -515,9 +515,9 @@ class Director:
             end_time = audio.get("end", duration_ms)
 
             # Segment with silence afterwards
-            new_segment = AudioSegment.from_file(path) + AudioSegment.silent(
-                duration=loop_delay
-            )
+            new_segment = AudioSegment.from_file(path) 
+            silence = AudioSegment.silent(duration=loop_delay)
+            new_segment = new_segment + silence
 
             # The segment should be this long
             duration_of_total_segment = int(end_time * 1000) - offset

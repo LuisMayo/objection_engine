@@ -1,0 +1,638 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<conversation>
+    <page>
+        <music action="start" src="pwr/trial"/>
+    </page>
+    <page>
+        <sprite position="judge" src="assets/characters/judge/judge-normal-talk.gif"/>
+        <nametag text="Judge"/>
+        <cut position="judge"/>
+        <showbox/>
+        <evidence action="clear"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        Court is now in session for the
+        <br/>
+        trial of<sp/><font color="red">Larry Butz</font>.
+        <sprite position="judge" src="assets/characters/judge/judge-normal-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-normal-talk.gif"/>
+        <nametag text="Phoenix"/>
+        <cut position="left"/>
+        <showbox/>
+        <evidence action="clear"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        The defense is ready,
+        <br/>
+        <stopblip/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-normal-idle.gif"/>
+        <wait duration="0.2"/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-normal-talk.gif"/>
+        <startblip gender="male"/>
+        Your Honor.
+        <sprite position="left" src="assets/characters/phoenix/phoenix-normal-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <hidebox/>
+        <pan position="right"/>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-normal-idle.gif"/>
+        <nametag text="Edgeworth"/>
+        <wait duration="0.6"/>
+    </page>
+    <page>
+        <showbox/>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-normal-talk.gif"/>
+        <startblip gender="male"/>
+        The prosecution is ready,<br/>
+        <stopblip/>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-normal-idle.gif"/>
+        <wait duration="0.2"/>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-normal-talk.gif"/>
+        <startblip gender="male"/>
+        Your Honor.
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-normal-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <sprite position="judge" src="assets/characters/judge/judge-normal-talk.gif"/>
+        <nametag text="Judge"/>
+        <cut position="judge"/>
+        <showbox/>
+        <evidence action="clear"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        Please present the charges<br/>against Mr. Butz.
+        <sprite position="judge" src="assets/characters/judge/judge-normal-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-normal-talk.gif"/>
+        <nametag text="Edgeworth"/>
+        <cut position="right"/>
+        <showbox/>
+        <evidence action="clear"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        Certainly,<sp/>
+        <stopblip/>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-normal-idle.gif"/>
+        <wait duration="0.2"/>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-normal-talk.gif"/>
+        <startblip gender="male"/>
+        Your Honor.
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-normal-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <hidebox/>
+        <pan position="left"/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-sweating-idle.gif"/>
+        <nametag text="Phoenix"/>
+        <wait duration="0.6"/>
+    </page>
+    <page>
+        <showbox/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-sweating-talk.gif"/>
+        <startblip gender="male"/>
+        Uh oh,<sp/>
+        <stopblip/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-sweating-idle.gif"/>
+        <wait duration="0.2"/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-sweating-talk.gif"/>
+        <startblip gender="male"/>
+        here we go...
+        <sprite position="left" src="assets/characters/phoenix/phoenix-sweating-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <hidebox/>
+        <pan position="center"/>
+        <sprite position="center" src="assets/characters/larry/larry-nervous-idle.gif"/>
+        <nametag text="Larry"/>
+        <wait duration="0.6"/>
+    </page>
+    <page>
+        <showbox/>
+        <sprite position="center" src="assets/characters/larry/larry-nervous-talk.gif"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        I swear, man,<sp/>
+        <sound src="smack"/>
+        <shake magnitude="4" duration="0.4"/>
+        I didn't do it!
+        <sprite position="center" src="assets/characters/larry/larry-nervous-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <showbox/>
+        <sprite position="center" src="assets/characters/larry/larry-nervous-talk.gif"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        I was<sp/>
+        <sound src="smack"/>
+        <shake magnitude="4" duration="0.4"/>
+        framed! I'm tellin' ya!
+        <sound src="smack"/>
+        <shake magnitude="4" duration="0.4"/>
+        <sprite position="center" src="assets/characters/larry/larry-nervous-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-thinking-talk.gif"/>
+        <nametag text="Edgeworth"/>
+        <cut position="right"/>
+        <showbox/>
+        <evidence action="clear"/>
+        <startblip gender="male"/>
+        Would the defendant please be<br/>quiet?
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-thinking-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <music action="start" src="pwr/cross-moderato"/>
+        <testimony action="set" text="Statement"/>
+        <testimony action="show"/>
+    </page>
+    <page>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-document-talk.gif"/>
+        <nametag text="Edgeworth"/>
+        <cut position="right"/>
+        <showbox/>
+        <evidence action="clear"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        At 9:68 AM on September 43rd,<br/>
+        <stopblip/>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-document-idle.gif"/>
+        <wait duration="0.2"/>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-document-talk.gif"/>
+        <startblip gender="male"/>
+        Mr. Butz brutally murdered<br/>
+        Linda Lorba with a knife twice.
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-document-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <sprite position="judge" src="assets/characters/judge/judge-warning-talk.gif"/>
+        <nametag text="Judge"/>
+        <cut position="judge"/>
+        <showbox/>
+        <evidence action="clear"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        Hmmm...<sp/>
+        <stopblip/>
+        <sprite position="judge" src="assets/characters/judge/judge-warning-idle.gif"/>
+        <wait duration="0.2"/>
+        <sprite position="judge" src="assets/characters/judge/judge-warning-talk.gif"/>
+        <startblip gender="male"/>
+        That does seem<br/>
+        rather incriminating.
+        <sprite position="judge" src="assets/characters/judge/judge-warning-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <hidebox/>
+        <testimony action="hide"/>
+        <music action="stop"/>
+        <bubble type="objection" character="phoenix"/>
+        <wait duration="1"/>
+        <music action="start" src="pwr/objection"/>
+    </page>
+    <page>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-pointing-talk.gif"/>
+        <nametag text="Phoenix"/>
+        <cut position="left"/>
+        <showbox/>
+        <evidence action="clear"/>
+
+        <testimony action="set" text="Rebuttal"/>
+        <testimony action="strokecolor" r="255"/>
+        <testimony action="show"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        There's a lot of<sp/>
+        <shake magnitude="4" duration="0.4"/>
+        holes in the<br/>
+        prosecution's claims!
+        <sprite position="left" src="assets/characters/phoenix/phoenix-pointing-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <sprite position="judge" src="assets/characters/judge/judge-warning-talk.gif"/>
+        <nametag text="Judge"/>
+        <cut position="judge"/>
+        <showbox/>
+        <evidence action="clear"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        Are there,<sp/>
+        <stopblip/>
+        <sprite position="judge" src="assets/characters/judge/judge-warning-idle.gif"/>
+        <wait duration="0.2"/>
+        <sprite position="judge" src="assets/characters/judge/judge-warning-talk.gif"/>
+        <startblip/>
+        Mr. Wright?
+        <sprite position="judge" src="assets/characters/judge/judge-warning-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-confident-talk.gif"/>
+        <nametag text="Edgeworth"/>
+        <cut position="right"/>
+        <showbox/>
+        <evidence action="clear"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        Please,<sp/>
+        <stopblip/>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-confident-idle.gif"/>
+        <wait duration="0.2"/>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-confident-talk.gif"/>
+        <startblip gender="male"/>
+        Mr Wright.<sp/>
+        <stopblip/>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-confident-idle.gif"/>
+        <wait duration="0.4"/>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-confident-talk.gif"/>
+        <startblip gender="male"/>
+        Show us<br/>
+        these supposed holes.
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-confident-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <hidebox/>
+        <bubble type="takethat" character="phoenix"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-document-talk.gif"/>
+        <nametag text="Phoenix"/>
+        <cut position="left"/>
+        <showbox/>
+        <evidence action="clear"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        For one thing,<sp/>
+        <stopblip/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-document-idle.gif"/>
+        <wait duration="0.2"/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-document-talk.gif"/>
+        <startblip gender="male"/>
+        there's no such<br/>
+        time as 9:68 AM.<sp/>
+        <stopblip/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-document-idle.gif"/>
+        <wait duration="0.4"/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-document-talk.gif"/>
+        <startblip gender="male"/>
+        And September<br/>
+        43rd doesn't exist either!
+        <sprite position="left" src="assets/characters/phoenix/phoenix-document-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-damage.gif"/>
+        <nametag text="Edgeworth"/>
+        <cut position="right"/>
+        <shake magnitude="5" duration="0.5"/>
+        <sound src="stab"/>
+        !!!
+        <wait duration="0.8"/>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-strained-idle.gif"/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-confident-talk.gif"/>
+        <nametag text="Phoenix"/>
+        <cut position="left"/>
+        <showbox/>
+        <evidence action="clear"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        And,<sp/>
+        <stopblip/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-confident-idle.gif"/>
+        <wait duration="0.2"/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-confident-talk.gif"/>
+        <startblip gender="male"/>
+        Mr. Edgeworth...<sp/>
+        <stopblip/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-confident-idle.gif"/>
+        <wait duration="0.3"/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-confident-talk.gif"/>
+        <startblip gender="male"/>
+        How do<br/>
+        you suppose my client<sp/>
+        <music action="start" src="pwr/press"/>
+        <flash duration="0.21"/>
+        <wait duration="0.2"/>
+        <cut position="leftzoom"/>
+        <sprite position="leftzoom" src="assets/characters/phoenix/phoenix-zoom-talk.gif"/>
+        murdered<br/>
+        Mrs. Lorba twice?
+        <flash duration="0.15"/>
+        <shake magnitude="5" duration="0.3"/>
+        <sound src="objection"/>
+        <sprite position="leftzoom" src="assets/characters/phoenix/phoenix-zoom-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-strained-talk.gif"/>
+        <nametag text="Edgeworth"/>
+        <cut position="right"/>
+        <shake magnitude="5" duration="0.5"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        Gah...
+        <stopblip/>
+        <sprite position="right" src="assets/characters/edgeworth/edgeworth-strained-idle.gif"/>
+        <shake magnitude="4" duration="0.4"/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <sprite position="judge" src="assets/characters/judge/judge-surprised-talk.gif"/>
+        <nametag text="Judge"/>
+        <cut position="judge"/>
+        <showbox/>
+        <evidence action="clear"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        Those are some very good<br/>
+        points,<sp/>
+        <stopblip/>
+        <sprite position="judge" src="assets/characters/judge/judge-surprised-idle.gif"/>
+        <wait duration="0.2"/>
+        <sprite position="judge" src="assets/characters/judge/judge-surprised-talk.gif"/>
+        <startblip gender="male"/>
+        Mr. Wright!
+        <sprite position="judge" src="assets/characters/judge/judge-surprised-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-confident-talk.gif"/>
+        <nametag text="Phoenix"/>
+        <cut position="left"/>
+        <showbox/>
+        <evidence action="clear"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        Thank you, Your Honor.<sp/>
+        <stopblip/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-confident-idle.gif"/>
+        <wait duration="0.4"/>
+        <sprite position="left" src="assets/characters/phoenix/phoenix-confident-talk.gif"/>
+        <startblip gender="male"/>
+        I rest<br/>
+        my case.
+        <sprite position="left" src="assets/characters/phoenix/phoenix-confident-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="0.3"/>
+    </page>
+    <page>
+        <music action="start" src="pwr/trial"/>
+    </page>
+    <page>
+        <sprite position="judge" src="assets/characters/judge/judge-normal-talk.gif"/>
+        <nametag text="Judge"/>
+        <cut position="judge"/>
+        <showbox/>
+        <evidence action="clear"/>
+        <testimony action="hide"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        I hereby declare the defendant,<br/>
+        <stopblip/>
+        <sprite position="judge" src="assets/characters/judge/judge-normal-idle.gif"/>
+        <wait duration="0.2"/>
+        <sprite position="judge" src="assets/characters/judge/judge-normal-talk.gif"/>
+        <startblip gender="male"/>
+        Larry Butz...
+        <sprite position="judge" src="assets/characters/judge/judge-normal-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidebox/>
+        <music action="stop"/>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="1"/>
+    </page>
+    <page>
+        <verdict action="set" text="Not Guilty" color="white"/>
+        <verdict action="show" index="0"/>
+        <verdict action="show" index="1"/>
+        <verdict action="show" index="2"/>
+        <verdict action="show" index="3"/>
+        <wait duration="0.2"/>
+        <sound src="guilty"/>
+        <shake magnitude="4" duration="0.1"/>
+        <wait duration="0.8"/>
+        <verdict action="show" index="4"/>
+        <verdict action="show" index="5"/>
+        <verdict action="show" index="6"/>
+        <verdict action="show" index="7"/>
+        <verdict action="show" index="8"/>
+        <verdict action="show" index="9"/>
+        <wait duration="0.2"/>
+        <sound src="guilty"/>
+        <shake magnitude="4" duration="0.1"/>
+        <wait duration="2"/>
+        <verdict action="clear"/>
+    </page>
+    <page>
+        <sprite position="judge" src="assets/characters/judge/judge-normal-talk.gif"/>
+        <nametag text="Judge"/>
+        <cut position="judge"/>
+        <showbox/>
+        <evidence action="clear"/>
+    </page>
+    <page>
+        <startblip gender="male"/>
+        Court is adjourned!
+        <sprite position="judge" src="assets/characters/judge/judge-normal-idle.gif"/>
+        <stopblip/>
+        <showarrow/>
+        <wait duration="2"/>
+    </page>
+    <page>
+        <hidebox/>
+        <hidearrow/>
+        <sound src="pichoop"/>
+        <wait duration="1"/>
+        <cut position="gavel"/>
+    </page>
+    <page>
+        <gavel frame="0"/>
+        <wait duration="0.3"/>
+        <gavel frame="1"/>
+        <wait duration="0.04"/>
+        <gavel frame="2"/>
+        <wait duration="0.04"/>
+        <gavel frame="3"/>
+        <sound src="gavel"/>
+        <shake magnitude="3" duration="0.2"/>
+        <wait duration="1"/>
+    </page>
+</conversation>

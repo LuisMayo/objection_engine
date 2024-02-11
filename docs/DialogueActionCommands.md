@@ -3,8 +3,8 @@
 document describes all of the currently-supported `DialogueAction` commands.
 
 ## Character control
-### `sprite <position> <path>`
-Sets the sprite at the given `position` to the file found at `path`.
+### `sprite <position> <src>`
+Sets the sprite at the given `position` to the file found at the path `src`.
 
 #### Valid positions
 The valid `position` values are:
@@ -28,8 +28,8 @@ Shows the dialogue box.
 ### `hidebox`
 Hides the dialogue box.
 
-### `nametag <name>`
-Sets the text in the nametag of the dialogue box to `name`.
+### `nametag <text>`
+Sets the text in the nametag of the dialogue box to `text`.
 
 ### `evidence <side> <path>`
 Shows or hides evidence.

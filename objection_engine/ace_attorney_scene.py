@@ -1,10 +1,9 @@
-from email.utils import localtime
 from math import exp
 from string import punctuation
 from collections import Counter
 from random import choice
 from timeit import default_timer as timer
-from os.path import join
+from os.path import join, exists
 from os import environ, getenv
 from turtle import pos
 from polyglot.text import Text
@@ -659,235 +658,244 @@ class AceAttorneyDirector(Director):
                 # Wait actions need the timer to fill up before they can be marked complete
                 action_split = split(current_dialogue_obj.name)
 
-                c = action_split[0]
-                if c == "startblip":
-                    voice_type = action_split[1]
-                    self.start_voice_blips(voice_type)
-                    current_dialogue_obj.completed = True
+                try:
+                    c = action_split[0]
+                    if c == "startblip":
+                        voice_type = action_split[1]
+                        self.start_voice_blips(voice_type)
+                        current_dialogue_obj.completed = True
 
-                elif c == "stopblip":
-                    self.end_voice_blips()
-                    current_dialogue_obj.completed = True
+                    elif c == "stopblip":
+                        self.end_voice_blips()
+                        current_dialogue_obj.completed = True
 
-                elif c == "sprite":
-                    position = action_split[1]
-                    path = action_split[2]
-                    if position == "left":
-                        self.phoenix.set_filepath(path)
-                    elif position == "right":
-                        self.edgeworth.set_filepath(path)
-                    elif position == "center":
-                        self.witness.set_filepath(path)
-                    elif position == "judge":
-                        self.judge.set_filepath(path)
-                    elif position == "leftzoom":
-                        self.phoenix_action_lines_character.set_filepath(path)
-                    elif position == "rightzoom":
-                        self.edgeworth_action_lines_character.set_filepath(path)
+                    elif c == "sprite":
+                        position = action_split[1]
+                        path = action_split[2]
+
+                        if not exists(path):
+                            print(f"Error in sprite command \"{action_split}\": sprite \"{path}\" doesn't exist")
+                        if position == "left":
+                            self.phoenix.set_filepath(path)
+                        elif position == "right":
+                            self.edgeworth.set_filepath(path)
+                        elif position == "center":
+                            self.witness.set_filepath(path)
+                        elif position == "judge":
+                            self.judge.set_filepath(path)
+                        elif position == "leftzoom":
+                            self.phoenix_action_lines_character.set_filepath(path)
+                        elif position == "rightzoom":
+                            self.edgeworth_action_lines_character.set_filepath(path)
+                        else:
+                            print(
+                                f'Error in sprite command "{action_split}": unknown position "{position}"'
+                            )
+                        current_dialogue_obj.completed = True
+
+                    elif c == "wait":
+                        duration_str = action_split[1]
+                        self.cur_time_for_char += delta
+                        if self.cur_time_for_char >= float(duration_str):
+                            current_dialogue_obj.completed = True
+                            self.cur_time_for_char = 0.0
+                        else:
+                            break
+
+                    elif c == "bubble":
+                        exclamation_type = action_split[1]
+                        character = action_split[2]
+                        self.exclamation.play_exclamation(exclamation_type, character)
+                        current_dialogue_obj.completed = True
+
+                    elif c == "deskslam":
+                        character = action_split[1]
+                        if character == "phoenix":
+                            self.play_phoenix_desk_slam()
+                        elif character == "edgeworth":
+                            self.play_edgeworth_desk_slam()
+                        current_dialogue_obj.completed = True
+
+                    elif c == "showarrow":
+                        self.textbox.arrow.visible = True
+                        current_dialogue_obj.completed = True
+
+                    elif c == "hidearrow":
+                        self.textbox.arrow.visible = False
+                        current_dialogue_obj.completed = True
+
+                    elif c == "showbox":
+                        self.textbox.show()
+                        current_dialogue_obj.completed = True
+
+                    elif c == "hidebox":
+                        self.textbox.hide()
+                        current_dialogue_obj.completed = True
+
+                    elif c == "nametag":
+                        name = action_split[1]
+                        self.textbox.namebox.set_text(name)
+                        current_dialogue_obj.completed = True
+
+                    elif c == "evidence":
+                        side = action_split[1]  # left or right or clear
+                        if side == "clear":
+                            self.evidence.hide_evidence()
+                        else:
+                            media_path = action_split[2]
+                            self.evidence.display_evidence(side, media_path)
+                        current_dialogue_obj.completed = True
+
+                    elif c == "sound":
+                        sound_path = action_split[1]
+                        self.audio_commands.append(
+                            {
+                                "type": "audio",
+                                "path": join(
+                                    ASSETS_FOLDER, "sound", f"sfx-{sound_path}.wav"
+                                ),
+                                "offset": self.time,
+                            }
+                        )
+                        current_dialogue_obj.completed = True
+
+                    elif c == "shake":
+                        magnitude_str = action_split[1]
+                        duration_str = action_split[2]
+
+                        magnitude = float(magnitude_str)
+                        duration = float(duration_str)
+                        self.world_shaker.start_shaking(magnitude, duration)
+                        self.textbox_shaker.start_shaking(magnitude, duration)
+                        current_dialogue_obj.completed = True
+
+                    elif c == "flash":
+                        duration_str = action_split[1]
+
+                        duration = float(duration_str)
+                        self.white_flash.start_color((255, 255, 255), duration)
+                        current_dialogue_obj.completed = True
+
+                    elif c == "music":
+                        music_command = action_split[1]
+
+                        if music_command == "start":
+                            track_name = action_split[2]
+                            self.start_music_track(track_name)
+                        elif music_command == "stop":
+                            self.end_music_track()
+                        else:
+                            print(f"ERROR for command \"{current_dialogue_obj.name}\" - second argument should be \"start\" or \"stop\"")
+                        current_dialogue_obj.completed = True
+
+                    elif c == "cut":
+                        position = action_split[1]
+                        if position == "left":
+                            self.cut_to_left()
+                        elif position == "right":
+                            self.cut_to_right()
+                        elif position == "center":
+                            self.cut_to_center()
+                        elif position == "judge":
+                            self.cut_to_judge()
+                        elif position == "leftzoom":
+                            self.cut_to_phoenix_action()
+                        elif position == "rightzoom":
+                            self.cut_to_edgeworth_action()
+                        elif position == "gavel":
+                            self.cut_to_gavel()
+                        current_dialogue_obj.completed = True
+
+                    elif c == "pan":
+                        position = action_split[1]
+                        if position == "left":
+                            self.pan_to_left()
+                        elif position == "right":
+                            self.pan_to_right()
+                        elif position == "center":
+                            self.pan_to_center()
+                        current_dialogue_obj.completed = True
+
+                    elif c == "show":
+                        position = action_split[1]
+                        if position == "left":
+                            self.left_bench.visible = True
+                        elif position == "right":
+                            self.right_bench.visible = True
+                        elif position == "center":
+                            self.witness_stand.visible = True
+                        current_dialogue_obj.completed = True
+
+                    elif c == "hide":
+                        position = action_split[1]
+                        if position == "left":
+                            self.left_bench.visible = False
+                        elif position == "right":
+                            self.right_bench.visible = False
+                        elif position == "center":
+                            self.witness_stand.visible = False
+                        current_dialogue_obj.completed = True
+
+                    elif c == "verdict":
+                        command = action_split[1]
+                        if command == "set":
+                            new_text = action_split[2]
+                            text_color = action_split[3]
+                            self.judge_verdict.set_text(new_text, text_color)
+
+                        elif command == "show":
+                            index = int(action_split[2])
+                            self.judge_verdict.show_index(index)
+
+                        elif command == "clear":
+                            self.judge_verdict.clear()
+
+                        current_dialogue_obj.completed = True
+
+                    elif c == "gavel":
+                        self.gavel_slam.set_gavel_frame(int(action_split[1]))
+                        current_dialogue_obj.completed = True
+
+                    elif c == "testimony":
+                        command = action_split[1]
+                        if command == "set":
+                            new_text = action_split[2]
+                            self.testimony_indicator.set_text(new_text)
+                        elif command == "fillcolor":
+                            if len(action_split) == 3 and action_split[2] == "default":
+                                self.testimony_indicator.set_fill_color(None)
+                            else:
+                                r = int(action_split[2])
+                                g = int(action_split[3])
+                                b = int(action_split[4])
+                                self.testimony_indicator.set_fill_color((r, g, b))
+                        elif command == "strokecolor":
+                            if len(action_split) == 3 and action_split[2] == "default":
+                                self.testimony_indicator.set_stroke_color(None)
+                            else:
+                                r = int(action_split[2])
+                                g = int(action_split[3])
+                                b = int(action_split[4])
+                                self.testimony_indicator.set_stroke_color((r, g, b))
+                        elif command == "show":
+                            self.testimony_indicator.make_visible()
+                        elif command == "hide":
+                            self.testimony_indicator.make_invisible()
+
+                        current_dialogue_obj.completed = True
+
+                    elif c == "nop":
+                        current_dialogue_obj.completed = True
+
                     else:
                         print(
-                            f'Error in sprite command "{action_split}": unknown position "{position}"'
+                            f'ERROR - Unknown action encountered: "{current_dialogue_obj.name}"'
                         )
-                    current_dialogue_obj.completed = True
-
-                elif c == "wait":
-                    duration_str = action_split[1]
-                    self.cur_time_for_char += delta
-                    if self.cur_time_for_char >= float(duration_str):
                         current_dialogue_obj.completed = True
-                        self.cur_time_for_char = 0.0
-                    else:
-                        break
-
-                elif c == "bubble":
-                    exclamation_type = action_split[1]
-                    character = action_split[2]
-                    self.exclamation.play_exclamation(exclamation_type, character)
+                except Exception as e:
+                    print(f"ERROR for command \"{current_dialogue_obj.name}\" - {repr(e)}")
                     current_dialogue_obj.completed = True
 
-                elif c == "deskslam":
-                    character = action_split[1]
-                    if character == "phoenix":
-                        self.play_phoenix_desk_slam()
-                    elif character == "edgeworth":
-                        self.play_edgeworth_desk_slam()
-                    current_dialogue_obj.completed = True
-
-                elif c == "showarrow":
-                    self.textbox.arrow.visible = True
-                    current_dialogue_obj.completed = True
-
-                elif c == "hidearrow":
-                    self.textbox.arrow.visible = False
-                    current_dialogue_obj.completed = True
-
-                elif c == "showbox":
-                    self.textbox.show()
-                    current_dialogue_obj.completed = True
-
-                elif c == "hidebox":
-                    self.textbox.hide()
-                    current_dialogue_obj.completed = True
-
-                elif c == "nametag":
-                    name = action_split[1]
-                    self.textbox.namebox.set_text(name)
-                    current_dialogue_obj.completed = True
-
-                elif c == "evidence":
-                    side = action_split[1]  # left or right or clear
-                    if side == "clear":
-                        self.evidence.hide_evidence()
-                    else:
-                        media_path = action_split[2]
-                        self.evidence.display_evidence(side, media_path)
-                    current_dialogue_obj.completed = True
-
-                elif c == "sound":
-                    sound_path = action_split[1]
-                    self.audio_commands.append(
-                        {
-                            "type": "audio",
-                            "path": join(
-                                ASSETS_FOLDER, "sound", f"sfx-{sound_path}.wav"
-                            ),
-                            "offset": self.time,
-                        }
-                    )
-                    current_dialogue_obj.completed = True
-
-                elif c == "shake":
-                    magnitude_str = action_split[1]
-                    duration_str = action_split[2]
-
-                    magnitude = float(magnitude_str)
-                    duration = float(duration_str)
-                    self.world_shaker.start_shaking(magnitude, duration)
-                    self.textbox_shaker.start_shaking(magnitude, duration)
-                    current_dialogue_obj.completed = True
-
-                elif c == "flash":
-                    duration_str = action_split[1]
-
-                    duration = float(duration_str)
-                    self.white_flash.start_color((255, 255, 255), duration)
-                    current_dialogue_obj.completed = True
-
-                elif c == "music":
-                    music_command = action_split[1]
-
-                    if music_command == "start":
-                        track_name = action_split[2]
-                        self.start_music_track(track_name)
-                        current_dialogue_obj.completed = True
-                    elif music_command == "stop":
-                        self.end_music_track()
-                        current_dialogue_obj.completed = True
-
-                elif c == "cut":
-                    position = action_split[1]
-                    if position == "left":
-                        self.cut_to_left()
-                    elif position == "right":
-                        self.cut_to_right()
-                    elif position == "center":
-                        self.cut_to_center()
-                    elif position == "judge":
-                        self.cut_to_judge()
-                    elif position == "leftzoom":
-                        self.cut_to_phoenix_action()
-                    elif position == "rightzoom":
-                        self.cut_to_edgeworth_action()
-                    elif position == "gavel":
-                        self.cut_to_gavel()
-                    current_dialogue_obj.completed = True
-
-                elif c == "pan":
-                    position = action_split[1]
-                    if position == "left":
-                        self.pan_to_left()
-                    elif position == "right":
-                        self.pan_to_right()
-                    elif position == "center":
-                        self.pan_to_center()
-                    current_dialogue_obj.completed = True
-
-                elif c == "show":
-                    position = action_split[1]
-                    if position == "left":
-                        self.left_bench.visible = True
-                    elif position == "right":
-                        self.right_bench.visible = True
-                    elif position == "center":
-                        self.witness_stand.visible = True
-                    current_dialogue_obj.completed = True
-
-                elif c == "hide":
-                    position = action_split[1]
-                    if position == "left":
-                        self.left_bench.visible = False
-                    elif position == "right":
-                        self.right_bench.visible = False
-                    elif position == "center":
-                        self.witness_stand.visible = False
-                    current_dialogue_obj.completed = True
-
-                elif c == "verdict":
-                    command = action_split[1]
-                    if command == "set":
-                        new_text = action_split[2]
-                        text_color = action_split[3]
-                        self.judge_verdict.set_text(new_text, text_color)
-
-                    elif command == "show":
-                        index = int(action_split[2])
-                        self.judge_verdict.show_index(index)
-
-                    elif command == "clear":
-                        self.judge_verdict.clear()
-
-                    current_dialogue_obj.completed = True
-
-                elif c == "gavel":
-                    self.gavel_slam.set_gavel_frame(int(action_split[1]))
-                    current_dialogue_obj.completed = True
-
-                elif c == "testimony":
-                    command = action_split[1]
-                    if command == "set":
-                        new_text = action_split[2]
-                        self.testimony_indicator.set_text(new_text)
-                    elif command == "fillcolor":
-                        if len(action_split) == 3 and action_split[2] == "default":
-                            self.testimony_indicator.set_fill_color(None)
-                        else:
-                            r = int(action_split[2])
-                            g = int(action_split[3])
-                            b = int(action_split[4])
-                            self.testimony_indicator.set_fill_color((r, g, b))
-                    elif command == "strokecolor":
-                        if len(action_split) == 3 and action_split[2] == "default":
-                            self.testimony_indicator.set_stroke_color(None)
-                        else:
-                            r = int(action_split[2])
-                            g = int(action_split[3])
-                            b = int(action_split[4])
-                            self.testimony_indicator.set_stroke_color((r, g, b))
-                    elif command == "show":
-                        self.testimony_indicator.make_visible()
-                    elif command == "hide":
-                        self.testimony_indicator.make_invisible()
-
-                    current_dialogue_obj.completed = True
-
-                elif c == "nop":
-                    current_dialogue_obj.completed = True
-
-                else:
-                    print(
-                        f'ERROR - Unknown action encountered: "{current_dialogue_obj.name}"'
-                    )
-                    current_dialogue_obj.completed = True
 
             elif isinstance(current_dialogue_obj, DialogueTextLineBreak):
                 # Does anything need to be done here? I think this can be handled

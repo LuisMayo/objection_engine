@@ -31,6 +31,7 @@ morfessor = "^2.0.6"
 transformers = "^4.25.1"
 torch = "^1.13.1"
 sentencepiece = "^0.1.97"
+lxml = "^4.9.3"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^23.1a1", allow-prereleases = true}
